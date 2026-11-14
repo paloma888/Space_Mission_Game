@@ -247,12 +247,25 @@ export function card(html) {
 
 // ---------- Sound. Starts muted until the first click, because browsers block autoplay.
 
+const MUTE_STORAGE_KEY = 'launchTrail.muted';
+
+// Storage can throw (private windows, blocked site data), so the game just forgets the setting then.
+function readSavedMute() {
+  try { return localStorage.getItem(MUTE_STORAGE_KEY) === 'true'; } catch { return false; }
+}
+function saveMute(value) {
+  try { localStorage.setItem(MUTE_STORAGE_KEY, String(value)); } catch { /* not saved, still works */ }
+}
+
 let unlocked = false;
-let muted = false;
+let muted = readSavedMute();
 let currentMusic = null;
 let wantedMusic = null;
 
-function unlock() {
+// Lets sound play. Runs on the first click or key press anywhere; the title's Press Start
+// button may also call it directly. Calling it twice is harmless.
+export function unlock() {
+  if (unlocked) return;
   unlocked = true;
   if (wantedMusic) music(wantedMusic);
 }
@@ -275,7 +288,8 @@ export function music(name) {
 }
 
 export function setMuted(value) {
-  muted = value;
+  muted = Boolean(value);
+  saveMute(muted);
   if (muted && currentMusic) currentMusic.pause();
   if (!muted && wantedMusic) music(wantedMusic);
 }
