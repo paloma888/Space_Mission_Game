@@ -64,6 +64,8 @@ export function createState() {
     outcome: null, stages: [], emergencies: [], score: null,
     // plumbing (Person 1)
     checkpoints: {}, resume: null,
+    // Person 1 only: typed in the briefing, read by Person 5 for the mission patch.
+    agencyName: 'Pioneer Space Agency',
   };
 }
 
