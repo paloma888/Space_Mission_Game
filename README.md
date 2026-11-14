@@ -33,7 +33,7 @@ Open `slices/<name>/test.html` with Live Server. Add `?preset=<name>&seed=123` t
 
 ## Live game
 
-URL: TODO, add once Azure Static Web Apps is connected.
+URL: (https://gray-cliff-0754f071e.4.azurestaticapps.net/)
 
 ## Credits
 
