@@ -280,7 +280,9 @@ export async function runEvent(state, event) {
 
   const speaker = resolveSpeaker(state, event.speaker);
   // The flavor line is in the written speaker's own voice, so Rosa never says it for them.
-  if (event.flavor && speaker.own) await ui.say(speaker.id, event.flavor);
+  // For 'crew' events it is a map of astronaut id to line, since any of them may speak.
+  const flavor = typeof event.flavor === 'object' ? event.flavor?.[speaker.id] : event.flavor;
+  if (flavor && speaker.own) await ui.say(speaker.id, flavor);
 
   const choices = event.choices.map((c) => {
     const why = requirementWhy(state, c.requires);

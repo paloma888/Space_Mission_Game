@@ -1,0 +1,40 @@
+/* Slice 3 screens. Colors come only from the palette names in core/base.css. */
+
+.trail {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 24px;
+  align-content: start;
+}
+.trail .panel { margin-bottom: 0; }
+
+/* One row per staff member: portrait, who they are, five task buttons. */
+.trail-row {
+  display: grid;
+  grid-template-columns: 64px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.trail-who { font-size: var(--small); line-height: 1.6; }
+.trail-who .bar { width: 120px; height: 20px; margin-top: 4px; }
+
+.task-btn {
+  font-size: var(--small);
+  padding: 8px;
+  margin: 0 4px 0 0;
+}
+.task-btn.task-on { background: var(--accent); outline: 4px solid var(--bg); }
+
+.trail-tip { min-height: 3.2em; margin: 12px 0 0; }
+
+/* Right side: progress bars with this week's preview under each. */
+.trail-progress { margin-bottom: 16px; }
+.trail-progress .small { margin: 6px 0 0; }
+/* steps() keeps the fill moving in chunky pixel jumps instead of a smooth slide. */
+.trail .bar-fill { transition: width 0.8s steps(8); }
+
+.trail-totals { font-size: var(--small); line-height: 2; margin: 0 0 8px; }
+
+.trail-summary { grid-column: 1 / -1; }
+.trail-summary ul { margin: 0 0 16px; padding-left: 24px; line-height: 2; }

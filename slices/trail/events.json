@@ -72,5 +72,247 @@
       { "label": "Fix it now", "effects": { "day": 2, "reliability": 0.02 }, "result": "Two days of careful work. The bug is gone and tested." },
       { "label": "Patch it later", "effects": { "reliability": -0.03, "flags": ["software_bug_open"] }, "result": "The bug goes on a to-do list. The list is getting long." }
     ]
+  },
+  {
+    "id": "supplier_bankrupt",
+    "weeks": [2, 5],
+    "weight": 1,
+    "when": {},
+    "speaker": "marty",
+    "flavor": "They went bust while I was on hold, boss! I'm STILL on hold! Don't panic.",
+    "title": "The valve supplier goes bust",
+    "text": "The company that makes our valves just went out of business. Their last email was only a sad face.",
+    "choices": [
+      { "label": "Pay a premium supplier", "effects": { "budget": -30 }, "result": "The fancy valves arrive in a velvet-lined crate. They cost like it, too." },
+      { "label": "Switch to the backup supplier", "requires": "logistics", "effects": { "day": 3 }, "result": "The backup supplier is slow but real. Three days later: valves." },
+      { "label": "Wait for the bankruptcy sale", "effects": { "day": 10 }, "result": "Ten days later you win the valves at auction. Also, by accident, a forklift." }
+    ]
+  },
+  {
+    "id": "wrong_units",
+    "weeks": [2, 4],
+    "weight": 1,
+    "when": { "budgetTiersAtLeast": 2 },
+    "speaker": "hal",
+    "flavor": "Inches. Millimeters. Pick one. I've seen this movie before.",
+    "title": "Inches or millimeters?",
+    "text": "A contractor sent part sizes in inches. Our plans use millimeters. Nobody is sure which numbers got mixed.",
+    "choices": [
+      { "label": "Audit every hand-off", "effects": { "budget": -5, "day": 2, "reliability": 0.02 }, "result": "Two days of rulers and red pens. Three mix-ups found and fixed." },
+      { "label": "Trust the paperwork", "outcomes": [
+        { "p": 0.5, "effects": {}, "result": "Everything fits. This time, the paperwork was right." },
+        { "p": 0.5, "effects": { "reliability": -0.06, "morale": -5, "flags": ["wrong_units"] }, "result": "A bracket shows up 25 times too big. It is now the break room table." }
+      ] }
+    ]
+  },
+  {
+    "id": "reused_software",
+    "weeks": [2, 5],
+    "weight": 1,
+    "when": { "rocketIn": ["condor_reflown"] },
+    "boost": [ { "when": { "rocketIn": ["condor_reflown"] }, "mult": 3 } ],
+    "guarantee": { "byWeek": 4 },
+    "speaker": "hal",
+    "flavor": "Old code. New flight. I've seen this movie before. Bad sequel.",
+    "scene": "trail/workshop",
+    "title": "The old software still runs",
+    "text": "The reused booster still has its old guidance software. It worked on the last rocket. Do we test it again?",
+    "choices": [
+      { "label": "Retest it in the simulator", "effects": { "progress": { "testing": 15 }, "day": 3, "budget": -5 }, "result": "The simulator runs it all night and it passes. Three days well spent." },
+      { "label": "Skip the retest", "effects": { "reliability": -0.05, "flags": ["reused_software"] }, "result": "You save three days. The old software hums along, untested." }
+    ]
+  },
+  {
+    "id": "frost_on_the_pad",
+    "weeks": [1, 4],
+    "weight": 1,
+    "when": { "siteIn": ["kodiak", "wallops"] },
+    "guarantee": { "byWeek": 3 },
+    "speaker": "hal",
+    "flavor": "Pad's frozen. My coffee froze too. Don't ask how I know.",
+    "title": "Frost on the launch pad",
+    "text": "The launch pad was white with frost this morning. Cold makes rubber seals stiff, and stiff seals can leak.",
+    "choices": [
+      { "label": "Install pad heaters", "effects": { "budget": -12, "flags": ["heaters_installed"] }, "result": "Heaters go in. The pad is now the warmest spot in town. The birds have noticed." },
+      { "label": "Hope for warm days", "effects": { "flags": ["cold_site"] }, "result": "You bet on sunshine. The frost makes no promises." }
+    ]
+  },
+  {
+    "id": "staff_wants_raise",
+    "weeks": [2, 5],
+    "weight": 1,
+    "when": { "moraleBelow": 50 },
+    "speaker": "marty",
+    "flavor": "Three people in my office, boss. One brought a pie chart. Okay, panic a little.",
+    "title": "The team asks for a raise",
+    "text": "The team is tired and asks for a raise. One of them made a chart. The chart is very convincing.",
+    "choices": [
+      { "label": "Give raises", "effects": { "budget": -15, "morale": 12 }, "result": "Raises all around. Someone frames the chart." },
+      { "label": "Hold the line", "outcomes": [
+        { "p": 0.6, "effects": { "morale": -8 }, "result": "The team grumbles and gets back to work. The chart stays on the wall, staring." },
+        { "p": 0.4, "effects": { "loseStaff": "any" }, "result": "One person packs a box and leaves. They take the good stapler." }
+      ] }
+    ]
+  },
+  {
+    "id": "rival_rush",
+    "weeks": [3, 5],
+    "weight": 1,
+    "when": {},
+    "speaker": "rosa",
+    "flavor": "A road trip is not a race. The car that speeds is the one that gets the ticket.",
+    "title": "Zenith moves up its launch",
+    "text": "Zenith Aerospace says it will launch early. Their press release has four exclamation marks.",
+    "choices": [
+      { "label": "Crunch time", "effects": { "progress": { "build": 12 }, "morale": -8, "reliability": -0.02, "flags": ["rival_rush"] }, "result": "Late nights, cold pizza, fast work. The build jumps ahead. So do the yawns." },
+      { "label": "Stay the course", "effects": { "morale": 3 }, "result": "You stick to the plan. The whole team breathes out." }
+    ]
+  },
+  {
+    "id": "donor_gift",
+    "weeks": [1, 5],
+    "weight": 1,
+    "when": {},
+    "boost": [ { "when": { "staffHas": "pr" }, "mult": 2 } ],
+    "speaker": "tasha",
+    "flavor": "A mystery donor who loves rockets! 'Tiny Agency, Giant Heart.' That's a headline!",
+    "title": "A donor calls",
+    "text": "A rich fan of spaceflight wants to give money. They only ask to name one bolt after their cat.",
+    "choices": [
+      { "label": "Accept quietly", "effects": { "budget": 30 }, "result": "The money lands. One bolt is now named Mr. Whiskers." },
+      { "label": "Accept and hold a public event", "effects": { "budget": 45, "day": 1, "morale": 3 }, "result": "A day of speeches and tiny sandwiches. Mr. Whiskers the bolt gets applause." }
+    ]
+  },
+  {
+    "id": "team_pizza",
+    "weeks": [1, 5],
+    "weight": 1,
+    "when": { "moraleBelow": 60 },
+    "speaker": "rosa",
+    "flavor": "Even a good stew needs time off the heat. So do people.",
+    "title": "The team looks worn out",
+    "text": "The team is running on coffee and stubbornness. Someone fell asleep on a blueprint.",
+    "choices": [
+      { "label": "Pizza night", "effects": { "budget": -3, "morale": 10 }, "result": "Pizza for everyone. The pineapple debate lasts two hours. Spirits soar." },
+      { "label": "Keep working", "effects": { "morale": -3, "progress": { "build": 4 } }, "result": "Work goes on. The blueprint now has a small drool mark." }
+    ]
+  },
+  {
+    "id": "crew_extra_training",
+    "weeks": [2, 5],
+    "weight": 1,
+    "when": {},
+    "speaker": "crew",
+    "flavor": {
+      "amara": "One more sim run. I already know it all. Easy. But one more.",
+      "jun": "Technically, the simulator and I are not done talking.",
+      "lucia": "I would like more sim time. Breathe. Then decide. I decided.",
+      "dmitri": "In my day, we trained until the simulator begged for mercy.",
+      "priya": "Sorry, quick question. Could I maybe have forty more hours in the sim?",
+      "sam": "More sim time, boss? I promise to crash it only twice.",
+      "zainab": "The last run was nearly perfect. One more check. Maybe nine.",
+      "mateo": "Can we do the sim again? I forgot the middle part. Wait, did we do that?"
+    },
+    "title": "More simulator time",
+    "text": "The crew asks for extra time in the flight simulator. It costs a little money and a day.",
+    "choices": [
+      { "label": "Approve it", "effects": { "progress": { "training": 15 }, "day": 1, "budget": -5 }, "result": "A long day in the simulator. The crew comes out sharper and very hungry." },
+      { "label": "Decline", "effects": { "morale": -2 }, "result": "The simulator stays dark. The crew practices in their heads instead." }
+    ]
+  },
+  {
+    "id": "kourou_delay",
+    "weeks": [1, 3],
+    "weight": 1,
+    "when": { "siteIn": ["kourou"] },
+    "guarantee": { "byWeek": 3 },
+    "speaker": "marty",
+    "flavor": "The captain says 'soon,' boss. Soon! That is not a time! Don't panic.",
+    "title": "Parts stuck at sea",
+    "text": "Parts for the faraway launch site are late. The cargo ship is somewhere in the ocean, going slowly.",
+    "choices": [
+      { "label": "Pay for air freight", "effects": { "budget": -25 }, "result": "The parts fly first class. They arrive rested and on time." },
+      { "label": "Wait for the ship", "effects": { "day": 4 }, "result": "Four days later the ship drifts in. The captain waves like nothing happened." },
+      { "label": "Pre-clear customs", "requires": "logistics", "effects": { "day": 1 }, "result": "The paperwork is done before the ship docks. The parts roll right through." }
+    ]
+  },
+  {
+    "id": "cost_review",
+    "weeks": [3, 5],
+    "weight": 1,
+    "when": { "budgetBelow": 250 },
+    "speaker": "rosa",
+    "flavor": "A budget is like a grocery list. It only works if you read it at the store.",
+    "title": "Money is draining fast",
+    "text": "The money is going faster than planned. Nobody can explain the line that says 'misc. rocket stuff.'",
+    "choices": [
+      { "label": "Do a cost review", "effects": { "day": 2, "budget": 15, "morale": -2 }, "result": "Two dull days with a calculator. You find $15M hiding in the budget." },
+      { "label": "Ignore it", "effects": { "flags": ["cost_overrun"], "morale": -2 }, "result": "The spreadsheet stays closed. It grows quietly in the dark." }
+    ]
+  },
+  {
+    "id": "heat_wave_power",
+    "weeks": [2, 5],
+    "weight": 1,
+    "when": {},
+    "speaker": "hal",
+    "flavor": "No power. No fans. Seen this movie before. It was a sweaty one.",
+    "title": "The power goes out",
+    "text": "A heat wave knocked out power to the workshop. The tools are off and the ice cream is in danger.",
+    "choices": [
+      { "label": "Rent generators", "effects": { "budget": -8 }, "result": "The generators roar to life. The tools work. The ice cream is saved." },
+      { "label": "Work nights", "effects": { "morale": -6 }, "result": "The team works after dark when it is cooler. Everyone is sleepy and a bit cranky." }
+    ]
+  },
+  {
+    "id": "press_day",
+    "weeks": [3, 5],
+    "weight": 1,
+    "when": {},
+    "boost": [ { "when": { "staffHas": "pr" }, "mult": 2 } ],
+    "speaker": "tasha",
+    "flavor": "A reporter! Cameras! 'Little Agency, Big Dreams.' That's a headline!",
+    "title": "A reporter wants a tour",
+    "text": "A reporter wants to visit the workshop. Someone should hide the whiteboard that says 'DO NOT EXPLODE.'",
+    "choices": [
+      { "label": "Do the interviews", "effects": { "budget": 10, "morale": 5, "day": 1 }, "result": "The story runs with a great photo. Donations come in. The whiteboard is in the shot." },
+      { "label": "Politely decline", "effects": {}, "result": "You send a kind no. The whiteboard stays a secret." }
+    ]
+  },
+  {
+    "id": "astronaut_jitters",
+    "weeks": [4, 5],
+    "weight": 1,
+    "when": {},
+    "speaker": "crew_jittery",
+    "flavor": {
+      "amara": "I'm fine. Easy. I only checked my helmet six times.",
+      "jun": "Technically, my hands are not shaking. The table is.",
+      "lucia": "Breathe. Then decide. I keep getting stuck on the breathe part.",
+      "dmitri": "In my day, we did not get nervous. We got quiet. I am very quiet.",
+      "priya": "Sorry, quick question. Is it normal to dream about countdowns?",
+      "sam": "Roger that, boss. Totally calm. Why is my coffee vibrating?",
+      "zainab": "One more check. And one more after that. I can't seem to stop.",
+      "mateo": "I keep thinking I forgot something. Wait, did we do that? Did I?"
+    },
+    "title": "Launch nerves",
+    "text": "Launch is close and nerves are showing. Even the calmest people are a little jumpy this week.",
+    "choices": [
+      { "label": "Arrange a talk with Rosa", "effects": { "morale": 4, "day": 1 }, "result": "A long talk and a cup of tea. Nerves are normal, and now everyone knows it." },
+      { "label": "Push on", "effects": { "reliability": -0.01 }, "result": "Training goes on. The worry comes along for the ride." }
+    ]
+  },
+  {
+    "id": "lucky_break",
+    "weeks": [1, 5],
+    "weight": 0.3,
+    "when": {},
+    "speaker": "marty",
+    "flavor": "Free parts, boss! They said keep them! Nobody panic. Nobody call them back, either.",
+    "title": "A lucky mistake",
+    "text": "A supplier sent bonus parts by mistake and says to keep them. Shipping them back would cost more.",
+    "choices": [
+      { "label": "Take the free parts", "effects": { "budget": 15 }, "result": "You sell the spares for a tidy sum. Sometimes luck just shows up." }
+    ]
   }
 ]
