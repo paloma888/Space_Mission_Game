@@ -38,3 +38,33 @@
 
 .trail-summary { grid-column: 1 / -1; }
 .trail-summary ul { margin: 0 0 16px; padding-left: 24px; line-height: 2; }
+
+/* Zenith's bar sits under the Build bar: smaller, and in the rival's color. */
+.trail-rival { margin: -8px 0 16px; }
+.trail-rival .bar { height: 20px; }
+.trail-rival .bar-fill { background: var(--danger); }
+
+/* Rival news ticker. 24px tall, so it fits in the gap under the dialogue box. */
+.rival-ticker {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 24px;
+  overflow: hidden;
+  white-space: nowrap;
+  background: var(--bg);
+  color: var(--accent);
+  font-size: var(--small);
+  line-height: 24px;
+  z-index: 15;
+}
+/* The 1280px of padding starts the text just off the right edge. Sliding the
+   whole thing left by its own width carries the text across and out the other side. */
+.rival-ticker-text {
+  display: inline-block;
+  padding-left: 1280px;
+  animation: rival-scroll 18s linear infinite;
+}
+@keyframes rival-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}

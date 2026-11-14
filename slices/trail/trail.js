@@ -3,12 +3,15 @@
 // Slice 3 brief section 3). Each week: header, assign staff, resolve, one
 // event, summary. The math lives in week.js and the numbers in tasks.json.
 //
-// Still to come: the rival ticker and the moving marker on the trail map.
+// The rival ticker lives in rival.js.
+//
+// Still to come: the moving marker on the trail map.
 
 import * as ui from '../../core/ui.js';
 import { checkEnd } from '../../core/state.js';
 import { applyEffects, describeChanges, loadAllEvents, pickEvent, runEvent } from '../../core/events.js';
 import { TASK_IDS, PROGRESS_IDS, planWeek, projectWeek, resolveWeek, sumChanges } from './week.js';
+import { loadRival, mountTicker, rivalPercent } from './rival.js';
 
 export const meta = { id: 'trail', owner: 'Person 3' };
 
@@ -23,6 +26,9 @@ document.head.append(css);
 
 // Rosa explains skipped testing once per game, not every week.
 let warnedAboutTesting = false;
+
+// Zenith's progress this week (0 to 100), or null when rival.json is missing.
+let zenithPercent = null;
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -44,6 +50,12 @@ function progressBars(state) {
     wrap.append(bar, note);
     box.append(wrap);
     parts[id] = { bar, note };
+    // The rival's bar goes right under Build so the player can compare the two at a glance.
+    if (id === 'build' && zenithPercent !== null) {
+      const rival = el('div', 'trail-rival');
+      rival.append(ui.bar(zenithPercent, 100, `Zenith ${zenithPercent}`));
+      box.append(rival);
+    }
   }
   return { box, parts };
 }
@@ -141,15 +153,22 @@ function summaryScreen(state, changes, week, isLast) {
 }
 
 export async function show(state, done) {
-  const [tasks] = await Promise.all([
+  const [tasks, bulletins] = await Promise.all([
     fetch(new URL('./tasks.json', import.meta.url)).then((res) => res.json()),
+    loadRival(),
     loadAllEvents(),
   ]);
   ui.music('build_loop');
 
+  const ticker = mountTicker(bulletins);
+  // Whatever way the trail ends, the ticker must not follow the player into the next slice.
+  const finish = (next) => { ticker.remove(); done(next); };
+
   // Start from state.week so presets like midTrail pick up in the middle.
   for (let week = state.week; week <= LAST_WEEK; week++) {
     state.week = week;
+    zenithPercent = rivalPercent(bulletins, week);
+    ticker.setWeek(week);
 
     // A. Week header
     ui.screen('trail/trail_map');
@@ -174,14 +193,14 @@ export async function show(state, done) {
       await ui.say('rosa', 'Nobody tested this week. Small flaws hide when no one looks. Measure twice, launch once.');
     }
     // Overhead may push the budget to 0 or below (Rulebook 6.2).
-    if (checkEnd(state)) return done('finale');
+    if (checkEnd(state)) return finish('finale');
 
     // D. Event
     const event = pickEvent(state, week);
     if (event) {
       const played = await runEvent(state, event);
       weekChanges.push(...played.changes);
-      if (played.ended) return done('finale');
+      if (played.ended) return finish('finale');
     }
 
     // E. Summary, then time moves on
@@ -189,9 +208,9 @@ export async function show(state, done) {
     const isLast = week === LAST_WEEK || state.day + 7 >= state.windowOpens;
     await summaryScreen(state, weekChanges, week, isLast);
     applyEffects(state, { day: 7 });
-    if (checkEnd(state)) return done('finale');
+    if (checkEnd(state)) return finish('finale');
     if (isLast) break;
   }
 
-  done();
+  finish();
 }

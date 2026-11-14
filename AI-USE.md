@@ -19,6 +19,7 @@ Example:
 - Sat: Claude Code created `slices/trail/tasks.json` from the numbers in the Slice 3 brief.
 - Sat: Claude Code wrote `loadAllEvents`, `pickEvent`, `runEvent` and `describeChanges` in `core/events.js`, and a first events-only weekly loop in `trail.js`.
 - Sat: Claude Code wrote the staff assignment screen, the weekly resolve math (`week.js`), the week summary and `trail.css`, and checked them against the brief's test cases and a headless-browser playthrough.
+- Sat: Claude Code wrote the Zenith rival ticker (`rival.js`), the Zenith progress bar and drafted the 10 bulletins in `rival.json`.
 - Sat: Claude Code drafted the other 15 events in `events.json` with humor in each character's voice, including one flavor line per astronaut for the two crew events. I asked for the quirky tone.
 - Sat: Claude Code drafted the first five events in `slices/trail/events.json` (text, flavor lines, choices and results) from the roster in the Slice 3 brief.
 
