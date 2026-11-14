@@ -211,6 +211,7 @@ const PRESETS = {
     const s = launched();
     s.site = 'kodiak';
     s.launchWeather = { risk: 40, tempF: 28, kind: 'cold' };
+    s.weatherPenalty = 0.225; // a freezing launch costs far more than launched's clear-sky 0.05
     s.overrulePenalty = 0.06;
     addFlag(s, 'cold_launch');
     addFlag(s, 'overruled_engineering');
