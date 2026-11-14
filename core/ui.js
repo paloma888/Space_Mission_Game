@@ -143,6 +143,7 @@ function typewriter(node, text) {
     const timer = setInterval(() => {
       i += 1;
       node.textContent = text.slice(0, i);
+      if (i % 3 === 0) sfx('ui-blip'); // every letter would sound like a buzz
       if (i >= text.length) finish();
     }, 25);
     // Wait a moment so the click that opened this box doesn't skip it.
@@ -294,9 +295,14 @@ export function unlock() {
 window.addEventListener('pointerdown', unlock, { once: true });
 window.addEventListener('keydown', unlock, { once: true });
 
+// Sounds that failed to load. The typewriter blips many times a second, so without this a
+// missing file would be requested over and over and flood the console with 404s.
+const missingSounds = new Set();
+
 export function sfx(name) {
-  if (!unlocked || muted) return;
+  if (!unlocked || muted || missingSounds.has(name)) return;
   const a = new Audio(asset(`audio/sfx/${name}.wav`));
+  a.addEventListener('error', () => missingSounds.add(name), { once: true });
   a.play().catch(() => {}); // missing file or blocked: stay silent
 }
 
