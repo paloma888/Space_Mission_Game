@@ -2,8 +2,6 @@
 // Follows RULEBOOK section 4. Missing art or sound never crashes anything:
 // images fall back to labeled boxes and sounds stay silent (RULEBOOK sections 4 and 9).
 
-import * as dashboard from './dashboard.js'; // works even while dashboard.js is still empty
-
 // Paths are built relative to this file, so they work from index.html and from any test.html.
 const asset = (path) => new URL(`../${path}`, import.meta.url).href;
 
@@ -289,7 +287,23 @@ export function bindState(state) {
   boundState = state;
 }
 
+// dashboard.js imports this file, so a static import here would be circular. Loading it the
+// first time refresh() runs means a missing, empty or broken dashboard.js can't stop ui.js loading.
+let dashboardModulePromise = null;
+
 // Re-render the dashboard from state. Call after changing budget, day, morale or reliability.
+// The update lands a moment later (after the import), which is fine for a display.
 export function refresh() {
-  if (boundState) dashboard.updateDashboard?.(boundState);
+  if (!boundState) return;
+  dashboardModulePromise ??= import('./dashboard.js').catch((err) => {
+    console.warn('core/dashboard.js could not load. The dashboard stays blank.', err);
+    return {};
+  });
+  dashboardModulePromise.then((dashboardModule) => {
+    try {
+      dashboardModule.updateDashboard?.(boundState);
+    } catch (err) {
+      console.error('updateDashboard() crashed. Tell Person 2.', err);
+    }
+  });
 }
