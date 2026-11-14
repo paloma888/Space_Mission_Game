@@ -1,0 +1,45 @@
+{
+  "rosa": {
+    "intro": [
+      "Welcome to the hangar! Pick one part from each list on the left.",
+      "Watch the numbers on the right. Every part costs money, mass and power."
+    ],
+    "shell": [
+      "The shell is the crew's home, like a camper van for space.",
+      "Roomier means a happier crew, but every extra tonne has to be lifted."
+    ],
+    "lifeSupport": [
+      "Life support makes air, water and warmth for the crew.",
+      "Cheap systems break more often. Think of a cheap tent in a storm."
+    ],
+    "power": [
+      "The battery is like a phone battery for the whole capsule.",
+      "Add up what your parts use. The battery has to cover all of it."
+    ],
+    "comms": [
+      "The radio is your phone line to Mission Control.",
+      "A better radio means clearer calls and earlier warnings, but it uses more power."
+    ],
+    "computer": [
+      "The flight computer is the capsule's brain. It steers and checks every system.",
+      "Cheap computers run cheap code. Software bugs have ended real missions."
+    ],
+    "mass": [
+      "A rocket can only lift so much, like a car with a roof box.",
+      "Keep your capsule lighter than the rocket can lift, with room to spare."
+    ]
+  },
+  "hal": {
+    "budgetLifeSupport": "Cheap air. I've seen this movie before. It doesn't end well.",
+    "budgetComputer": "Bargain computer. Bargain code. Bugs love a bargain.",
+    "powerTight": "Power's tight. You'll run out of juice at the worst moment.",
+    "powerOver": "Your parts want more power than that battery has. Something goes dark in flight.",
+    "premiumBroke": "Premium everything. Fancy. Now how do you pay the electric bill?"
+  },
+  "shop": {
+    "title": "Build your capsule",
+    "needAll": "Pick a shell, life support, comms, a flight computer and power.",
+    "noMoney": "Not enough budget.",
+    "dealerInstalled": "Installed: {label}, from a dealer who did not give a name."
+  }
+}

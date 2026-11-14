@@ -13,6 +13,10 @@ Example:
 
 ## Person 2: Build & Launch Setup
 
+- Sat: Claude Code drafted `docs/RULEBOOK-AMENDMENTS.md` from my Slice 2 design decisions (new sites, no crew loss, flight computer, shady parts) and added its import to `CLAUDE.md`. The team reviewed and approved the amendments.
+- Sat: Claude Code wrote `parts.json`, `rockets.json`, `sites.json`, `recompute.js` and a checks page that tests the build math against my test cases. I supplied the numbers and checked the results.
+- Sat: Claude Code wrote `core/dashboard.js` and its test page. I chose the gauge order and tuned the gauge widths.
+
 ## Person 3: The Trail
 
 - Sat: Claude Code wrote the first version of `applyEffects`, `meetsRequirement` and `requirementWhy` in `core/events.js` from the Slice 3 brief, and checked them with a throwaway script.

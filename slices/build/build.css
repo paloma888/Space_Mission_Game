@@ -1,0 +1,48 @@
+/* slices/build/build.css: styles for the build screens. Palette variables from core/base.css only.
+   Dark panels on purpose so text stays readable over the hangar background. */
+
+/* ---------- Capsule shop: categories | tier cards | summary */
+.shop { display: grid; grid-template-columns: 220px 1fr 268px; gap: 16px; padding-top: 72px; }
+.shop h2 { font-size: var(--body); color: var(--c10); margin-bottom: 16px; }
+.shop-nav, .shop-side { background: var(--c4); border: 4px solid var(--c12); padding: 16px; color: var(--c1); }
+.cat-mark { position: relative; display: grid; place-items: center; width: 16px; height: 16px; flex: none;
+  line-height: 1; color: var(--c9); }
+/* ✓ comes from a fallback font that draws low, so only the check is nudged up. Tune `top` to taste. */
+.cat-mark.done { top: -4px; }
+.shop-cat { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; font: inherit; font-size: var(--small);
+  color: var(--c1); background: none; border: 4px solid transparent; padding: 10px 6px; cursor: pointer; }
+.shop-cat:hover { border-color: var(--c8); }
+.shop-cat.on { background: var(--c8); border-color: var(--c12); }
+
+.shop-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-content: start; }
+.shop-head { grid-column: 1 / -1; display: flex; align-items: center; gap: 16px; }
+.shop-head h2 { margin: 0; }
+.shop-head .btn { margin: 0; }
+.tier-card { font: inherit; font-size: var(--small); text-align: left; line-height: 1.6;
+  display: flex; flex-direction: column; gap: 8px; min-height: 330px; padding: 12px;
+  color: var(--c1); background: var(--c4); border: 4px solid var(--c14); cursor: pointer; }
+.tier-card.tier-standard { border-color: var(--c12); }
+.tier-card.tier-premium { border-color: var(--c10); }
+.tier-card:hover:not(:disabled) { background: var(--c8); }
+.tier-card.chosen { background: var(--c8); outline: 4px solid var(--c1); }
+.tier-card:disabled { opacity: 0.55; cursor: not-allowed; }
+.tier-icon { width: 64px; height: 64px; image-rendering: pixelated; }
+.tier-icon.placeholder-box { font-size: 8px; }
+.tier-name { font-size: var(--body); color: var(--c10); }
+.tier-trade { color: var(--c15); }
+.tier-why { font-size: var(--small); color: var(--c2); line-height: 1.6; margin: 8px 0 0; }
+.why-btn { align-self: flex-start; font-size: var(--small); padding: 8px 12px; }
+.why-mini { font-size: var(--small); padding: 2px 8px; margin: 0 0 0 8px; }
+.shop-note { grid-column: 1 / -1; font-size: var(--small); color: var(--c10); }
+
+.side-row { display: flex; justify-content: space-between; align-items: center;
+  font-size: var(--small); margin-bottom: 12px; }
+.shop-side .bar { margin-bottom: 16px; }
+/* Same colors as the dashboard's power gauge: green, yellow over 90%, red when over supply. */
+.shop-side .bar .bar-fill { background: var(--c9); }
+.shop-side .bar.tight .bar-fill { background: var(--c10); }
+.shop-side .bar.over .bar-fill { background: var(--c2); }
+.shop-next { margin-top: 8px; }
+
+/* Blocks clicks on cards while Rosa or Hal is talking. Sits under the dialogue box (z-index 10). */
+.shop-cover { position: absolute; inset: 0; z-index: 9; }
