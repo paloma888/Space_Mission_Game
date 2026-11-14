@@ -229,10 +229,13 @@ export function panel(title) {
   return p;
 }
 
+// Pixel progress bar. Colors by how full it is: bar-ok over 50%, bar-warn over 25%, bar-bad otherwise.
 export function bar(value, max, label) {
-  const wrap = el('div', 'bar');
+  const percentFull = Math.max(0, Math.min(100, (value / max) * 100)) || 0; // || 0 covers max = 0
+  const levelClass = percentFull > 50 ? 'bar-ok' : percentFull > 25 ? 'bar-warn' : 'bar-bad';
+  const wrap = el('div', `bar ${levelClass}`);
   const fill = el('div', 'bar-fill');
-  fill.style.width = `${Math.max(0, Math.min(100, (value / max) * 100))}%`;
+  fill.style.width = `${percentFull}%`;
   wrap.append(fill);
   if (label) wrap.append(el('span', 'bar-label', label));
   return wrap;
