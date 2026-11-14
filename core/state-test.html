@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Test: state presets</title>
+  <link rel="stylesheet" href="./base.css">
+  <style>
+    body { display: block; overflow: auto; padding: 32px; font-size: var(--small); }
+    table { border-collapse: collapse; }
+    th, td { border: 2px solid var(--frame-edge); padding: 8px 12px; text-align: left; }
+    .pass { color: var(--good); }
+    .fail { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <!-- Open with Live Server. Prints getReliability and launchProbability for every preset
+       (RULEBOOK 6.3, 6.4 and section 12) and checks the ones we know by hand. -->
+  <h1>State presets</h1>
+  <table id="results">
+    <tr><th>Preset</th><th>Reliability</th><th>Launch odds</th><th>Expected odds</th><th>Check</th></tr>
+  </table>
+  <script type="module">
+    import { fakeState, getReliability, launchProbability, PRESET_NAMES } from './state.js';
+
+    // Worked out by hand from the formulas. afterBuild uses Amendment A7 (rel.parts 0.07):
+    // (0.80 + 0.07) * 0.97 = 0.844. readyToLaunch: (0.80 + 0.05 + 0.07) * 0.97 = 0.892.
+    // launched: 0.892 * (1 - 0.05). launchedCold: 0.892 * (1 - 0.225) * (1 - 0.06).
+    const expectedOdds = { afterBuild: 0.844, readyToLaunch: 0.892, launched: 0.848, launchedCold: 0.650 };
+    const tolerance = 0.005;
+
+    const table = document.getElementById('results');
+    for (const presetName of PRESET_NAMES) {
+      const presetState = fakeState(presetName);
+      const reliability = getReliability(presetState);
+      const launchOdds = launchProbability(presetState);
+      const expected = expectedOdds[presetName];
+      let checkText = '';
+      let checkClass = '';
+      if (expected != null) {
+        const passed = Math.abs(launchOdds - expected) <= tolerance;
+        checkText = passed ? 'PASS' : 'FAIL';
+        checkClass = passed ? 'pass' : 'fail';
+        if (!passed) console.error(`${presetName}: launch odds ${launchOdds.toFixed(3)}, expected about ${expected}`);
+      }
+      const row = table.insertRow();
+      [presetName, reliability.toFixed(3), launchOdds.toFixed(3), expected?.toFixed(3) ?? '', checkText]
+        .forEach((cellText) => { row.insertCell().textContent = cellText; });
+      row.cells[4].className = checkClass;
+    }
+  </script>
+</body>
+</html>
