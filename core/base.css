@@ -6,14 +6,14 @@
    TEMPORARY: this is the PICO-8 palette as a stand-in.
    Replace the 16 values with the Lospec palette the team picks, and credit it. */
 :root {
-  --c0: #000000;  --c1: #1d2b53;  --c2: #7e2553;  --c3: #008751;
-  --c4: #ab5236;  --c5: #5f574f;  --c6: #c2c3c7;  --c7: #fff1e8;
-  --c8: #ff004d;  --c9: #ffa300;  --c10: #ffec27; --c11: #00e436;
-  --c12: #29adff; --c13: #83769c; --c14: #ff77a8; --c15: #ffccaa;
+  --c0: #050816;  --c1: #c3d5eb;  --c2: #bb6a52;  --c3: #8a8177;
+  --c4: #10192e;  --c5: #486846;  --c6: #c9783e;  --c7: #e6aa85;
+  --c8: #1f3b73;  --c9: #89ad84;  --c10: #d6aa4f; --c11: #915841;
+  --c12: #6d95ca; --c13: #844136; --c14: #746b61; --c15: #e5bda3;
 
   /* Names to use in slice CSS, so a palette swap only changes the lines above. */
   --bg: var(--c0);
-  --ink: var(--c7);
+  --ink: var(--c7); 
   --muted: var(--c6);
   --frame: var(--c1);
   --frame-edge: var(--c12);
