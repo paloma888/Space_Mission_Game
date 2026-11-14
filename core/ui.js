@@ -182,9 +182,21 @@ export async function ask(speakerId, text, choices, opts) {
   const { box, body, text: node } = dialogueBox(speakerId, opts?.mood);
   await typewriter(node, text);
   return new Promise((resolve) => {
+    const choose = (index) => {
+      window.removeEventListener('keydown', onNumberKey);
+      box.remove();
+      resolve(index);
+    };
+    // Number keys 1 to 4 pick the matching choice, but only if it is enabled.
+    const onNumberKey = (event) => {
+      const index = Number(event.key) - 1;
+      if (index >= 0 && index < 4 && choices[index] && !choices[index].disabled) choose(index);
+    };
+    window.addEventListener('keydown', onNumberKey);
+
     const list = el('div', 'choices');
     choices.forEach((c, index) => {
-      const b = button(c.label, () => { box.remove(); resolve(index); });
+      const b = button(c.label, () => choose(index));
       if (c.disabled) {
         b.disabled = true;
         if (c.why) {
@@ -239,7 +251,14 @@ export function card(html) {
     const box = el('div', 'card');
     box.innerHTML = html;
     box.querySelectorAll('a').forEach((a) => { a.target = '_blank'; a.rel = 'noopener'; });
-    box.append(button('Close', () => { overlay.remove(); resolve(); }));
+    const close = () => {
+      window.removeEventListener('keydown', onEscape);
+      overlay.remove();
+      resolve();
+    };
+    const onEscape = (event) => { if (event.key === 'Escape') close(); };
+    window.addEventListener('keydown', onEscape);
+    box.append(button('Close', close));
     overlay.append(box);
     game().append(overlay);
   });
