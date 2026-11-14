@@ -7,19 +7,26 @@ import * as dashboard from './dashboard.js'; // works even while dashboard.js is
 
 export const ORDER = ['briefing', 'build', 'trail', 'launchweek', 'finale'];
 
-// Load a slice's entry file. If it is broken, show a placeholder so the rest of the team isn't blocked.
+// The friendly error screen. Demo day must never show a blank page, so a broken slice shows
+// Rosa and a Continue button that moves on. The real error is already in the console (F12).
+function showLostContact(done) {
+  const root = ui.screen();
+  const lostContactPanel = ui.panel();
+  lostContactPanel.append(ui.portrait('rosa', 128));
+  lostContactPanel.append(Object.assign(document.createElement('p'), {
+    textContent: 'Mission Control lost contact for a moment',
+  }));
+  lostContactPanel.append(ui.button('Continue', () => done()));
+  root.append(lostContactPanel);
+}
+
+// Load a slice's entry file. If it is broken, show the lost-contact screen so nobody is blocked.
 async function loadSlice(id) {
   try {
     return await import(`../slices/${id}/${id}.js`);
   } catch (err) {
     console.error(`Slice "${id}" failed to load. Fix slices/${id}/${id}.js.`, err);
-    return {
-      show(state, done) {
-        const root = ui.screen();
-        root.append(ui.panel(`Slice "${id}" failed to load. See the console (F12).`));
-        root.append(ui.button('Skip to next', () => done()));
-      },
-    };
+    return { show: (state, done) => showLostContact(done) };
   }
 }
 
@@ -37,7 +44,8 @@ function runSlice(mod, state) {
       .then(() => mod.show(state, done))
       .catch((err) => {
         console.error('A slice crashed:', err);
-        ui.toast('Something broke on this screen. See the console (F12).', 4000);
+        // If the slice already called done(), the game has moved on. Don't cover the next screen.
+        if (!finished) showLostContact(done);
       });
   });
 }
