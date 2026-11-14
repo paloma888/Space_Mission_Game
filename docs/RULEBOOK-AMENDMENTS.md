@@ -90,3 +90,23 @@ Status: ADOPTED (proposed by Person 2, approved by the team). Person 1 owns `cor
 ## A9. Working while amendments are PROPOSED
 
 Write code that works under both the Rulebook and the amendment. For example, ignore unknown part keys instead of crashing, and keep removed `derived` fields at safe default values.
+
+## A10. Happy and sad portraits (changes sections 1, 4, 7.2, 8 and 9)
+
+Status: PROPOSED (proposed by Person 1 on Nov 14, 2026). Affects everyone who draws portraits or writes dialogue. Person 1 owns `core/ui.js`.
+
+Every character now has two expressions, happy and sad. Happy is the default.
+
+| Mood | File |
+| --- | --- |
+| `happy` | `art/characters/<id>.png` |
+| `sad` | `art/characters/<id>_sad.png` |
+
+- `ui.portrait(id, size, mood)` takes an optional `mood`, either `'happy'` or `'sad'`.
+- `ui.say(id, text, opts)` and `ui.ask(id, text, choices, opts)` take an optional `opts.mood` with the same two values.
+- A dialogue line written in data (section 7.2) may carry an optional `mood` field, for example `{ "speaker": "rosa", "text": "Hello.", "mood": "sad" }`. A missing `mood` means happy.
+- Old calls still work. `ui.say('rosa', 'text')` with no mood behaves exactly as before.
+
+**Fallback order when art is missing.** Try the requested mood file, then the happy file, then the colored placeholder box. A missing face must never throw an error.
+
+**Tone rule.** In the `lost` ending (or whatever A2 renames it to) and in any real crew-loss history card, sad faces stay gentle and serious. Never use them for a joke.
