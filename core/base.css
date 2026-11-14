@@ -1,0 +1,195 @@
+/* core/base.css: pixel font, palette, frames. Owner: Person 1. RULEBOOK section 9. */
+
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+/* ---------- Palette: 16 colors, no others anywhere.
+   TEMPORARY: this is the PICO-8 palette as a stand-in.
+   Replace the 16 values with the Lospec palette the team picks, and credit it. */
+:root {
+  --c0: #000000;  --c1: #1d2b53;  --c2: #7e2553;  --c3: #008751;
+  --c4: #ab5236;  --c5: #5f574f;  --c6: #c2c3c7;  --c7: #fff1e8;
+  --c8: #ff004d;  --c9: #ffa300;  --c10: #ffec27; --c11: #00e436;
+  --c12: #29adff; --c13: #83769c; --c14: #ff77a8; --c15: #ffccaa;
+
+  /* Names to use in slice CSS, so a palette swap only changes the lines above. */
+  --bg: var(--c0);
+  --ink: var(--c7);
+  --muted: var(--c6);
+  --frame: var(--c1);
+  --frame-edge: var(--c12);
+  --accent: var(--c10);
+  --good: var(--c11);
+  --danger: var(--c8);
+  --placeholder: var(--c13);
+
+  --font: 'Press Start 2P', monospace;
+  --title: 32px;
+  --body: 16px;
+  --small: 12px;
+  --scale: 1; /* set by core/ui.js so the 1280x720 game fits the window */
+}
+
+/* ---------- Page and scaling */
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: var(--body);
+  overflow: hidden;
+}
+body { display: grid; place-items: center; }
+
+#app {
+  position: relative;
+  width: 1280px;
+  height: 720px;
+  transform: scale(var(--scale));
+  flex: none;
+}
+#game {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--bg);
+}
+#dashboard {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 5;
+  pointer-events: none; /* Person 2: set pointer-events: auto on anything clickable */
+}
+
+img, .screen { image-rendering: pixelated; }
+h1 { font-size: var(--title); margin: 0 0 24px; }
+h2 { font-size: var(--body); margin: 0 0 16px; }
+p { line-height: 1.6; margin: 0 0 16px; }
+small, .small { font-size: var(--small); }
+
+/* ---------- Screens and placeholders */
+.screen {
+  position: absolute;
+  inset: 0;
+  padding: 64px;
+  background-size: 1280px 720px; /* 320x180 art shown at 4x */
+  background-repeat: no-repeat;
+}
+.placeholder-bg { background: var(--frame); }
+.placeholder-bg::after {
+  content: attr(data-label);
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  font-size: var(--small);
+  color: var(--muted);
+}
+.placeholder-box {
+  display: grid;
+  place-items: center;
+  background: var(--placeholder);
+  color: var(--ink);
+  font-size: var(--small);
+  text-align: center;
+  padding: 4px;
+  overflow: hidden;
+}
+
+/* ---------- Frames */
+.panel, .dialogue, .card, .toast {
+  background: var(--frame);
+  border: 4px solid var(--frame-edge);
+  box-shadow: 0 0 0 4px var(--bg); /* chunky double border, no blur */
+}
+.panel { padding: 24px; margin-bottom: 24px; }
+
+/* ---------- Dialogue box */
+.dialogue {
+  position: absolute;
+  left: 32px; right: 32px; bottom: 32px;
+  display: flex;
+  gap: 24px;
+  padding: 24px;
+  z-index: 10;
+}
+.dialogue .portrait { flex: none; }
+.dialogue-body { flex: 1; }
+.dialogue-name { color: var(--accent); margin-bottom: 12px; }
+.dialogue-text { line-height: 1.8; min-height: 3.6em; }
+.dialogue-hint {
+  position: absolute;
+  right: 16px; bottom: 12px;
+  color: var(--accent);
+  animation: blink 1s steps(2) infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+/* ---------- Buttons and choices */
+.btn {
+  font: inherit;
+  font-size: var(--body);
+  color: var(--bg);
+  background: var(--accent);
+  border: 4px solid var(--bg);
+  padding: 12px 20px;
+  margin: 8px 8px 0 0;
+  cursor: pointer;
+}
+.btn:hover, .btn:focus-visible { outline: 4px solid var(--ink); }
+.btn-quiet { background: var(--muted); }
+.btn-danger { background: var(--danger); color: var(--ink); }
+.btn:disabled { background: var(--c5); color: var(--muted); cursor: not-allowed; outline: none; }
+.choices { display: flex; flex-direction: column; align-items: flex-start; margin-top: 16px; }
+.why { font-size: var(--small); }
+
+/* ---------- Progress bar */
+.bar {
+  position: relative;
+  height: 24px;
+  background: var(--bg);
+  border: 4px solid var(--frame-edge);
+}
+.bar-fill { height: 100%; background: var(--good); }
+.bar-label {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: var(--small);
+}
+
+/* ---------- Toast and modal card */
+.toast {
+  position: absolute;
+  top: 96px; left: 50%;
+  transform: translateX(-50%);
+  padding: 16px 24px;
+  z-index: 30;
+}
+.card-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgb(0 0 0 / 0.7);
+  z-index: 20;
+}
+.card { width: 900px; max-height: 620px; overflow: auto; padding: 32px; line-height: 1.8; }
+.card a { color: var(--frame-edge); }
+
+/* ---------- Placeholder slices and the dev panel */
+.stub { padding: 96px; }
+.dev-panel {
+  position: fixed;
+  top: 8px; left: 8px;
+  z-index: 100;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  font: 12px monospace;
+  background: #ffffff;
+  color: #000000;
+  border: 2px solid #000000;
+}
