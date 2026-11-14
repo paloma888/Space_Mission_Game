@@ -1,0 +1,69 @@
+{
+  "orbit": {
+    "title": "Orbit achieved",
+    "text": "The engines go quiet and the capsule glides into a steady orbit. Your crew floats free and waves at the camera. Mission Control erupts in cheers.",
+    "rosa": [
+      "You did it, Flight Director. Three people are circling the Earth because of your choices.",
+      "Every part, every test and every hard call added up to this moment.",
+      "Measure twice, launch once. You measured well."
+    ],
+    "memorial": false,
+    "why": { "default": "TODO", "byStage": {}, "byCause": {} }
+  },
+  "abort": {
+    "title": "Abort! Crew safe",
+    "text": "The rocket failed, but the escape system fired and pulled the capsule clear. A parachute opened, and the crew splashed down safely. A boat is already on its way.",
+    "rosa": [
+      "The rocket failed. Your crew did not. That is the abort system doing its job.",
+      "It cost money and weight, and today it paid for itself.",
+      "Rockets can be rebuilt. People can't. You chose well."
+    ],
+    "memorial": false,
+    "why": { "default": "TODO", "byStage": {}, "byCause": {} }
+  },
+  "lost": {
+    "title": "Mission lost",
+    "text": "The launch failed, and there was no way to bring the crew home. Mission Control is silent.",
+    "plaque": "They reached for the stars on behalf of us all.",
+    "rosa": [
+      "Today we lost our crew.",
+      "We will study what went wrong, so the next crew is safer.",
+      "Take a moment. Then we learn."
+    ],
+    "memorial": true,
+    "why": { "default": "TODO", "byStage": {}, "byCause": {} }
+  },
+  "bankrupt": {
+    "title": "Out of money",
+    "text": "The money ran out before launch day. The hangar lights go off and the doors close. Nobody was hurt, and the rocket waits for another day.",
+    "rosa": [
+      "Running a space agency is like a long road trip. Run out of gas, and the trip ends.",
+      "Big projects need a cushion of money for surprises.",
+      "Next time, keep some money in reserve. Measure twice, launch once."
+    ],
+    "memorial": false,
+    "why": { "default": "TODO", "byStage": {}, "byCause": {} }
+  },
+  "window_closed": {
+    "title": "Window closed",
+    "text": "Day 42 came and went. The launch window shut, and the rocket stays on the ground. The crew is safe, but the mission has to wait.",
+    "rosa": [
+      "A launch window is like catching a train. Miss it, and you wait for the next one.",
+      "Delays and scrubs ate up our days.",
+      "Next time, leave a few spare days for bad weather."
+    ],
+    "memorial": false,
+    "why": { "default": "TODO", "byStage": {}, "byCause": {} }
+  },
+  "aliens": {
+    "title": "Secret ending found!",
+    "text": "Something strange is waiting in orbit. A glowing saucer pulls alongside, and its crew starts to dance. Your warp coil was a hit!",
+    "rosa": [
+      "Well. I flew for thirty years and never saw that.",
+      "I'm not sure that warp coil was in any manual.",
+      "Measure twice, launch once... and wave back, I suppose."
+    ],
+    "memorial": false,
+    "why": { "default": "TODO", "byStage": {}, "byCause": {} }
+  }
+}

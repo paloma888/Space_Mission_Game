@@ -1,0 +1,7 @@
+[
+  { "id": "measure_twice", "label": "Measure Twice", "icon": "badge_measure_twice", "hint": "Never skip testing", "rule": "skippedTestingWeeks is 0" },
+  { "id": "weather_wise", "label": "Weather Wise", "icon": "badge_weather_wise", "hint": "Launch without a scrub", "rule": "scrubs is 0" },
+  { "id": "under_budget", "label": "Under Budget", "icon": "badge_under_budget", "hint": "Finish with $150M or more", "rule": "budget is 150 or more" },
+  { "id": "team_player", "label": "Team Player", "icon": "badge_team_player", "hint": "Never launch through a No-Go", "rule": "no overruled_nogo flag" },
+  { "id": "safety_first", "label": "Safety First", "icon": "badge_safety_first", "hint": "Fly with an abort system", "rule": "parts.abort is set" }
+]
