@@ -15,6 +15,9 @@ Example:
 
 ## Person 3: The Trail
 
+- Sat: Claude Code wrote the first version of `applyEffects`, `meetsRequirement` and `requirementWhy` in `core/events.js` from the Slice 3 brief, and checked them with a throwaway script.
+- Sat: Claude Code created `slices/trail/tasks.json` from the numbers in the Slice 3 brief.
+
 ## Person 4: Weather & Go/No-Go
 
 ## Person 5: Launch & Report
