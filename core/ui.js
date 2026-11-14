@@ -2,8 +2,6 @@
 // Follows RULEBOOK section 4. Missing art or sound never crashes anything:
 // images fall back to labeled boxes and sounds stay silent (RULEBOOK sections 4 and 9).
 
-import * as dashboard from './dashboard.js'; // works even while dashboard.js is still empty
-
 // Paths are built relative to this file, so they work from index.html and from any test.html.
 const asset = (path) => new URL(`../${path}`, import.meta.url).href;
 
@@ -40,9 +38,12 @@ const game = () => document.getElementById('game');
 // ---------- Screens
 
 // Clears #game, sets a background like 'trail/mission_control', returns the root element.
-export function screen(background) {
+// opts.dashboard (default true): false hides #dashboard, for the title and Rosa's cutscenes.
+export function screen(background, opts = {}) {
   const root = el('div', 'screen');
   game().replaceChildren(root);
+  const dashboardElement = document.getElementById('dashboard');
+  if (dashboardElement) dashboardElement.hidden = opts.dashboard === false;
   if (background) {
     root.classList.add('placeholder-bg');
     root.dataset.label = `background: ${background}`;
@@ -142,6 +143,7 @@ function typewriter(node, text) {
     const timer = setInterval(() => {
       i += 1;
       node.textContent = text.slice(0, i);
+      if (i % 3 === 0) sfx('ui-blip'); // every letter would sound like a buzz
       if (i >= text.length) finish();
     }, 25);
     // Wait a moment so the click that opened this box doesn't skip it.
@@ -181,9 +183,21 @@ export async function ask(speakerId, text, choices, opts) {
   const { box, body, text: node } = dialogueBox(speakerId, opts?.mood);
   await typewriter(node, text);
   return new Promise((resolve) => {
+    const choose = (index) => {
+      window.removeEventListener('keydown', onNumberKey);
+      box.remove();
+      resolve(index);
+    };
+    // Number keys 1 to 4 pick the matching choice, but only if it is enabled.
+    const onNumberKey = (event) => {
+      const index = Number(event.key) - 1;
+      if (index >= 0 && index < 4 && choices[index] && !choices[index].disabled) choose(index);
+    };
+    window.addEventListener('keydown', onNumberKey);
+
     const list = el('div', 'choices');
     choices.forEach((c, index) => {
-      const b = button(c.label, () => { box.remove(); resolve(index); });
+      const b = button(c.label, () => choose(index));
       if (c.disabled) {
         b.disabled = true;
         if (c.why) {
@@ -216,10 +230,13 @@ export function panel(title) {
   return p;
 }
 
+// Pixel progress bar. Colors by how full it is: bar-ok over 50%, bar-warn over 25%, bar-bad otherwise.
 export function bar(value, max, label) {
-  const wrap = el('div', 'bar');
+  const percentFull = Math.max(0, Math.min(100, (value / max) * 100)) || 0; // || 0 covers max = 0
+  const levelClass = percentFull > 50 ? 'bar-ok' : percentFull > 25 ? 'bar-warn' : 'bar-bad';
+  const wrap = el('div', `bar ${levelClass}`);
   const fill = el('div', 'bar-fill');
-  fill.style.width = `${Math.max(0, Math.min(100, (value / max) * 100))}%`;
+  fill.style.width = `${percentFull}%`;
   wrap.append(fill);
   if (label) wrap.append(el('span', 'bar-label', label));
   return wrap;
@@ -238,7 +255,14 @@ export function card(html) {
     const box = el('div', 'card');
     box.innerHTML = html;
     box.querySelectorAll('a').forEach((a) => { a.target = '_blank'; a.rel = 'noopener'; });
-    box.append(button('Close', () => { overlay.remove(); resolve(); }));
+    const close = () => {
+      window.removeEventListener('keydown', onEscape);
+      overlay.remove();
+      resolve();
+    };
+    const onEscape = (event) => { if (event.key === 'Escape') close(); };
+    window.addEventListener('keydown', onEscape);
+    box.append(button('Close', close));
     overlay.append(box);
     game().append(overlay);
   });
@@ -246,21 +270,39 @@ export function card(html) {
 
 // ---------- Sound. Starts muted until the first click, because browsers block autoplay.
 
+const MUTE_STORAGE_KEY = 'launchTrail.muted';
+
+// Storage can throw (private windows, blocked site data), so the game just forgets the setting then.
+function readSavedMute() {
+  try { return localStorage.getItem(MUTE_STORAGE_KEY) === 'true'; } catch { return false; }
+}
+function saveMute(value) {
+  try { localStorage.setItem(MUTE_STORAGE_KEY, String(value)); } catch { /* not saved, still works */ }
+}
+
 let unlocked = false;
-let muted = false;
+let muted = readSavedMute();
 let currentMusic = null;
 let wantedMusic = null;
 
-function unlock() {
+// Lets sound play. Runs on the first click or key press anywhere; the title's Press Start
+// button may also call it directly. Calling it twice is harmless.
+export function unlock() {
+  if (unlocked) return;
   unlocked = true;
   if (wantedMusic) music(wantedMusic);
 }
 window.addEventListener('pointerdown', unlock, { once: true });
 window.addEventListener('keydown', unlock, { once: true });
 
+// Sounds that failed to load. The typewriter blips many times a second, so without this a
+// missing file would be requested over and over and flood the console with 404s.
+const missingSounds = new Set();
+
 export function sfx(name) {
-  if (!unlocked || muted) return;
+  if (!unlocked || muted || missingSounds.has(name)) return;
   const a = new Audio(asset(`audio/sfx/${name}.wav`));
+  a.addEventListener('error', () => missingSounds.add(name), { once: true });
   a.play().catch(() => {}); // missing file or blocked: stay silent
 }
 
@@ -274,7 +316,8 @@ export function music(name) {
 }
 
 export function setMuted(value) {
-  muted = value;
+  muted = Boolean(value);
+  saveMute(muted);
   if (muted && currentMusic) currentMusic.pause();
   if (!muted && wantedMusic) music(wantedMusic);
 }
@@ -289,7 +332,23 @@ export function bindState(state) {
   boundState = state;
 }
 
+// dashboard.js imports this file, so a static import here would be circular. Loading it the
+// first time refresh() runs means a missing, empty or broken dashboard.js can't stop ui.js loading.
+let dashboardModulePromise = null;
+
 // Re-render the dashboard from state. Call after changing budget, day, morale or reliability.
+// The update lands a moment later (after the import), which is fine for a display.
 export function refresh() {
-  if (boundState) dashboard.updateDashboard?.(boundState);
+  if (!boundState) return;
+  dashboardModulePromise ??= import('./dashboard.js').catch((err) => {
+    console.warn('core/dashboard.js could not load. The dashboard stays blank.', err);
+    return {};
+  });
+  dashboardModulePromise.then((dashboardModule) => {
+    try {
+      dashboardModule.updateDashboard?.(boundState);
+    } catch (err) {
+      console.error('updateDashboard() crashed. Tell Person 2.', err);
+    }
+  });
 }

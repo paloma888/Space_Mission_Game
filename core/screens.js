@@ -3,40 +3,50 @@
 
 import { createState, fakeState, checkEnd, PRESET_NAMES } from './state.js';
 import * as ui from './ui.js';
+import { applyEffects } from './events.js';
 import * as dashboard from './dashboard.js'; // works even while dashboard.js is still empty
 
 export const ORDER = ['briefing', 'build', 'trail', 'launchweek', 'finale'];
 
-// Load a slice's entry file. If it is broken, show a placeholder so the rest of the team isn't blocked.
+// The friendly error screen. Demo day must never show a blank page, so a broken slice shows
+// Rosa and a Continue button that moves on. The real error is already in the console (F12).
+function showLostContact(done) {
+  const root = ui.screen();
+  const lostContactPanel = ui.panel();
+  lostContactPanel.append(ui.portrait('rosa', 128));
+  lostContactPanel.append(Object.assign(document.createElement('p'), {
+    textContent: 'Mission Control lost contact for a moment',
+  }));
+  lostContactPanel.append(ui.button('Continue', () => done()));
+  root.append(lostContactPanel);
+}
+
+// Load a slice's entry file. If it is broken, show the lost-contact screen so nobody is blocked.
 async function loadSlice(id) {
   try {
     return await import(`../slices/${id}/${id}.js`);
   } catch (err) {
     console.error(`Slice "${id}" failed to load. Fix slices/${id}/${id}.js.`, err);
-    return {
-      show(state, done) {
-        const root = ui.screen();
-        root.append(ui.panel(`Slice "${id}" failed to load. See the console (F12).`));
-        root.append(ui.button('Skip to next', () => done()));
-      },
-    };
+    return { show: (state, done) => showLostContact(done) };
   }
 }
 
-// Runs one slice and waits until it calls done(). Resolves with what was passed to done().
+// Runs one slice and waits until it calls done(target, opts). Resolves with { target, opts }.
+// target: a slice id to jump to (or nothing for the next one). opts.fresh: start a brand-new game.
 function runSlice(mod, state) {
   return new Promise((resolve) => {
     let finished = false;
-    const done = (next) => {
-      if (finished) return; // ignore a second done()
+    const done = (target, opts = {}) => {
+      if (finished) return; // ignore a second done(), e.g. a double click
       finished = true;
-      resolve(next);
+      resolve({ target, opts: opts ?? {} });
     };
     Promise.resolve()
       .then(() => mod.show(state, done))
       .catch((err) => {
         console.error('A slice crashed:', err);
-        ui.toast('Something broke on this screen. See the console (F12).', 4000);
+        // If the slice already called done(), the game has moved on. Don't cover the next screen.
+        if (!finished) showLostContact(done);
       });
   });
 }
@@ -47,6 +57,20 @@ function resetInPlace(state) {
   Object.assign(state, createState());
 }
 
+// ---------- Fade between slices (300ms). The CSS transition lives in base.css (#game.is-fading).
+
+const FADE_MS = 300;
+
+function fadeOut() {
+  document.getElementById('game')?.classList.add('is-fading');
+  return new Promise((resolve) => setTimeout(resolve, FADE_MS));
+}
+
+// Wait one frame so the new slice has drawn its screen before it becomes visible.
+function fadeIn() {
+  requestAnimationFrame(() => document.getElementById('game')?.classList.remove('is-fading'));
+}
+
 export async function start(state = createState(), from = 'briefing') {
   ui.bindState(state);
   const dash = document.getElementById('dashboard');
@@ -54,17 +78,34 @@ export async function start(state = createState(), from = 'briefing') {
   ui.refresh();
 
   let i = Math.max(0, ORDER.indexOf(from));
+  let isFirstSlice = true;
   while (true) {
     const id = ORDER[i];
-    const next = await runSlice(await loadSlice(id), state);
+    // Fade out the old slice while the new one loads, then clear leftovers and fade back in.
+    const [sliceModule] = await Promise.all([loadSlice(id), isFirstSlice ? null : fadeOut()]);
+    isFirstSlice = false;
+    document.getElementById('game')?.replaceChildren();
+    const slicePromise = runSlice(sliceModule, state);
+    fadeIn();
+    const { target, opts } = await slicePromise;
+    const targetIsSlice = ORDER.includes(target);
+
+    // done(target, { fresh: true }) from any slice: brand-new game, then the target or the start.
+    if (opts.fresh) {
+      resetInPlace(state);
+      ui.refresh();
+      i = targetIsSlice ? ORDER.indexOf(target) : 0;
+      continue;
+    }
     ui.refresh();
 
     if (id === 'finale') {
+      if (targetIsSlice) { i = ORDER.indexOf(target); continue; }
       // Try Again: finale set state.resume and loaded a checkpoint. The matching slice
       // reads state.resume and skips ahead (it should set state.resume = null after reading it).
       if (state.resume === 'hiring') { i = ORDER.indexOf('briefing'); continue; }
       if (state.resume === 'build') { i = ORDER.indexOf('build'); continue; }
-      // Play Again: start over with a brand-new game.
+      // Play Again with no target and no resume: start over with a brand-new game.
       resetInPlace(state);
       ui.refresh();
       i = 0;
@@ -74,15 +115,15 @@ export async function start(state = createState(), from = 'briefing') {
     // After every done(), check for bankrupt or window_closed (RULEBOOK section 3).
     const end = checkEnd(state);
     if (end) state.outcome = end;
-    if (state.outcome || next === 'finale') { i = ORDER.indexOf('finale'); continue; }
-    if (next && ORDER.includes(next)) { i = ORDER.indexOf(next); continue; } // dev jumps
+    if (state.outcome || target === 'finale') { i = ORDER.indexOf('finale'); continue; }
+    if (targetIsSlice) { i = ORDER.indexOf(target); continue; } // dev jumps
     i += 1;
   }
 }
 
 // ---------- Dev panel: press the backtick key (`) to jump to any slice with any preset.
 
-function devPanel() {
+function devPanel(state) {
   let open = null;
   window.addEventListener('keydown', (e) => {
     if (e.key !== '`') return;
@@ -95,7 +136,9 @@ function devPanel() {
       <label>Slice <select id="dev-slice">${ORDER.map((s) => `<option>${s}</option>`).join('')}</select></label>
       <label>Preset <select id="dev-preset">${PRESET_NAMES.map((s) => `<option>${s}</option>`).join('')}</select></label>
       <label>Seed <input id="dev-seed" size="6" value="${p.get('seed') ?? ''}"></label>
-      <button id="dev-go">Go</button>`;
+      <button id="dev-go">Go</button>
+      <button id="dev-money">Add $100M</button>
+      <button id="dev-day">Next Day</button>`;
     document.body.append(open);
     open.querySelector('#dev-slice').value = p.get('slice') ?? 'briefing';
     open.querySelector('#dev-preset').value = p.get('preset') ?? 'fresh';
@@ -108,6 +151,14 @@ function devPanel() {
       if (seed) q.set('seed', seed);
       location.search = q.toString(); // reloads the page at that slice and preset
     };
+    // Budget and day change only through applyEffects (RULEBOOK section 5), even for testing.
+    const devChange = (effects) => {
+      applyEffects(state, effects);
+      ui.refresh();
+      ui.toast(`Budget $${state.budget}M, day ${state.day}`);
+    };
+    open.querySelector('#dev-money').onclick = () => devChange({ budget: 100 });
+    open.querySelector('#dev-day').onclick = () => devChange({ day: 1 });
   });
 }
 
@@ -124,11 +175,11 @@ function holdBackButton() {
 // ---------- Boot: index.html calls this. ?slice=trail&preset=midTrail starts mid-game.
 
 export function boot() {
-  devPanel();
-  holdBackButton();
   const p = new URLSearchParams(location.search);
   const preset = p.get('preset');
   const state = preset ? fakeState(preset) : createState();
   window.state = state; // type "state" in the console (F12) to inspect it
+  devPanel(state);
+  holdBackButton();
   start(state, p.get('slice') ?? 'briefing');
 }

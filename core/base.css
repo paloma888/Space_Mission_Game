@@ -54,6 +54,11 @@ body { display: grid; place-items: center; }
   inset: 0;
   overflow: hidden;
   background: var(--bg);
+  transition: opacity 300ms; /* screens.js fades between slices */
+}
+#game.is-fading { opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+  #game { transition: none; }
 }
 #dashboard {
   position: absolute;
@@ -61,6 +66,8 @@ body { display: grid; place-items: center; }
   z-index: 5;
   pointer-events: none; /* Person 2: set pointer-events: auto on anything clickable */
 }
+/* ui.screen(bg, { dashboard: false }) sets [hidden]. This wins even if a display rule is added later. */
+#dashboard[hidden] { display: none !important; }
 
 img, .screen { image-rendering: pixelated; }
 h1 { font-size: var(--title); margin: 0 0 24px; }
@@ -154,6 +161,10 @@ small, .small { font-size: var(--small); }
   border: 4px solid var(--frame-edge);
 }
 .bar-fill { height: 100%; background: var(--good); }
+/* Set by ui.bar(): green over 50%, yellow over 25%, red below. */
+.bar-ok .bar-fill { background: var(--c9); }
+.bar-warn .bar-fill { background: var(--c10); }
+.bar-bad .bar-fill { background: var(--c2); }
 .bar-label {
   position: absolute;
   inset: 0;
