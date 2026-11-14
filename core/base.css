@@ -95,6 +95,9 @@ small, .small { font-size: var(--small); }
   padding: 4px;
   overflow: hidden;
 }
+/* A sad face with no art yet gets a calmer, darker box, so testers can tell the moods apart.
+   Kept quiet on purpose: sad faces appear in serious moments (Amendment A10 tone rule). */
+.placeholder-box[data-mood="sad"] { background: var(--c8); color: var(--c1); }
 
 /* ---------- Frames */
 .panel, .dialogue, .card, .toast {

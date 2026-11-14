@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>UI demo: portraits and moods</title>
+  <link rel="stylesheet" href="./base.css">
+  <style>
+    /* Demo-only layout. Uses palette names from base.css, no new colors. */
+    .demo { padding: 24px 32px; background: var(--bg); overflow: auto; }
+    .demo h1 { font-size: var(--body); margin-bottom: 8px; }
+    .demo-note { font-size: var(--small); color: var(--muted); margin-bottom: 16px; }
+    .demo-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+    .demo-tile { border: 4px solid var(--frame-edge); padding: 8px; font-size: var(--small); }
+    .demo-tile.demo-fallback { border-color: var(--accent); grid-column: span 2; }
+    .demo-faces { display: flex; gap: 12px; margin: 8px 0; }
+    .demo-face { display: flex; flex-direction: column; gap: 4px; }
+    .demo-source { font-size: 8px; color: var(--muted); }
+    .demo-buttons { margin-top: 12px; }
+    .demo-buttons .btn { font-size: var(--small); padding: 8px 12px; }
+  </style>
+</head>
+<body>
+  <!-- Open with Live Server (not by double-clicking). Shows every character happy and sad,
+       plus a fallback test that must never throw (Amendment A10). Check F12 for errors.
+       404s for PNGs nobody has drawn yet are expected. -->
+  <div id="app"><div id="game"></div></div>
+  <script type="module">
+    import * as ui from './ui.js';
+
+    const characterList = await (await fetch('./characters.json')).json();
+
+    const root = ui.screen();
+    root.classList.add('demo');
+    root.insertAdjacentHTML('beforeend', `
+      <h1>Portraits: happy and sad</h1>
+      <div class="demo-note">Under each face: the file that actually showed. Fallback: mood file, then happy file, then placeholder.</div>
+    `);
+    const grid = document.createElement('div');
+    grid.className = 'demo-grid';
+    root.append(grid);
+
+    // One face plus a label that reports where it came from once loading settles.
+    function faceWithSource(characterId, mood, caption) {
+      const face = document.createElement('div');
+      face.className = 'demo-face';
+      const sourceLabel = document.createElement('div');
+      sourceLabel.className = 'demo-source';
+      sourceLabel.textContent = `${caption}: loading...`;
+      face.append(ui.portrait(characterId, 64, mood), sourceLabel);
+
+      // The portrait sets data-source on load, or swaps itself for a placeholder box.
+      const showSource = () => {
+        const shown = face.querySelector('.portrait');
+        if (shown?.dataset.source) sourceLabel.textContent = `${caption}: ${shown.dataset.source}`;
+      };
+      new MutationObserver(showSource).observe(face, { subtree: true, childList: true, attributes: true });
+      return face;
+    }
+
+    function tile(title, faces, extraClass) {
+      const box = document.createElement('div');
+      box.className = `demo-tile ${extraClass ?? ''}`;
+      box.textContent = title;
+      const row = document.createElement('div');
+      row.className = 'demo-faces';
+      row.append(...faces);
+      box.append(row);
+      grid.append(box);
+    }
+
+    for (const character of characterList) {
+      tile(character.name, [
+        faceWithSource(character.id, 'happy', 'happy'),
+        faceWithSource(character.id, 'sad', 'sad'),
+      ]);
+    }
+
+    // Deliberately missing art: this id has no PNGs at all, so it must land on the placeholder
+    // without an error. Also checks no mood (old style) and an unknown mood (warns, uses happy).
+    tile('Fallback test (no art on purpose)', [
+      faceWithSource('demo_missing', 'sad', 'sad'),
+      faceWithSource('demo_missing', undefined, 'no mood'),
+      faceWithSource('demo_missing', 'angry', 'bad mood'),
+    ], 'demo-fallback');
+
+    // Dialogue checks: old call style, opts.mood, ask() with a mood, and a data line from JSON.
+    const buttonRow = document.createElement('div');
+    buttonRow.className = 'demo-buttons';
+    buttonRow.append(
+      ui.button('say(), old style', () => ui.say('rosa', 'Measure twice, launch once.')),
+      ui.button('say(), sad', () => ui.say('hal', "Engine's done for today. We try again tomorrow.", { mood: 'sad' })),
+      ui.button('ask(), sad', async () => {
+        const pickedIndex = await ui.ask('lucia', 'Breathe. Then decide. Do we try again?',
+          [{ label: 'Try again' }, { label: 'Not yet' }], { mood: 'sad' });
+        ui.toast(`Picked choice ${pickedIndex}`);
+      }),
+      ui.button('Data line', () => {
+        const dataLine = { speaker: 'skye', text: 'Clouds rolled in. My mood is a bit overcast.', mood: 'sad' };
+        ui.say(dataLine.speaker, dataLine.text, dataLine);
+      }, { variant: 'quiet' }),
+    );
+    root.append(buttonRow);
+  </script>
+</body>
+</html>
