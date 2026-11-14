@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Checks: build math</title>
+  <style>
+    body { font: 14px monospace; background: #050816; color: #e6aa85; padding: 16px; }
+    .pass { color: #89ad84; } .fail { color: #bb6a52; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <!-- Open with Live Server. Runs the Slice 2 test cases against the real JSON files. -->
+  <h1 id="summary">Running...</h1>
+  <ul id="list"></ul>
+  <script type="module">
+    import { CATALOG } from './catalog.js';
+    import { runChecks } from './checks.js';
+
+    const results = runChecks(CATALOG);
+    const failed = results.filter((r) => !r.pass);
+    document.getElementById('summary').textContent =
+      failed.length ? `${failed.length} of ${results.length} FAILED` : `All ${results.length} checks pass`;
+    document.getElementById('summary').className = failed.length ? 'fail' : 'pass';
+    for (const r of results) {
+      const li = document.createElement('li');
+      li.className = r.pass ? 'pass' : 'fail';
+      li.textContent = r.pass ? `PASS ${r.name}` : `FAIL ${r.name}: got ${r.actual}, expected ${r.expected}`;
+      document.getElementById('list').append(li);
+    }
+    if (failed.length) console.table(failed);
+  </script>
+</body>
+</html>
