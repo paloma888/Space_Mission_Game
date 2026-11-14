@@ -68,3 +68,35 @@
   from { transform: translateX(0); }
   to { transform: translateX(-100%); }
 }
+
+/* ---------- Week header: the trail map */
+.map-banner {
+  position: absolute;
+  top: 96px; left: 50%;
+  transform: translateX(-50%);
+  padding: 16px 24px;
+  background: var(--bg);
+  color: var(--accent);
+  white-space: nowrap;
+}
+.map-stop, .map-marker { position: absolute; }
+/* Stop names only show while the background is a placeholder. */
+.map-stop {
+  display: none;
+  transform: translate(-50%, 8px);
+  padding: 4px 8px;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: var(--small);
+  white-space: nowrap;
+}
+.placeholder-bg .map-stop { display: block; }
+/* 16 x 16 art at 4 times size. It stands on its stop and hops there in pixel-sized steps. */
+.map-marker {
+  width: 64px; height: 64px;
+  transform: translate(-50%, -100%);
+  transition: left 1.6s steps(16), top 1.6s steps(16);
+}
+
+/* ---------- Task icons: 32 x 32 art above each button's label */
+.task-icon { display: block; width: 32px; height: 32px; margin: 0 auto 4px; }

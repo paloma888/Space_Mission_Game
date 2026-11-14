@@ -268,6 +268,15 @@ function rollOutcome(outcomes) {
   return outcomes[outcomes.length - 1];
 }
 
+// Which sound fits what just happened. Losing reliability, morale or a person
+// is bad news even when the player cannot see the number.
+function resultSound(changes) {
+  const hurt = changes.some((c) => c.key === 'loseStaff' || ((c.key === 'reliability' || c.key === 'morale') && c.delta < 0));
+  if (hurt) return 'trail-bad';
+  if (changes.some((c) => c.key === 'budget' && c.delta > 0)) return 'trail-cash';
+  return 'trail-good';
+}
+
 /**
  * Plays one event: scene, dialogue, choice, effects, result line, toast.
  * Returns { choice, changes, ended }. `ended` is checkEnd(state): if it is not
@@ -293,6 +302,7 @@ export async function runEvent(state, event) {
 
   const picked = choice.outcomes ? rollOutcome(choice.outcomes) : choice;
   const changes = applyEffects(state, picked.effects);
+  ui.sfx(resultSound(changes));
   if (picked.result) await ui.say(speaker.id, picked.result);
   const lines = describeChanges(changes);
   if (lines.length) ui.toast(lines.join('   '), 3000);

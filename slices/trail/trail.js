@@ -3,15 +3,14 @@
 // Slice 3 brief section 3). Each week: header, assign staff, resolve, one
 // event, summary. The math lives in week.js and the numbers in tasks.json.
 //
-// The rival ticker lives in rival.js.
-//
-// Still to come: the moving marker on the trail map.
+// The rival ticker lives in rival.js and the trail map header in map.js.
 
 import * as ui from '../../core/ui.js';
 import { checkEnd } from '../../core/state.js';
 import { applyEffects, describeChanges, loadAllEvents, pickEvent, runEvent } from '../../core/events.js';
 import { TASK_IDS, PROGRESS_IDS, planWeek, projectWeek, resolveWeek, sumChanges } from './week.js';
 import { loadRival, mountTicker, rivalPercent } from './rival.js';
+import { showMap } from './map.js';
 
 export const meta = { id: 'trail', owner: 'Person 3' };
 
@@ -92,22 +91,29 @@ function assignScreen(state, tasks, week) {
 
       const buttons = el('div');
       for (const taskId of TASK_IDS) {
-        const b = ui.button(tasks[taskId].label, () => {
+        const task = tasks[taskId];
+        const b = ui.button(task.label, () => {
           assignments[person.id] = taskId;
           buttons.querySelectorAll('.task-on').forEach((on) => on.classList.remove('task-on'));
           b.classList.add('task-on');
-          tip.textContent = `Rosa: ${tasks[taskId].tip}`;
+          tip.textContent = `Rosa: ${task.tip}`;
           update();
         }, { variant: 'quiet' });
         b.classList.add('task-btn');
+        b.title = `${task.name}. ${task.tip}`; // hover text with the task's full name
+        // art/icons/<icon>.png. A missing icon just leaves a text-only button.
+        const icon = el('img', 'task-icon');
+        icon.alt = '';
+        icon.onerror = () => icon.remove();
+        icon.src = new URL(`../../art/icons/${task.icon}.png`, import.meta.url).href;
+        b.prepend(icon);
         buttons.append(b);
       }
       row.append(ui.portrait(person.portrait || person.id, 64), who, buttons);
       staffPanel.append(row);
     }
 
-    staffPanel.append(tip);
-    side.append(box, totals, start);
+    side.append(box, totals, start, tip);
     root.append(staffPanel, side);
     update();
   });
@@ -132,6 +138,8 @@ async function showResolve(state, before, changes, week) {
   }
   const lines = describeChanges(sumChanges(changes));
   if (lines.length) ui.toast(lines.join('   '), 2500);
+  // A positive budget change here can only be fundraising money coming in.
+  if (changes.some((c) => c.key === 'budget' && c.delta > 0)) ui.sfx('trail-cash');
   await wait(1800);
 }
 
@@ -171,9 +179,7 @@ export async function show(state, done) {
     ticker.setWeek(week);
 
     // A. Week header
-    ui.screen('trail/trail_map');
-    ui.sfx('trail-week');
-    await ui.say('rosa', `Week ${week} of ${LAST_WEEK}. Day ${state.day}.`);
+    await showMap(week, LAST_WEEK, state.day);
 
     // B. Assign staff
     let assignments = {};

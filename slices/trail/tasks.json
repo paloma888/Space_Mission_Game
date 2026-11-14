@@ -1,22 +1,27 @@
 {
   "build": {
-    "label": "Build", "tip": "Building is like cooking dinner. Engineers are your best cooks.",
+    "label": "Build", "name": "Build", "icon": "build",
+    "tip": "Building is like cooking dinner. Engineers are your best cooks.",
     "best": ["engineer"], "bestMult": 1.0, "otherMult": 0.4, "baseline": 4
   },
   "testing": {
-    "label": "Test", "tip": "Testing is tasting the soup before you serve it. Inspectors do it best.",
+    "label": "Test", "name": "Test & inspect", "icon": "test",
+    "tip": "Testing is tasting the soup before you serve it. Inspectors do it best.",
     "best": ["inspector"], "bestMult": 1.0, "altMult": { "engineer": 0.7 }, "otherMult": 0.4, "baseline": 0
   },
   "training": {
-    "label": "Train", "tip": "Training is practice laps for the crew. Anyone can run the drills.",
+    "label": "Train", "name": "Train crew", "icon": "train",
+    "tip": "Training is practice laps for the crew. Anyone can run the drills.",
     "best": [], "otherMult": 0.8, "baseline": 4
   },
   "fundraise": {
-    "label": "Funds", "tip": "Fundraising brings in money. A PR lead is the best at asking.",
+    "label": "Funds", "name": "Fundraise", "icon": "fundraise",
+    "tip": "Fundraising brings in money. A PR lead is the best at asking.",
     "best": ["pr"], "bestMult": 1.0, "otherMult": 0.3, "base": 3, "perSkill": 3
   },
   "rest": {
-    "label": "Rest", "tip": "Rest lifts morale. A happy team gets more done every week.",
+    "label": "Rest", "name": "Rest", "icon": "rest",
+    "tip": "Rest lifts morale. A happy team gets more done every week.",
     "perPerson": 5, "weekCap": 15
   },
   "weekly": { "overhead": 5, "moraleDrift": -2 }
