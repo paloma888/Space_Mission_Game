@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Test: launchweek</title>
+  <link rel="stylesheet" href="../../core/base.css">
+</head>
+<body>
+  <!-- Open with Live Server. Try ?preset=readyToLaunch&seed=123 (presets: RULEBOOK section 12). -->
+  <div id="app"><div id="game"></div></div>
+  <script type="module">
+    import { fakeState } from '../../core/state.js';
+    import { show } from './launchweek.js';
+
+    const params = new URLSearchParams(location.search);
+    const state = fakeState(params.get('preset') || 'readyToLaunch');
+    window.state = state; // type "state" in the browser console (F12) to inspect it
+
+    show(state, (next) => {
+      console.log('done() called. Next:', next ?? 'the following slice', state);
+      document.getElementById('game').insertAdjacentHTML('beforeend',
+        '<p>Slice finished. See the console (F12) for the final state.</p>');
+    });
+  </script>
+</body>
+</html>

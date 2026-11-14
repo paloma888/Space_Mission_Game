@@ -1,0 +1,12 @@
+# Mac and Windows clutter
+.DS_Store
+Thumbs.db
+
+# Secrets and local settings (never commit keys)
+.env
+.env.*
+.azure/
+
+# Tools
+node_modules/
+.vscode/settings.json

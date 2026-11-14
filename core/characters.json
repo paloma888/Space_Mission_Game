@@ -1,0 +1,137 @@
+[
+  {
+    "id": "rosa",
+    "name": "Rosa Vega",
+    "title": "Retired Flight Director",
+    "kind": "narrator",
+    "voice": "Warm and plain. Explains with everyday comparisons like road trips and cooking. Never scary.",
+    "tic": "Measure twice, launch once.",
+    "portrait": "rosa"
+  },
+  {
+    "id": "hal",
+    "name": "Hal Brennan",
+    "title": "Chief Engineer",
+    "kind": "staff",
+    "voice": "Gruff. Short sentences. Never says please. Secretly kind.",
+    "tic": "I've seen this movie before.",
+    "portrait": "hal"
+  },
+  {
+    "id": "dev",
+    "name": "Dev Okafor",
+    "title": "Junior Engineer",
+    "kind": "staff",
+    "voice": "Eager and a little breathless.",
+    "tic": "Cool cool cool.",
+    "portrait": "dev"
+  },
+  {
+    "id": "inez",
+    "name": "Inez Moreau",
+    "title": "Quality Inspector",
+    "kind": "staff",
+    "voice": "Dry deadpan. Loves checklists.",
+    "tic": "Trust, but verify.",
+    "portrait": "inez"
+  },
+  {
+    "id": "skye",
+    "name": "Skye Patel",
+    "title": "Meteorologist",
+    "kind": "staff",
+    "voice": "Bubbly. A weather pun in every message.",
+    "tic": "That forecast is looking up.",
+    "portrait": "skye"
+  },
+  {
+    "id": "marty",
+    "name": "Marty Kowalski",
+    "title": "Logistics Manager",
+    "kind": "staff",
+    "voice": "Talks fast. Phone always ringing.",
+    "tic": "Don't panic. Okay, panic a little.",
+    "portrait": "marty"
+  },
+  {
+    "id": "tasha",
+    "name": "Tasha Brooks",
+    "title": "PR Lead",
+    "kind": "staff",
+    "voice": "Upbeat salesperson. Turns everything into a headline.",
+    "tic": "That's a headline!",
+    "portrait": "tasha"
+  },
+  {
+    "id": "amara",
+    "name": "Amara Okonkwo",
+    "title": "Astronaut candidate",
+    "kind": "astronaut",
+    "voice": "Ace pilot. Overconfident, skims checklists.",
+    "tic": "Easy.",
+    "portrait": "amara"
+  },
+  {
+    "id": "jun",
+    "name": "Jun Takahashi",
+    "title": "Astronaut candidate",
+    "kind": "astronaut",
+    "voice": "Brilliant engineer. Talks to machines more than people.",
+    "tic": "Technically...",
+    "portrait": "jun"
+  },
+  {
+    "id": "lucia",
+    "name": "Lucía Herrera",
+    "title": "Astronaut candidate",
+    "kind": "astronaut",
+    "voice": "Calm under pressure. Keeps worries to herself.",
+    "tic": "Breathe. Then decide.",
+    "portrait": "lucia"
+  },
+  {
+    "id": "dmitri",
+    "name": "Dmitri Volkov",
+    "title": "Astronaut candidate",
+    "kind": "astronaut",
+    "voice": "Veteran test pilot. Grumpy, dry humor.",
+    "tic": "In my day...",
+    "portrait": "dmitri"
+  },
+  {
+    "id": "priya",
+    "name": "Priya Nair",
+    "title": "Astronaut candidate",
+    "kind": "astronaut",
+    "voice": "Rookie genius. Nervous.",
+    "tic": "Sorry, quick question.",
+    "portrait": "priya"
+  },
+  {
+    "id": "sam",
+    "name": "Sam 'Sparks' Whitaker",
+    "title": "Astronaut candidate",
+    "kind": "astronaut",
+    "voice": "Does everything okay. Jokes at the wrong moment.",
+    "tic": "Roger that, boss.",
+    "portrait": "sam"
+  },
+  {
+    "id": "zainab",
+    "name": "Zainab Al-Rashid",
+    "title": "Astronaut candidate",
+    "kind": "astronaut",
+    "voice": "Excellent all-rounder. Perfectionist, slows decisions.",
+    "tic": "One more check.",
+    "portrait": "zainab"
+  },
+  {
+    "id": "mateo",
+    "name": "Mateo Silva",
+    "title": "Astronaut candidate",
+    "kind": "astronaut",
+    "voice": "Cheerful and cheap, steady nerves. Forgetful.",
+    "tic": "Wait, did we do that?",
+    "portrait": "mateo"
+  }
+]
