@@ -23,14 +23,15 @@ async function loadSlice(id) {
   }
 }
 
-// Runs one slice and waits until it calls done(). Resolves with what was passed to done().
+// Runs one slice and waits until it calls done(target, opts). Resolves with { target, opts }.
+// target: a slice id to jump to (or nothing for the next one). opts.fresh: start a brand-new game.
 function runSlice(mod, state) {
   return new Promise((resolve) => {
     let finished = false;
-    const done = (next) => {
-      if (finished) return; // ignore a second done()
+    const done = (target, opts = {}) => {
+      if (finished) return; // ignore a second done(), e.g. a double click
       finished = true;
-      resolve(next);
+      resolve({ target, opts: opts ?? {} });
     };
     Promise.resolve()
       .then(() => mod.show(state, done))
@@ -56,15 +57,25 @@ export async function start(state = createState(), from = 'briefing') {
   let i = Math.max(0, ORDER.indexOf(from));
   while (true) {
     const id = ORDER[i];
-    const next = await runSlice(await loadSlice(id), state);
+    const { target, opts } = await runSlice(await loadSlice(id), state);
+    const targetIsSlice = ORDER.includes(target);
+
+    // done(target, { fresh: true }) from any slice: brand-new game, then the target or the start.
+    if (opts.fresh) {
+      resetInPlace(state);
+      ui.refresh();
+      i = targetIsSlice ? ORDER.indexOf(target) : 0;
+      continue;
+    }
     ui.refresh();
 
     if (id === 'finale') {
+      if (targetIsSlice) { i = ORDER.indexOf(target); continue; }
       // Try Again: finale set state.resume and loaded a checkpoint. The matching slice
       // reads state.resume and skips ahead (it should set state.resume = null after reading it).
       if (state.resume === 'hiring') { i = ORDER.indexOf('briefing'); continue; }
       if (state.resume === 'build') { i = ORDER.indexOf('build'); continue; }
-      // Play Again: start over with a brand-new game.
+      // Play Again with no target and no resume: start over with a brand-new game.
       resetInPlace(state);
       ui.refresh();
       i = 0;
@@ -74,8 +85,8 @@ export async function start(state = createState(), from = 'briefing') {
     // After every done(), check for bankrupt or window_closed (RULEBOOK section 3).
     const end = checkEnd(state);
     if (end) state.outcome = end;
-    if (state.outcome || next === 'finale') { i = ORDER.indexOf('finale'); continue; }
-    if (next && ORDER.includes(next)) { i = ORDER.indexOf(next); continue; } // dev jumps
+    if (state.outcome || target === 'finale') { i = ORDER.indexOf('finale'); continue; }
+    if (targetIsSlice) { i = ORDER.indexOf(target); continue; } // dev jumps
     i += 1;
   }
 }
