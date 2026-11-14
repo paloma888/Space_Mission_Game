@@ -1,1 +1,76 @@
-[]
+[
+  {
+    "id": "first_shipment",
+    "weeks": [1, 1],
+    "weight": 1,
+    "when": {},
+    "guarantee": { "byWeek": 1 },
+    "speaker": "marty",
+    "flavor": "Boss! My phone won't stop ringing. Don't panic. Okay, panic a little.",
+    "title": "The first truck is stuck",
+    "text": "The truck carrying the capsule frame is stuck two states away. Nothing can be built until it gets here.",
+    "choices": [
+      { "label": "Pay $10M for a fast courier", "effects": { "budget": -10 }, "result": "A courier races the frame over. It arrives the same night." },
+      { "label": "Wait three days", "effects": { "day": 3 }, "result": "The truck rolls in three days late. The team gets to work." },
+      { "label": "Reroute the truck", "requires": "logistics", "effects": { "day": 1 }, "result": "One clever detour later, the frame arrives the next morning." }
+    ]
+  },
+  {
+    "id": "stolen_valve",
+    "weeks": [1, 5],
+    "weight": 1,
+    "when": {},
+    "speaker": "marty",
+    "flavor": "I counted that pallet three times. Thrice! Now it's gone.",
+    "title": "A shipment goes missing",
+    "text": "A pallet of fuel valves has vanished from the loading dock. The capsule can't be finished without them.",
+    "choices": [
+      { "label": "Pay to rush a new one", "effects": { "budget": -20 }, "result": "One very expensive phone call later, new valves are on the way." },
+      { "label": "Wait for the next truck", "effects": { "day": 7 }, "result": "A week of waiting. The valves finally arrive." },
+      { "label": "Have an engineer make one", "requires": "engineer", "effects": { "day": 2, "reliability": -0.03 }, "result": "The new valve is a little rough, but it fits." }
+    ]
+  },
+  {
+    "id": "lightning_rods",
+    "weeks": [2, 5],
+    "weight": 1,
+    "when": { "siteIn": ["canaveral", "kourou"] },
+    "speaker": "rosa",
+    "flavor": "It's like unplugging the TV in a storm. A little care now saves a lot later.",
+    "title": "A storm rolls over the pad",
+    "text": "A thunderstorm hits while the rocket is being put together. Lightning lands close to the pad.",
+    "choices": [
+      { "label": "Install lightning protection", "effects": { "budget": -10, "flags": ["lightning_ready"] }, "result": "Tall rods now guard the pad. A strike is far less likely to reach the rocket." },
+      { "label": "Skip it", "effects": {}, "result": "The storm passes. The pad stays as it is." }
+    ]
+  },
+  {
+    "id": "hidden_crack",
+    "weeks": [3, 5],
+    "weight": 1,
+    "when": {},
+    "speaker": "hal",
+    "flavor": "I've seen this movie before. Don't like how it ends.",
+    "title": "A line in the weld",
+    "text": "A scan shows a faint line in one of the capsule's welds. It may be a crack. It may be nothing.",
+    "choices": [
+      { "label": "Ask the inspector to check it", "requires": "inspector", "effects": { "day": 1, "reliability": 0.02 }, "result": "A careful check finds a small flaw. It gets fixed in a day." },
+      { "label": "Take it apart and check by hand", "effects": { "day": 4, "budget": -10 }, "result": "Four slow days. The weld is redone and it is solid." },
+      { "label": "Ship it as it is", "effects": { "reliability": -0.05, "flags": ["hidden_defect"] }, "result": "The capsule moves on. Nobody knows what that line was." }
+    ]
+  },
+  {
+    "id": "software_bug",
+    "weeks": [2, 5],
+    "weight": 1,
+    "when": {},
+    "speaker": "dev",
+    "flavor": "Cool cool cool. So the pretend rocket crashed. Only the pretend one!",
+    "title": "The simulator finds a bug",
+    "text": "A practice flight in the simulator crashed. There is a bug in the flight software.",
+    "choices": [
+      { "label": "Fix it now", "effects": { "day": 2, "reliability": 0.02 }, "result": "Two days of careful work. The bug is gone and tested." },
+      { "label": "Patch it later", "effects": { "reliability": -0.03, "flags": ["software_bug_open"] }, "result": "The bug goes on a to-do list. The list is getting long." }
+    ]
+  }
+]

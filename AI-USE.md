@@ -17,6 +17,8 @@ Example:
 
 - Sat: Claude Code wrote the first version of `applyEffects`, `meetsRequirement` and `requirementWhy` in `core/events.js` from the Slice 3 brief, and checked them with a throwaway script.
 - Sat: Claude Code created `slices/trail/tasks.json` from the numbers in the Slice 3 brief.
+- Sat: Claude Code wrote `loadAllEvents`, `pickEvent`, `runEvent` and `describeChanges` in `core/events.js`, and a first events-only weekly loop in `trail.js`.
+- Sat: Claude Code drafted the first five events in `slices/trail/events.json` (text, flavor lines, choices and results) from the roster in the Slice 3 brief.
 
 ## Person 4: Weather & Go/No-Go
 
