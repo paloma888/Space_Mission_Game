@@ -1,0 +1,6 @@
+[
+  { "id": "sparrow",        "name": "Sparrow Light",  "lift": 5,  "cost": 60,  "reliability": 0.95, "sprite": "rocket_sparrow",        "blurb": "Small and cheap. Great for satellites, too small for a crew capsule." },
+  { "id": "condor",         "name": "Condor",         "lift": 12, "cost": 150, "reliability": 0.97, "sprite": "rocket_condor",         "blurb": "The workhorse. It has flown many times and almost always works." },
+  { "id": "condor_reflown", "name": "Condor Reflown", "lift": 12, "cost": 90,  "reliability": 0.93, "sprite": "rocket_condor_reflown", "blurb": "A Condor booster that already flew once. Cheaper, but older parts." },
+  { "id": "pelican",        "name": "Pelican Heavy",  "lift": 25, "cost": 300, "reliability": 0.90, "sprite": "rocket_pelican",        "blurb": "Huge and brand new. Lifts anything, but has few flights behind it." }
+]
