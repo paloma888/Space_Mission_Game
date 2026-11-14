@@ -54,6 +54,11 @@ body { display: grid; place-items: center; }
   inset: 0;
   overflow: hidden;
   background: var(--bg);
+  transition: opacity 300ms; /* screens.js fades between slices */
+}
+#game.is-fading { opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+  #game { transition: none; }
 }
 #dashboard {
   position: absolute;
