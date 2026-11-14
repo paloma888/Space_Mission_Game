@@ -4,6 +4,7 @@
 
 import { CATALOG } from './catalog.js';
 import * as math from './recompute.js';
+import * as ui from '../../core/ui.js';
 
 export const meta = { id: 'build', owner: 'Person 2' };
 export { CATALOG };
@@ -13,6 +14,7 @@ export const recompute = (state) => math.recompute(state, CATALOG);
 
 export async function show(state, done) {
   recompute(state);
+  ui.refresh();
   const game = document.getElementById('game');
   game.innerHTML = `
     <div class="stub">

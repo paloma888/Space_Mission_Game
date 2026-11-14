@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Test: dashboard</title>
+  <link rel="stylesheet" href="../../core/base.css">
+  <style>
+    /* Test-only controls, styled like the dev panel. Not part of the game. */
+    .controls { position: fixed; left: 8px; bottom: 8px; z-index: 100; display: flex; flex-wrap: wrap;
+      gap: 6px; max-width: 98vw; padding: 8px; font: 12px monospace; background: #fff; color: #000; border: 2px solid #000; }
+    .controls button, .controls select { font: 12px monospace; }
+  </style>
+</head>
+<body>
+  <!-- Open with Live Server. Try ?preset=fresh, afterHiring, afterBuild, readyToLaunch. -->
+  <div id="app"><div id="game"></div><div id="dashboard"></div></div>
+  <div class="controls" id="controls"></div>
+  <script type="module">
+    import { fakeState, PRESET_NAMES } from '../../core/state.js';
+    import * as ui from '../../core/ui.js';
+    import { applyEffects } from '../../core/events.js';
+    import { mountDashboard } from '../../core/dashboard.js';
+    import { recompute, CATALOG } from './build.js';
+
+    const params = new URLSearchParams(location.search);
+    const state = fakeState(params.get('preset') || 'afterBuild');
+    window.state = state; // type "state" in the browser console (F12) to inspect it
+    if (state.parts?.shell) recompute(state);
+
+    ui.screen('build/assembly_hangar');
+    mountDashboard(document.getElementById('dashboard'));
+    ui.bindState(state);
+    ui.refresh();
+
+    // Picks only set state, like the real shop will. They do NOT charge money here,
+    // so you can test the gauges without the budget drifting.
+    const update = () => { recompute(state); ui.refresh(); syncPicks(); showNumbers(); };
+    const actions = {
+      '-50 budget': () => applyEffects(state, { budget: -50 }),
+      '+50 budget': () => applyEffects(state, { budget: 50 }),
+      '+7 days': () => applyEffects(state, { day: 7 }),
+      '-10 morale': () => applyEffects(state, { morale: -10 }),
+      '+10 morale': () => applyEffects(state, { morale: 10 }),
+      'All standard': () => setAll('standard'),
+      'All budget': () => setAll('budget'),
+      'All premium': () => setAll('premium'),
+      'Clear build': () => { state.parts = {}; state.rocket = null; state.site = null; state.orbit = 'leo'; },
+    };
+    function setAll(tier) {
+      state.parts = { shell: tier, lifeSupport: tier, power: { type: 'battery', tier }, comms: tier, computer: tier };
+    }
+
+    // One dropdown per choice. "--" means nothing picked yet. Shady tiers are marked so they stand out.
+    const tiersOf = (group) => Object.entries(group).map(([id, p]) => [id, p.shady ? `${p.label} (shady)` : p.label]);
+    const PICKS = [
+      { label: 'Shell', options: tiersOf(CATALOG.parts.shell), get: () => state.parts.shell, set: (v) => { state.parts.shell = v; } },
+      { label: 'Life support', options: tiersOf(CATALOG.parts.lifeSupport), get: () => state.parts.lifeSupport, set: (v) => { state.parts.lifeSupport = v; } },
+      { label: 'Battery', options: tiersOf(CATALOG.parts.power.battery), get: () => state.parts.power?.tier,
+        set: (v) => { state.parts.power = v ? { type: 'battery', tier: v } : undefined; } },
+      { label: 'Comms', options: tiersOf(CATALOG.parts.comms), get: () => state.parts.comms, set: (v) => { state.parts.comms = v; } },
+      { label: 'Computer', options: tiersOf(CATALOG.parts.computer), get: () => state.parts.computer, set: (v) => { state.parts.computer = v; } },
+      { label: 'Rocket', options: CATALOG.rockets.map((r) => [r.id, r.name]), get: () => state.rocket, set: (v) => { state.rocket = v; } },
+      { label: 'Site', options: CATALOG.sites.map((s) => [s.id, s.name.split(',')[0]]), get: () => state.site, set: (v) => { state.site = v; } },
+      { label: 'Orbit', options: [['leo', 'Low Earth'], ['polar', 'Polar']], get: () => state.orbit, set: (v) => { state.orbit = v; }, required: true },
+    ];
+
+    const bar = document.getElementById('controls');
+    const preset = document.createElement('select');
+    preset.innerHTML = PRESET_NAMES.map((n) => `<option>${n}</option>`).join('');
+    preset.value = params.get('preset') || 'afterBuild';
+    preset.onchange = () => { params.set('preset', preset.value); location.search = params; };
+    bar.append('Preset ', preset);
+
+    const selects = PICKS.map((pick) => {
+      const s = document.createElement('select');
+      const blank = pick.required ? '' : '<option value="">--</option>';
+      s.innerHTML = blank + pick.options.map(([id, name]) => `<option value="${id}">${name}</option>`).join('');
+      s.onchange = () => { state.parts ??= {}; pick.set(s.value || null); update(); };
+      const label = document.createElement('label');
+      label.append(`${pick.label} `, s);
+      bar.append(label);
+      return s;
+    });
+    // Keep the dropdowns showing what is really in state (after a preset or an "All ..." button).
+    function syncPicks() {
+      PICKS.forEach((pick, i) => { selects[i].value = pick.get() ?? ''; });
+    }
+
+    for (const [label, fn] of Object.entries(actions)) {
+      const b = document.createElement('button');
+      b.textContent = label;
+      b.onclick = () => { fn(); update(); };
+      bar.append(b);
+    }
+    // Shows the math behind the gauges, so you can compare against the test cases.
+    const readout = document.createElement('div');
+    readout.style.width = '100%';
+    bar.append(readout);
+    function showNumbers() {
+      const d = state.derived;
+      readout.textContent = `mass ${d.capsuleMass} t, lift ${d.liftCapacity} t, margin ${d.massMargin} t, `
+        + `power ${d.powerUse}/${d.powerSupply} W, spent $${d.spent}M, rel.parts ${state.rel.parts} (hidden in game)`;
+    }
+    update();
+  </script>
+</body>
+</html>
