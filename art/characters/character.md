@@ -1,6 +1,6 @@
 # Character portraits
 
-- **Size:** 64 x 64 px, transparent PNG.
+- **Size:** 64 x 64 px for now, we may want more detailed later, transparent PNG.
 - **Files:** `art/characters/<id>.png`, where the id comes from `core/characters.json`.
 - **Same framing for everyone.** Agree on one in chat (for example, head and shoulders facing right) so dialogue boxes look consistent.
 - **Colors:** only the team palette. **Hand-made only.**
