@@ -1,0 +1,151 @@
+{
+  "scenes": [
+    {
+      "number": 0, "id": "title", "background": "briefing/title_screen",
+      "lines": [],
+      "howToPlay": [
+        "TODO: How to Play slide 1, about 30 words. Hire a crew and staff.",
+        "TODO: How to Play slide 2, about 30 words. Build, then survive five weeks.",
+        "TODO: How to Play slide 3, about 30 words. Pick a launch day and listen to your team."
+      ],
+      "credits": [
+        "TODO: team names and who built what",
+        "Font: Press Start 2P (TODO: verify author and license on Google Fonts)",
+        "Palette: TODO: palette name, author and Lospec license note",
+        "All pixel art and sound made by hand by the team.",
+        "Every history card shows its NASA source on screen."
+      ]
+    },
+    {
+      "number": 1, "id": "hangar", "background": "briefing/hq_lobby",
+      "lines": [
+        { "speaker": "rosa", "text": "TODO: Rosa welcomes the new Flight Director." },
+        { "speaker": "rosa", "text": "TODO: Rosa says who she is." },
+        { "speaker": "rosa", "text": "TODO: Her old agency retired her." },
+        { "speaker": "rosa", "text": "TODO: This tiny agency needs her, and you." },
+        { "speaker": "rosa", "text": "TODO: The stakes of Mission 1, in one line." },
+        { "speaker": "rosa", "text": "TODO: Rosa asks what to call the agency." }
+      ],
+      "agencyNamePrompt": "What should we call our agency?",
+      "afterName": [
+        { "speaker": "rosa", "text": "TODO: Rosa repeats the name. {agencyName} it is." }
+      ]
+    },
+    {
+      "number": 2, "id": "mission", "background": "briefing/rosa_office",
+      "missionCard": {
+        "title": "Mission 1",
+        "facts": [
+          "Crew of three to low Earth orbit",
+          "Budget: $800M",
+          "Time: 42 days",
+          "Win: crew safe, in orbit, score 60 or more"
+        ]
+      },
+      "lines": [
+        { "speaker": "rosa", "text": "TODO: Rosa reads the mission card." },
+        { "speaker": "rosa", "text": "TODO: A launch window is like a train that leaves once." },
+        { "speaker": "rosa", "text": "TODO: What winning means, in plain words." }
+      ]
+    },
+    {
+      "number": 3, "id": "dashboard", "background": "briefing/rosa_office",
+      "dashboard": true,
+      "lines": [
+        { "speaker": "rosa", "text": "TODO: Rosa points at the dashboard up top." },
+        { "speaker": "rosa", "text": "TODO: Budget gauge, one line.", "gauge": "budget" },
+        { "speaker": "rosa", "text": "TODO: Days gauge, one line.", "gauge": "days" },
+        { "speaker": "rosa", "text": "TODO: Mass margin gauge, one line.", "gauge": "mass" },
+        { "speaker": "rosa", "text": "TODO: Power gauge, one line.", "gauge": "power" },
+        { "speaker": "rosa", "text": "TODO: Comms gauge, one line.", "gauge": "comms" },
+        { "speaker": "rosa", "text": "TODO: Morale gauge, one line.", "gauge": "morale" },
+        { "speaker": "rosa", "text": "TODO: One number you can't see: reliability." },
+        { "speaker": "rosa", "text": "TODO: Good parts and testing raise it." }
+      ]
+    },
+    {
+      "number": 4, "id": "road", "background": "briefing/rosa_office",
+      "stops": [
+        { "name": "Hire", "text": "TODO: one sentence about hiring" },
+        { "name": "Build", "text": "TODO: one sentence about building" },
+        { "name": "Trail", "text": "TODO: one sentence about the five weeks" },
+        { "name": "Launch Week", "text": "TODO: one sentence about weather and Go/No-Go" },
+        { "name": "Launch", "text": "TODO: one sentence about launch day" }
+      ],
+      "lines": [
+        { "speaker": "rosa", "text": "TODO: Rosa walks through the five stops." },
+        { "speaker": "rosa", "text": "TODO: Every choice costs money, time or risk." }
+      ]
+    },
+    {
+      "number": 5, "id": "hiringTips", "background": "briefing/hiring_hall",
+      "lines": [
+        { "speaker": "rosa", "text": "TODO: Skills run from 1 to 5." },
+        { "speaker": "rosa", "text": "TODO: Everyone has a flaw too." },
+        { "speaker": "rosa", "text": "TODO: Why staff matter." }
+      ]
+    },
+    {
+      "number": 6, "id": "reaction", "background": "briefing/hiring_hall",
+      "variants": {
+        "steady": [
+          { "speaker": "rosa", "text": "TODO: Rosa says this crew is steady (average nerves 4 or more)." }
+        ],
+        "lightEngineering": [
+          { "speaker": "rosa", "text": "TODO: Rosa warns the crew is light on engineering (best eng 2 or less)." }
+        ],
+        "balanced": [
+          { "speaker": "rosa", "text": "TODO: Rosa gives a balanced line about the crew." }
+        ]
+      },
+      "lines": [
+        { "speaker": "rosa", "text": "Measure twice, launch once." }
+      ]
+    }
+  ],
+  "hiring": {
+    "why": {
+      "pilot": [
+        { "speaker": "rosa", "text": "TODO: What piloting means, line 1." },
+        { "speaker": "rosa", "text": "TODO: What piloting means, line 2." }
+      ],
+      "eng": [
+        { "speaker": "rosa", "text": "TODO: What engineering means, line 1." },
+        { "speaker": "rosa", "text": "TODO: What engineering means, line 2." }
+      ],
+      "nerves": [
+        { "speaker": "rosa", "text": "TODO: What nerves means, line 1." },
+        { "speaker": "rosa", "text": "TODO: What nerves means, line 2." }
+      ],
+      "engineer": [
+        { "speaker": "rosa", "text": "TODO: Why hire an engineer, line 1." },
+        { "speaker": "rosa", "text": "TODO: Why hire an engineer, line 2." }
+      ],
+      "inspector": [
+        { "speaker": "rosa", "text": "TODO: Why hire an inspector, line 1." },
+        { "speaker": "rosa", "text": "TODO: Why hire an inspector, line 2." }
+      ],
+      "meteorologist": [
+        { "speaker": "rosa", "text": "TODO: Why hire a meteorologist, line 1." },
+        { "speaker": "rosa", "text": "TODO: Why hire a meteorologist, line 2." }
+      ],
+      "logistics": [
+        { "speaker": "rosa", "text": "TODO: Why hire logistics, line 1." },
+        { "speaker": "rosa", "text": "TODO: Why hire logistics, line 2." }
+      ],
+      "pr": [
+        { "speaker": "rosa", "text": "TODO: Why hire a PR lead, line 1." },
+        { "speaker": "rosa", "text": "TODO: Why hire a PR lead, line 2." }
+      ]
+    },
+    "missingWarning": {
+      "intro": "TODO: Rosa's warning opener.",
+      "roles": {
+        "engineer": "No engineer: slower building.",
+        "inspector": "No inspector: less testing.",
+        "meteorologist": "No meteorologist: a fuzzy forecast."
+      },
+      "question": "Hire anyway?"
+    }
+  }
+}

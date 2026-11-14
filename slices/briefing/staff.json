@@ -1,0 +1,50 @@
+[
+  {
+    "id": "hal", "name": "Hal Brennan", "role": "engineer", "title": "Chief Engineer", "skill": 5, "cost": 40, "portrait": "hal",
+    "effect": "Builds fast. Warns you when you cut corners",
+    "bio": "TODO: Hal bio. Two sentences.",
+    "strength": "TODO: Hal strength (60 characters or fewer)",
+    "flaw": "TODO: Hal flaw (60 characters or fewer)",
+    "lines": { "hired": ["TODO: Hal hired line"], "released": ["TODO: Hal released line"] }
+  },
+  {
+    "id": "dev", "name": "Dev Okafor", "role": "engineer", "title": "Junior Engineer", "skill": 3, "cost": 20, "portrait": "dev",
+    "effect": "Builds steadily. Cheap",
+    "bio": "TODO: Dev bio. Two sentences.",
+    "strength": "TODO: Dev strength (60 characters or fewer)",
+    "flaw": "TODO: Dev flaw (60 characters or fewer)",
+    "lines": { "hired": ["TODO: Dev hired line"], "released": ["TODO: Dev released line"] }
+  },
+  {
+    "id": "inez", "name": "Inez Moreau", "role": "inspector", "title": "Quality Inspector", "skill": 4, "cost": 25, "portrait": "inez",
+    "effect": "Catches hidden flaws before launch",
+    "bio": "TODO: Inez bio. Two sentences.",
+    "strength": "TODO: Inez strength (60 characters or fewer)",
+    "flaw": "TODO: Inez flaw (60 characters or fewer)",
+    "lines": { "hired": ["TODO: Inez hired line"], "released": ["TODO: Inez released line"] }
+  },
+  {
+    "id": "skye", "name": "Skye Patel", "role": "meteorologist", "title": "Meteorologist", "skill": 4, "cost": 25, "portrait": "skye",
+    "effect": "Gives a sharper weather forecast",
+    "bio": "TODO: Skye bio. Two sentences.",
+    "strength": "TODO: Skye strength (60 characters or fewer)",
+    "flaw": "TODO: Skye flaw (60 characters or fewer)",
+    "lines": { "hired": ["TODO: Skye hired line"], "released": ["TODO: Skye released line"] }
+  },
+  {
+    "id": "marty", "name": "Marty Kowalski", "role": "logistics", "title": "Logistics Manager", "skill": 3, "cost": 20, "portrait": "marty",
+    "effect": "Fewer stolen or late deliveries",
+    "bio": "TODO: Marty bio. Two sentences.",
+    "strength": "TODO: Marty strength (60 characters or fewer)",
+    "flaw": "TODO: Marty flaw (60 characters or fewer)",
+    "lines": { "hired": ["TODO: Marty hired line"], "released": ["TODO: Marty released line"] }
+  },
+  {
+    "id": "tasha", "name": "Tasha Brooks", "role": "pr", "title": "PR Lead", "skill": 4, "cost": 25, "portrait": "tasha",
+    "effect": "Turns a week into extra budget",
+    "bio": "TODO: Tasha bio. Two sentences.",
+    "strength": "TODO: Tasha strength (60 characters or fewer)",
+    "flaw": "TODO: Tasha flaw (60 characters or fewer)",
+    "lines": { "hired": ["TODO: Tasha hired line"], "released": ["TODO: Tasha released line"] }
+  }
+]

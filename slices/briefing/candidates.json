@@ -1,0 +1,82 @@
+[
+  {
+    "id": "amara", "name": "Amara Okonkwo", "pilot": 5, "eng": 2, "nerves": 3, "cost": 55, "portrait": "amara",
+    "bio": "TODO: Amara bio. Three sentences, 280 characters or fewer. Ace pilot who skims checklists.",
+    "strength": "TODO: Amara strength (60 characters or fewer)",
+    "flaw": "TODO: Amara flaw (60 characters or fewer)",
+    "lines": {
+      "hired": ["TODO: Amara hired line 1. Ends with Easy.", "TODO: Amara hired line 2"],
+      "released": ["TODO: Amara released line"]
+    }
+  },
+  {
+    "id": "jun", "name": "Jun Takahashi", "pilot": 2, "eng": 5, "nerves": 3, "cost": 50, "portrait": "jun",
+    "bio": "TODO: Jun bio. Three sentences, 280 characters or fewer. Brilliant engineer who talks to machines.",
+    "strength": "TODO: Jun strength (60 characters or fewer)",
+    "flaw": "TODO: Jun flaw (60 characters or fewer)",
+    "lines": {
+      "hired": ["TODO: Jun hired line 1", "TODO: Jun hired line 2"],
+      "released": ["TODO: Jun released line"]
+    }
+  },
+  {
+    "id": "lucia", "name": "Lucía Herrera", "pilot": 3, "eng": 2, "nerves": 5, "cost": 45, "portrait": "lucia",
+    "bio": "TODO: Lucía bio. Three sentences, 280 characters or fewer. Calm under pressure, keeps worries to herself.",
+    "strength": "TODO: Lucía strength (60 characters or fewer)",
+    "flaw": "TODO: Lucía flaw (60 characters or fewer)",
+    "lines": {
+      "hired": ["TODO: Lucía hired line 1", "TODO: Lucía hired line 2"],
+      "released": ["TODO: Lucía released line"]
+    }
+  },
+  {
+    "id": "dmitri", "name": "Dmitri Volkov", "pilot": 4, "eng": 3, "nerves": 3, "cost": 60, "portrait": "dmitri",
+    "bio": "TODO: Dmitri bio. Three sentences, 280 characters or fewer. Grumpy veteran test pilot.",
+    "strength": "TODO: Dmitri strength (60 characters or fewer)",
+    "flaw": "TODO: Dmitri flaw (60 characters or fewer)",
+    "lines": {
+      "hired": ["TODO: Dmitri hired line 1", "TODO: Dmitri hired line 2"],
+      "released": ["TODO: Dmitri released line"]
+    }
+  },
+  {
+    "id": "priya", "name": "Priya Nair", "pilot": 2, "eng": 4, "nerves": 2, "cost": 30, "portrait": "priya",
+    "bio": "TODO: Priya bio. Three sentences, 280 characters or fewer. Nervous rookie genius.",
+    "strength": "TODO: Priya strength (60 characters or fewer)",
+    "flaw": "TODO: Priya flaw (60 characters or fewer)",
+    "lines": {
+      "hired": ["TODO: Priya hired line 1", "TODO: Priya hired line 2"],
+      "released": ["TODO: Priya released line"]
+    }
+  },
+  {
+    "id": "sam", "name": "Sam 'Sparks' Whitaker", "pilot": 3, "eng": 3, "nerves": 3, "cost": 40, "portrait": "sam",
+    "bio": "TODO: Sam bio. Three sentences, 280 characters or fewer. Does everything okay, jokes at the wrong moment.",
+    "strength": "TODO: Sam strength (60 characters or fewer)",
+    "flaw": "TODO: Sam flaw (60 characters or fewer)",
+    "lines": {
+      "hired": ["TODO: Sam hired line 1", "TODO: Sam hired line 2"],
+      "released": ["TODO: Sam released line"]
+    }
+  },
+  {
+    "id": "zainab", "name": "Zainab Al-Rashid", "pilot": 3, "eng": 4, "nerves": 4, "cost": 65, "portrait": "zainab",
+    "bio": "TODO: Zainab bio. Three sentences, 280 characters or fewer. Perfectionist all-rounder.",
+    "strength": "TODO: Zainab strength (60 characters or fewer)",
+    "flaw": "TODO: Zainab flaw (60 characters or fewer)",
+    "lines": {
+      "hired": ["TODO: Zainab hired line 1", "TODO: Zainab hired line 2"],
+      "released": ["TODO: Zainab released line"]
+    }
+  },
+  {
+    "id": "mateo", "name": "Mateo Silva", "pilot": 2, "eng": 2, "nerves": 4, "cost": 25, "portrait": "mateo",
+    "bio": "TODO: Mateo bio. Three sentences, 280 characters or fewer. Cheerful, cheap and forgetful.",
+    "strength": "TODO: Mateo strength (60 characters or fewer)",
+    "flaw": "TODO: Mateo flaw (60 characters or fewer)",
+    "lines": {
+      "hired": ["TODO: Mateo hired line 1", "TODO: Mateo hired line 2"],
+      "released": ["TODO: Mateo released line"]
+    }
+  }
+]
