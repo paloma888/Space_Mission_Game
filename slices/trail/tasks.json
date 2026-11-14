@@ -1,0 +1,8 @@
+{
+  "build":     { "best": ["engineer"],  "bestMult": 1.0, "otherMult": 0.4, "baseline": 4 },
+  "testing":   { "best": ["inspector"], "bestMult": 1.0, "altMult": { "engineer": 0.7 }, "otherMult": 0.4, "baseline": 0 },
+  "training":  { "best": [],            "otherMult": 0.8, "baseline": 4 },
+  "fundraise": { "best": ["pr"],        "bestMult": 1.0, "otherMult": 0.3, "base": 3, "perSkill": 3 },
+  "rest":      { "perPerson": 5, "weekCap": 15 },
+  "weekly":    { "overhead": 5, "moraleDrift": -2 }
+}
