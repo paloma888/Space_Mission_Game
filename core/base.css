@@ -61,6 +61,8 @@ body { display: grid; place-items: center; }
   z-index: 5;
   pointer-events: none; /* Person 2: set pointer-events: auto on anything clickable */
 }
+/* ui.screen(bg, { dashboard: false }) sets [hidden]. This wins even if a display rule is added later. */
+#dashboard[hidden] { display: none !important; }
 
 img, .screen { image-rendering: pixelated; }
 h1 { font-size: var(--title); margin: 0 0 24px; }

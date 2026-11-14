@@ -38,9 +38,12 @@ const game = () => document.getElementById('game');
 // ---------- Screens
 
 // Clears #game, sets a background like 'trail/mission_control', returns the root element.
-export function screen(background) {
+// opts.dashboard (default true): false hides #dashboard, for the title and Rosa's cutscenes.
+export function screen(background, opts = {}) {
   const root = el('div', 'screen');
   game().replaceChildren(root);
+  const dashboardElement = document.getElementById('dashboard');
+  if (dashboardElement) dashboardElement.hidden = opts.dashboard === false;
   if (background) {
     root.classList.add('placeholder-bg');
     root.dataset.label = `background: ${background}`;
