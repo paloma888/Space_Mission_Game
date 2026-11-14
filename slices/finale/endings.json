@@ -7,30 +7,26 @@
       "Every part, every test and every hard call added up to this moment.",
       "Measure twice, launch once. You measured well."
     ],
-    "memorial": false,
     "why": { "default": "TODO", "byStage": {}, "byCause": {} }
   },
-  "abort": {
-    "title": "Abort! Crew safe",
-    "text": "The rocket failed, but the escape system fired and pulled the capsule clear. A parachute opened, and the crew splashed down safely. A boat is already on its way.",
+  "launch_failure": {
+    "title": "Launch failure",
+    "text": "The rocket couldn't finish the climb to space. The crew is safe on the ground, but the mission is over for now.",
     "rosa": [
-      "The rocket failed. Your crew did not. That is the abort system doing its job.",
-      "It cost money and weight, and today it paid for itself.",
-      "Rockets can be rebuilt. People can't. You chose well."
+      "Rockets are hard. Even NASA has had launches go wrong.",
+      "The good news: your crew is safe, and now you know more than before.",
+      "Look at what shaped your odds. Then let's try again."
     ],
-    "memorial": false,
     "why": { "default": "TODO", "byStage": {}, "byCause": {} }
   },
-  "lost": {
-    "title": "Mission lost",
-    "text": "The launch failed, and there was no way to bring the crew home. Mission Control is silent.",
-    "plaque": "They reached for the stars on behalf of us all.",
+  "came_home_early": {
+    "title": "Home early",
+    "text": "Your crew made it to space! Then something broke that they couldn't fix up there, so the mission ended early. They are heading home safe.",
     "rosa": [
-      "Today we lost our crew.",
-      "We will study what went wrong, so the next crew is safer.",
-      "Take a moment. Then we learn."
+      "You reached space. That part went right.",
+      "Then a problem came up the crew couldn't fix. Coming home was the smart call.",
+      "Real crews have had to do this too. Safety first, then try again."
     ],
-    "memorial": true,
     "why": { "default": "TODO", "byStage": {}, "byCause": {} }
   },
   "bankrupt": {
@@ -41,7 +37,6 @@
       "Big projects need a cushion of money for surprises.",
       "Next time, keep some money in reserve. Measure twice, launch once."
     ],
-    "memorial": false,
     "why": { "default": "TODO", "byStage": {}, "byCause": {} }
   },
   "window_closed": {
@@ -52,7 +47,6 @@
       "Delays and scrubs ate up our days.",
       "Next time, leave a few spare days for bad weather."
     ],
-    "memorial": false,
     "why": { "default": "TODO", "byStage": {}, "byCause": {} }
   },
   "aliens": {
@@ -63,7 +57,6 @@
       "I'm not sure that warp coil was in any manual.",
       "Measure twice, launch once... and wave back, I suppose."
     ],
-    "memorial": false,
     "why": { "default": "TODO", "byStage": {}, "byCause": {} }
   }
 }

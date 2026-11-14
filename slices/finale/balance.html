@@ -40,7 +40,6 @@
     </fieldset>
     <fieldset>
       <legend>Capsule and crew</legend>
-      <label>abort <select id="abort"><option value="">none</option><option>budget</option><option>standard</option><option>premium</option></select></label>
       <label>emergencyChance <input id="emergency" type="number" step="0.05"></label>
       <label>powerOk <input id="powerOk" type="checkbox"></label>
       <label>crew nerves (all three) <input id="nerves" type="number" min="1" max="5"></label>
@@ -72,7 +71,6 @@
       $('overrule').value = s.overrulePenalty;
       $('kind').value = s.launchWeather?.kind ?? 'clear';
       $('risk').value = s.launchWeather?.risk ?? 0;
-      $('abort').value = s.parts.abort ?? '';
       $('emergency').value = s.derived.emergencyChance;
       $('powerOk').checked = s.derived.powerOk;
       $('nerves').value = s.crew.length ? Math.round(s.crew.reduce((a, c) => a + c.nerves, 0) / s.crew.length) : 3;
@@ -91,7 +89,6 @@
       s.weatherPenalty = num('weather');
       s.overrulePenalty = num('overrule');
       s.launchWeather = { ...(s.launchWeather ?? {}), kind: $('kind').value, risk: num('risk') };
-      s.parts.abort = $('abort').value || null;
       s.derived.emergencyChance = num('emergency');
       s.derived.powerOk = $('powerOk').checked;
       s.crew.forEach((c) => { c.nerves = num('nerves'); });

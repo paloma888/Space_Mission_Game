@@ -58,29 +58,7 @@
 .fin-rosa-note p { margin: 0; line-height: 1.8; }
 .fin-rosa-note .portrait, .fin-debrief .portrait { flex: none; }
 
-/* ---------- Memorial (crew lost). Quiet and plain on purpose. */
-.fin-memorial, .fin-memorial.placeholder-bg {
-  display: grid;
-  place-items: center;
-  background-color: var(--bg);
-  animation: fin-fade 3s ease-in both;
-}
-@keyframes fin-fade { from { opacity: 0; } }
-.fin-plaque {
-  width: 720px;
-  padding: 40px;
-  text-align: center;
-  background: var(--c5);
-  border: 8px solid var(--c6);
-  box-shadow: 0 0 0 4px var(--bg);
-  line-height: 2;
-}
-.fin-plaque-head { color: var(--muted); margin-bottom: 16px; }
-.fin-plaque-name { font-size: var(--body); margin: 8px 0; }
-.fin-plaque-line { margin: 24px 0 0; font-size: var(--small); }
-.fin-memorial .btn { position: absolute; right: 24px; bottom: 24px; }
-
-/* ---------- Abort, bankrupt and window-closed endings */
+/* ---------- Launch failure, came home early, bankrupt and window-closed endings */
 .fin-ending .panel { width: 900px; margin: 80px auto 0; }
 
 /* ---------- Mission report (1280x720, top 56px kept for the dashboard) */
@@ -118,6 +96,7 @@
 .fin-badge.off { border-color: var(--c5); color: var(--c5); }
 .fin-badge-hint { margin-top: 4px; color: var(--muted); line-height: 1.4; }
 .fin-card-lesson { color: var(--accent); }
+/* Real NASA history cards about crew losses keep a quiet, respectful look (Rulebook 1, Amendment A2). */
 .fin-card-memorial .panel-title { color: var(--ink); }
 .fin-source { display: block; color: var(--frame-edge); margin-top: 8px; line-height: 1.6; }
 .fin-odds { margin-bottom: 14px; line-height: 1.6; }

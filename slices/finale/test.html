@@ -8,8 +8,9 @@
 <body>
   <!-- Open with Live Server. Examples (presets: RULEBOOK section 12):
          ?preset=launched&seed=123      a real roll
-         ?outcome=orbit                 force an ending: orbit, abort, lost, aliens, bankrupt, window_closed
-         ?preset=launchedCold&outcome=lost
+         ?outcome=orbit                 force an ending: orbit, launch_failure, came_home_early,
+                                        bankrupt, window_closed, aliens (paused in Mission 1, Amendment A6)
+         ?preset=launchedCold&outcome=launch_failure
          ?outcome=orbit&report=1        skip the launch and ending, open the mission report
        Also see sim-tests.html (automatic checks) and balance.html (5,000 launches). -->
   <div id="app"><div id="game"></div><div id="dashboard"></div></div>
@@ -25,8 +26,9 @@
     // Force an ending by rigging the dice: 0 passes every roll, 0.9999 fails the first one.
     const opts = {};
     if (outcome === 'orbit' || outcome === 'aliens') opts.rng = () => 0;
-    if (outcome === 'abort') { state.parts.abort ??= 'standard'; opts.rng = () => 0.9999; }
-    if (outcome === 'lost') { state.parts.abort = null; opts.rng = () => 0.9999; }
+    if (outcome === 'launch_failure') opts.rng = () => 0.9999;
+    // Came home early: a power shortage in orbit. 0.8 passes every stage but fails the harder power fix.
+    if (outcome === 'came_home_early') { state.derived.powerOk = false; opts.rng = () => 0.8; }
     if (outcome === 'bankrupt' || outcome === 'window_closed') state.outcome = outcome;
     if (params.has('report')) opts.reportOnly = true; // ?report=1 jumps straight to the mission report
 

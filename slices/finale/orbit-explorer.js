@@ -1,4 +1,4 @@
-// slices/finale/orbit-explorer.js: the explorable orbit view for the winning endings. Owner: Person 5.
+// slices/finale/orbit-explorer.js: the explorable orbit view for the winning endings. Owner: Erick 😼.
 // A small "3D" globe drawn pixel by pixel on a 320x180 canvas and shown at 4x. It keeps the
 // pixel-art look and needs no 3D library (Rulebook 11: no frameworks, no npm).
 // Drag to spin, scroll or pinch to zoom, click the capsule, launch site, Sun or Moon to read about them.
@@ -30,18 +30,32 @@ const CITY = 10;
 const FIREWORK_COLORS = [8, 9, 10, 11, 12, 14];
 
 // Real launch-site coordinates in degrees (rounded). Only used to place the blinking marker.
+// The five sites from Amendment A1 (south and west are negative).
 const SITES = {
   canaveral: { name: 'Cape Canaveral', lat: 28.5, lon: -80.6 },
-  vandenberg: { name: 'Vandenberg', lat: 34.7, lon: -120.6 },
-  wallops: { name: 'Wallops Island', lat: 37.9, lon: -75.5 },
   kodiak: { name: 'Kodiak', lat: 57.4, lon: -152.3 },
   kourou: { name: 'Kourou', lat: 5.2, lon: -52.8 },
+  mahia: { name: 'Mahia', lat: -39.3, lon: 177.9 },
+  sriharikota: { name: 'Sriharikota', lat: 13.7, lon: 80.2 },
 };
 
 const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((n) => (n + 0.5) / 16);
+// Degrees to radians (JavaScript's Math.sin and Math.cos use radians).
 const rad = (d) => (d * Math.PI) / 180;
+// Keeps a number between lo and hi. Same idea as clamp in core/state.js.
 const clampN = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
 
+/**
+ * Job: puts the interactive 3D globe on the page and keeps it running until destroy() is called.
+ *   Everything below lives inside this one function so the pieces can share the camera and canvas:
+ *   setup (canvas, palette, Earth map, camera, Sun, Moon, stars, orbit) -> overlay (info box, zoom
+ *   buttons) -> input (drag, pinch, wheel, keys, click) -> drawing helpers -> the tick() loop.
+ * @param {HTMLElement} parent - where to put the globe (the screen from ui.screen()).
+ * @param {Object} state - the shared backpack. Reads site, orbit, crew names and launchDay. Never changes it.
+ * @param {Object} opts - { celebrate: true } for fireworks, { aliens: true } for the UFO (paused, A6).
+ * @returns {Object} - { destroy }. Call destroy() to stop the loop and remove the globe from the page.
+ * ⭐
+ */
 export function mountOrbitExplorer(parent, state, opts = {}) {
   const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const canvas = document.createElement('canvas');
@@ -59,7 +73,14 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
   let surface = buildSurface();
   loadSurfaceArt(pal.rgb).then((s) => { if (s) surface = s; });
 
-  // ---------- Camera. yaw spins around Earth's axis, pitch tilts north and south.
+  // ---------- 📷 CAMERA ----------
+  // yaw   = turn left/right, like shaking your head "no". Spins Earth like a desk globe on its stand.
+  // pitch = tilt up/down, like nodding "yes". Shows more of the North or South Pole.
+  // r     = Earth's radius on screen, in pixels. This IS the zoom: bigger r, bigger Earth.
+  // vyaw, vpitch = leftover speed after a drag, so the globe glides to a stop.
+  // Angles are in radians: a full turn is 2π (about 6.28), and 1 radian is about 57°.
+  // Secret: the camera never moves. It turns the whole world in front of a camera that stays still
+  // (toView). Like spinning a globe instead of walking around it: the picture looks the same.
   const site = SITES[state.site] ?? SITES.canaveral;
   const cam = { yaw: rad(site.lon) + 0.35, pitch: clampN(rad(site.lat) * 0.7, -1.2, 1.2), r: ZOOM_START, vyaw: 0, vpitch: 0 };
   const home = { ...cam };
@@ -67,12 +88,14 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
   const setCam = () => { cyw = Math.cos(cam.yaw); syw = Math.sin(cam.yaw); cp = Math.cos(cam.pitch); sp = Math.sin(cam.pitch); };
   setCam();
 
-  // World to view: turn by yaw, then tilt by pitch. View z points at the player.
+  // 📷 World to view: turn by yaw, then tilt by pitch (the standard sin/cos rotation formulas).
+  // After this, x is right, y is up, and z points out of the screen at the player.
   const toView = (x, y, z) => {
     const x1 = x * cyw - z * syw;
     const z1 = x * syw + z * cyw;
     return [x1, y * cp - z1 * sp, y * sp + z1 * cp];
   };
+  // View to world: the reverse turn. Answers "which point on the globe is under this pixel?"
   const fromView = (x, y, z) => {
     const y1 = y * cp + z * sp;
     const z1 = -y * sp + z * cp;
@@ -97,6 +120,7 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
   const inc = state.orbit === 'polar' ? rad(90) : rad(Math.max(Math.abs(site.lat), 15));
   const theta0 = Math.asin(clampN(Math.sin(rad(site.lat)) / Math.sin(inc), -1, 1));
   const node = rad(site.lon) - Math.atan2(Math.sin(theta0) * Math.cos(inc), Math.cos(theta0));
+  // The 3D position on the orbit circle at angle theta. The capsule moves by increasing theta over time.
   const orbitPoint = (theta, radius = ORBIT_RADIUS) => {
     const x = Math.sin(theta) * Math.cos(inc);
     const y = Math.sin(theta) * Math.sin(inc);
@@ -111,6 +135,7 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
   info.className = 'panel fin-info';
   info.hidden = true;
   let infoTimer = null;
+  // Shows the fact box (title and text) for 8 seconds after the player clicks something.
   const showInfo = (title, text) => {
     const h = document.createElement('h2');
     h.className = 'panel-title';
@@ -130,6 +155,7 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
     button('Reset', () => Object.assign(cam, home, { vyaw: 0, vpitch: 0 }), { variant: 'quiet' }),
   );
   parent.append(info, zoom);
+  // Zoom = the Earth's size on screen. f above 1 zooms in, below 1 zooms out.
   const zoomBy = (f) => { cam.r = clampN(cam.r * f, ZOOM_MIN, ZOOM_MAX); touch(); };
 
   // ---------- Input: drag to spin (like grabbing the globe), wheel or pinch to zoom, click to inspect
@@ -137,7 +163,9 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
   let dragDistance = 0;
   let lastInteract = 0;
   let pinchStart = null;
+  // Remembers when the player last did something, so the slow idle drift waits until they stop.
   const touch = () => { lastInteract = performance.now(); };
+  // Converts a mouse or finger position on the page into a pixel on the 320x180 canvas.
   const toCanvas = (e) => {
     const box = canvas.getBoundingClientRect(); // includes the #app scale, so clicks land right
     return [((e.clientX - box.left) / box.width) * W, ((e.clientY - box.top) / box.height) * H];
@@ -161,7 +189,9 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
       cam.r = clampN(pinchStart.r * (pinchDistance() / pinchStart.dist), ZOOM_MIN, ZOOM_MAX);
     } else if (pointers.size === 1) {
       dragDistance += Math.abs(x - ox) + Math.abs(y - oy);
-      // Dividing by the zoom keeps the spot under the finger under the finger.
+      // 📷 DRAG TO TURN: sideways movement changes yaw, up/down changes pitch.
+      // Dividing by the zoom (cam.r) makes it feel like grabbing the surface: the spot under the
+      // finger stays under the finger. Dragging one Earth-radius across turns it 1 radian (about 57°).
       cam.vyaw = -(x - ox) / cam.r;
       cam.vpitch = (y - oy) / cam.r;
       cam.yaw += cam.vyaw;
@@ -169,6 +199,7 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
     }
     touch();
   });
+  // Finger or mouse lifted. If it barely moved, it was a click, not a drag, so inspect what's there.
   const release = (e) => {
     if (!pointers.has(e.pointerId)) return;
     const pos = pointers.get(e.pointerId);
@@ -183,6 +214,7 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
     cam.r = clampN(cam.r * Math.exp(-e.deltaY * 0.0015), ZOOM_MIN, ZOOM_MAX);
     touch();
   }, { passive: false });
+  // Keyboard controls: arrow keys spin, + and - zoom.
   const onKey = (e) => {
     const k = e.key;
     if (k === 'ArrowLeft') cam.yaw += 0.08;
@@ -197,6 +229,7 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
   };
   window.addEventListener('keydown', onKey);
 
+  // How far apart two fingers are. Pinch zoom compares this to where the pinch started.
   function pinchDistance() {
     const [a, b] = [...pointers.values()];
     return Math.hypot(a[0] - b[0], a[1] - b[1]) || 1;
@@ -205,6 +238,13 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
   // ---------- Things on screen this frame, kept for click tests
   let spots = [];
 
+  /**
+   * Job: handles a click. Checks the clickable things drawn this frame (`spots`: capsule, launch
+   *   site, Sun, Moon) and shows the first one under the click. If the click hits Earth instead,
+   *   works out the latitude and longitude there and shows that.
+   * @param {number} x - click position on the 320x180 canvas.
+   * @param {number} y - same, up and down.
+   */
   function inspect(x, y) {
     for (const s of spots) {
       if (Math.hypot(x - s.x, y - s.y) <= s.r) { showInfo(s.title, s.text); return; }
@@ -221,16 +261,20 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
   }
 
   // ---------- Drawing
+  // How far Earth has turned after t seconds (one full turn every SPIN_SECONDS).
   const spinAt = (t) => (t * Math.PI * 2) / SPIN_SECONDS;
+  // A 3D point near Earth (capsule, orbit, site) -> a pixel on screen. `hidden` = behind the globe.
   const project = (p) => {
     const v = toView(...p);
     return { x: CX + v[0] * cam.r, y: CY - v[1] * cam.r, z: v[2], hidden: v[2] < 0 && v[0] * v[0] + v[1] * v[1] < 1 };
   };
+  // A direction in the far-away sky (star, Sun, Moon) -> a pixel on screen, or null if it's behind you.
   const skyPoint = (d) => {
     const v = toView(...d);
     if (v[2] <= 0.05) return null;
     return { x: CX + (v[0] / v[2]) * STAR_FOCAL, y: CY - (v[1] / v[2]) * STAR_FOCAL };
   };
+  // Colors one pixel with palette color c, ignoring anything off the edge of the canvas.
   const plot = (x, y, c) => {
     x |= 0; y |= 0;
     if (x >= 0 && y >= 0 && x < W && y < H) buf[y * W + x] = P[c];
@@ -239,6 +283,7 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
   // The Sun and Moon can sit behind the globe. Then a click there means Earth, not them.
   const behindEarth = (q) => Math.hypot(q.x - CX, q.y - CY) < cam.r;
 
+  // Draws the stars, then the Sun and Moon, and makes the Sun and Moon clickable.
   function drawSky() {
     for (const s of stars) {
       const q = skyPoint(s.d);
@@ -273,6 +318,18 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
     }
   }
 
+  /**
+   * Job: draws the globe, one pixel at a time. For every pixel inside Earth's circle:
+   *   1. Depth from the circle: sqrt(1 - x² - y²) gives the 3D point on the ball's surface.
+   *   2. Undo the camera (fromView) and the planet's spin -> latitude and longitude.
+   *   3. Look up that spot on the flat world map (ocean, land, desert or ice).
+   *   4. Light it: how directly the Sun hits it picks a day, dusk or night color (with a checkerboard blend).
+   *   5. Clouds on the day side, city lights on the night side of land.
+   *   Pixels just outside the circle become the thin blue atmosphere glow.
+   * @param {number} t - seconds since the globe started (clouds drift with it).
+   * @param {number} spin - how far Earth has turned, in radians.
+   * ⭐
+   */
   function drawEarth(t, spin) {
     const R = cam.r;
     const outer = (R + 2) * (R + 2);
@@ -288,6 +345,11 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
         const d2 = dx * dx + dy * dy;
         if (d2 > outer) continue;
         const b = BAYER[(py & 3) * 4 + (px & 3)];
+
+        // ---------- 🔵 THE 3D TRICK (Pythagoras) ----------
+        // Earth's SIZE on screen is just R (the zoom). This math makes it look ROUND, not flat.
+        // vx, vy = where this pixel sits inside the circle, as a fraction of the radius (-1 to 1).
+        // n2 = vx² + vy²: how far from the center (squared). 1 or more means outside the circle.
         let vx = dx / R, vy = -dy / R;
         const n2 = vx * vx + vy * vy;
 
@@ -300,7 +362,13 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
           continue;
         }
 
+        // 🔵 Round, like a ball (what we do): for each pixel, Pythagoras works out how much the ball
+        //   bulges toward you at that spot. On a ball of radius 1, x² + y² + z² = 1, so z = √(1 − x² − y²).
+        //   center -> z = 1 (surface faces you)    edge -> z = 0 (surface curves away)
+        // (vx, vy, vz) is a real 3D point on the ball. That's what squeezes the map near the edges
+        // and lets the Sun shade it like a ball. Without vz, the map would look like a flat sticker.
         const vz = Math.sqrt(1 - n2);
+        // 📷 Undo the camera turn: which point on the actual globe is under this pixel?
         const [wx, wy, wz] = fromView(vx, vy, vz);
         // Earth-fixed position: undo the planet's spin so the map turns under the Sun.
         const ex = wx * cs - wz * ss;
@@ -328,6 +396,7 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
     }
   }
 
+  // Draws the dotted orbit line. Called twice: the back half before Earth, the front half after.
   function drawOrbit(front) {
     const n = Math.round(clampN(cam.r * 3, 90, 600));
     for (let i = 0; i < n; i += 2) { // every other point: a dotted line
@@ -336,6 +405,7 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
     }
   }
 
+  // Draws a tiny picture typed as text rows, e.g. '.wbw.', where each letter maps to a palette color.
   function drawSprite(x, y, rows, colors, scale) {
     const h = rows.length, w = rows[0].length;
     for (let r = 0; r < h; r++) {
@@ -352,6 +422,7 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
   const crewNames = (state.crew ?? []).map((c) => c.name.split(' ')[0]).join(', ') || 'your crew';
   const orbitName = state.orbit === 'polar' ? 'a polar orbit' : 'low Earth orbit';
 
+  // Draws the capsule with a blinking light, and makes it clickable (crew names, speed, lap time).
   function drawCapsule(q, t) {
     const scale = cam.r > 140 ? 2 : 1;
     const blink = Math.floor(t * 2) % 2 ? 'r' : 'w';
@@ -359,6 +430,7 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
     spots.push({ x: q.x, y: q.y, r: 7 * scale, title: 'Your capsule', text: `${crewNames} in ${orbitName}, going about 28,000 km/h. One lap around Earth takes about 90 minutes.` });
   }
 
+  // The secret ending's saucer with a dancing alien on top (paused in Mission 1, Amendment A6).
   function drawUfo(q, t) {
     const f = Math.floor(t * 4) % 4;
     const arms = ['a.a', '.a.', 'a..', '..a'][f]; // a four-frame alien dance on the saucer's roof
@@ -368,6 +440,7 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
     spots.push({ x: q.x, y: q.y, r: 9, title: 'Visitors!', text: 'Nobody at Mission Control can explain this. They seem to love your warp coil.' });
   }
 
+  // The blinking red launch-site marker. It turns with Earth and hides on the far side.
   function drawSite(spin, t) {
     const [x, z] = turnY(siteDir[0], siteDir[2], spin);
     const q = project([x, siteDir[1], z]);
@@ -405,6 +478,15 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
   let frame = 0;
   touch();
 
+  /**
+   * Job: the main loop. The browser calls it about 60 times a second (requestAnimationFrame).
+   *   Each time: move the camera (glide after a flick, slow drift when idle), turn Earth, then
+   *   redraw everything back to front so near things cover far things:
+   *   sky -> back of the orbit -> anything behind Earth -> Earth -> front of the orbit -> launch site
+   *   -> capsule (and UFO) -> fireworks. Finally put the finished picture on the canvas.
+   * @param {number} ms - the time the browser gives us, in milliseconds.
+   * ⭐
+   */
   function tick(ms) {
     // The first frame's timestamp can be a hair earlier than `born`, so never let time go negative.
     const dt = Math.max(0, Math.min(0.1, (ms - last) / 1000));
@@ -453,6 +535,7 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
 
 // ---------- Small math helpers
 
+// Shrinks or stretches an arrow to length 1, keeping its direction.
 function normalize([x, y, z]) {
   const l = Math.hypot(x, y, z);
   return [x / l, y / l, z / l];
@@ -464,6 +547,7 @@ function turnY(x, z, a) {
   return [x * c + z * s, z * c - x * s];
 }
 
+// Latitude and longitude (degrees) -> a 3D point on the globe's surface.
 function latLonToVec(lat, lon) {
   const la = rad(lat), lo = rad(lon);
   return [Math.cos(la) * Math.sin(lo), Math.sin(la), Math.cos(la) * Math.cos(lo)];
@@ -502,6 +586,7 @@ function noise3(x, y, z) {
 
 // ---------- Palette from core/base.css, so a palette swap changes the globe too
 
+// Reads the 16 colors (--c0 to --c15) from the page's CSS, in two forms: [r, g, b] and canvas-ready numbers.
 function readPalette() {
   const css = getComputedStyle(document.documentElement);
   const rgb = [];
@@ -518,6 +603,8 @@ function readPalette() {
 
 // ---------- The Earth map: a hand-drawn PNG if one exists, otherwise rough continent outlines
 
+// Tries to load a hand-drawn art/sprites/earth_map.png and snaps each pixel to the nearest palette color.
+// Returns null if the file doesn't exist yet.
 async function loadSurfaceArt(rgb) {
   const img = new Image();
   img.src = new URL('../../art/sprites/earth_map.png', import.meta.url).href;
@@ -540,6 +627,7 @@ async function loadSurfaceArt(rgb) {
   return { w: c.width, h: c.height, data };
 }
 
+// Builds the 128x64 flat world map from the continent outlines below: ocean, land, desert or ice per cell.
 function buildSurface() {
   const w = 128, h = 64;
   const data = new Uint8Array(w * h);

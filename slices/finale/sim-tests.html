@@ -43,22 +43,19 @@
       const orbit = runs.filter((r) => r.outcome === 'orbit').length / runs.length;
       check('2. readyToLaunch orbit rate is 80 to 90%', orbit >= 0.8 && orbit <= 0.9, `${(orbit * 100).toFixed(1)}%`);
     }
-    // 3. A liftoff failure is an abort with an escape system, lost without one.
+    // 3. Any failed stage is a launch failure (Amendment A2: no abort part, the crew is always safe).
     {
-      const s = fakeState('launched');
-      const withAbort = resolveLaunch(s, always(0.9999));
-      s.parts.abort = null;
-      const without = resolveLaunch(s, always(0.9999));
-      check('3. liftoff failure: abort with abort system, lost without',
-        withAbort.outcome === 'abort' && withAbort.failedStage === 'liftoff' && without.outcome === 'lost');
+      const r = resolveLaunch(fakeState('launched'), always(0.9999));
+      check('3. a failed liftoff is a launch_failure', r.outcome === 'launch_failure' && r.failedStage === 'liftoff');
     }
     // 4. Warp coil on day 42 plus a good liftoff gives aliens. A bad liftoff is a normal failure.
+    //    (Paused in Mission 1 by Amendment A6, but the logic is kept so it can come back.)
     {
       const s = fakeState('secret');
       const good = resolveLaunch(s, always(0));
       const bad = resolveLaunch(s, always(0.9999));
       check('4. secret ending only after a good liftoff',
-        good.outcome === 'aliens' && good.stages.filter((x) => x.skipped).length === 3 && bad.outcome === 'abort');
+        good.outcome === 'aliens' && good.stages.filter((x) => x.skipped).length === 3 && bad.outcome === 'launch_failure');
     }
     // 5. Budget life support (0.25): about a quarter of orbit runs have an emergency, nearly all saved.
     {
@@ -77,43 +74,51 @@
       s.derived.powerOk = false;
       const r = resolveLaunch(s, always(0.8)); // 0.8 passes the stages, beats 0.95 but not 0.70
       const lower = near(emergencySaveChance(s, 'power'), Math.max(0.05, saveChance(s) - 0.25));
-      check('6. power emergency is certain and harder to save',
-        lower && r.emergencies.some((e) => e.type === 'power') && r.outcome === 'lost' && r.cause === 'power',
+      check('6. power emergency is certain, harder to fix, and unfixed means came_home_early',
+        lower && r.emergencies.some((e) => e.type === 'power') && r.outcome === 'came_home_early' && r.cause === 'power',
         `save ${saveChance(s).toFixed(2)}, power save ${emergencySaveChance(s, 'power').toFixed(2)}`);
     }
-    // 7. Sample score: 30 + 30 + 3.4 + 8.3 + 6.8 + 5 = 83.5, silver.
+    // 7. Sample score (budget 45, day 37, morale 68): 30 + 30 + 3.4 + 8.3 + 10.2 = 81.9, silver.
+    //    Science is gone (A3) and its 5 points moved to Morale, which is now worth 15.
     {
       const s = fakeState('launched');
-      const sc = computeScore(s, { outcome: 'orbit', emergencies: [], scienceFlew: true });
+      const sc = computeScore(s, { outcome: 'orbit', emergencies: [] });
       const pts = Object.fromEntries(sc.lines.map((l) => [l.id, l.points]));
-      check('7. sample score is 83.5 and silver',
-        near(sc.total, 83.5, 0.05) && sc.medal === 'silver' && near(pts.budget, 3.375) && near(pts.days, 8.333),
-        `total ${sc.total.toFixed(2)}, ${sc.medal}`);
+      const max = sc.lines.reduce((sum, l) => sum + l.max, 0);
+      check('7. sample score is 81.9 and silver, out of 100',
+        near(sc.total, 81.9, 0.05) && sc.medal === 'silver' && near(pts.budget, 3.375) && near(pts.days, 8.333)
+        && near(pts.morale, 10.2) && max === 100,
+        `total ${sc.total.toFixed(2)}, ${sc.medal}, max ${max}`);
     }
-    // 8. Medal edges.
+    // 8. Medal edges. Only a finished mission earns a medal.
     check('8. medal edges 59.9 / 60 / 75 / 90',
       medalFor(59.9, 'orbit') === null && medalFor(60, 'orbit') === 'bronze' && medalFor(75, 'orbit') === 'silver'
-      && medalFor(90, 'aliens') === 'gold' && medalFor(95, 'abort') === null);
-    // 9. Crew safety: 0 when lost, minus 10 per survived emergency.
+      && medalFor(90, 'aliens') === 'gold' && medalFor(95, 'launch_failure') === null && medalFor(95, 'came_home_early') === null);
+    // 9. Smooth flight and Reached orbit for each kind of ending.
     {
       const s = fakeState('launched');
-      const lost = computeScore(s, { outcome: 'lost', emergencies: [] }).lines[0].points;
-      const oneSave = computeScore(s, { outcome: 'orbit', emergencies: [{ type: 'life_support', saved: true }] }).lines[0].points;
-      check('9. crew safety 0 when lost, 20 after one saved emergency', lost === 0 && oneSave === 20);
+      const pts = (result) => Object.fromEntries(computeScore(s, result).lines.map((l) => [l.id, l.points]));
+      const failed = pts({ outcome: 'launch_failure', emergencies: [] });
+      const oneFix = pts({ outcome: 'orbit', emergencies: [{ type: 'life_support', saved: true }] });
+      const early = pts({ outcome: 'came_home_early', emergencies: [{ type: 'power', saved: false }] });
+      check('9. smooth flight: 0 on failure, 20 after one fix; home early gets 0 + 15',
+        failed.smooth === 0 && failed.orbit === 0 && oneFix.smooth === 20 && oneFix.orbit === 30
+        && early.smooth === 0 && early.orbit === 15);
     }
     // 10 and 11. Card choice. These fixture cards copy the priorities from the brief. The real
     // cards live in each slice's history.json; check their `when` with their owners.
     const CARDS = [
-      { id: 'mco', when: { outcome: ['abort', 'lost'], flagsAny: ['wrong_units'], priority: 8 } },
-      { id: 'challenger', when: { outcome: ['abort', 'lost'], flagsAny: ['cold_launch'], priority: 10 } },
+      { id: 'mco', when: { outcome: ['launch_failure', 'came_home_early'], flagsAny: ['wrong_units'], priority: 8 } },
+      { id: 'challenger', when: { outcome: ['launch_failure'], flagsAny: ['cold_launch'], priority: 10 } },
       { id: 'apollo12', when: { flagsAny: ['lightning_strike'], priority: 9 } },
       { id: 'apollo13', when: { outcome: ['orbit', 'aliens'], emergency: true, priority: 6 } },
-      { id: 'generic_failure', when: { outcome: ['lost', 'abort'], priority: 1 } },
+      { id: 'generic_failure', when: { outcome: ['launch_failure', 'came_home_early'], priority: 1 } },
     ];
     {
       const s = fakeState('launchedCold');
       s.flags.push('wrong_units');
-      check('10. cold launch + lost picks challenger over mco', pickHistoryCard(CARDS, s, { outcome: 'lost' })?.id === 'challenger');
+      check('10. cold launch + launch failure picks challenger over mco',
+        pickHistoryCard(CARDS, s, { outcome: 'launch_failure' })?.id === 'challenger');
     }
     {
       const s = fakeState('launched');
@@ -122,8 +127,8 @@
       check('11. saved lightning picks apollo12, saved life support picks apollo13',
         pickHistoryCard(CARDS, s, lightning)?.id === 'apollo12' && pickHistoryCard(CARDS, s, lifeSupport)?.id === 'apollo13');
       check('11b. no match: generic card after a failure, nothing after a clean orbit',
-        pickHistoryCard(CARDS.slice(0, 4), s, { outcome: 'abort' }) === null
-        && pickHistoryCard(CARDS, s, { outcome: 'abort' })?.id === 'generic_failure'
+        pickHistoryCard(CARDS.slice(0, 4), s, { outcome: 'launch_failure' }) === null
+        && pickHistoryCard(CARDS, s, { outcome: 'came_home_early' })?.id === 'generic_failure'
         && pickHistoryCard(CARDS, s, { outcome: 'orbit', emergencies: [] }) === null);
     }
     // 12. Try Again restores the afterBuild budget and clears the outcome.

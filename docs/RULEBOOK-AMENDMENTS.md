@@ -110,3 +110,39 @@ Every character now has two expressions, happy and sad. Happy is the default.
 **Fallback order when art is missing.** Try the requested mood file, then the happy file, then the colored placeholder box. A missing face must never throw an error.
 
 **Tone rule.** In the `lost` ending (or whatever A2 renames it to) and in any real crew-loss history card, sad faces stay gentle and serious. Never use them for a joke.
+
+## A11. Endings, emergencies and score after A2 and A3 (changes sections 5, 6.5, 6.8, 6.9 and 7.4)
+
+Status: PROPOSED (proposed by Person 5 on Nov 14, 2026). Affects Persons 1, 2, 3 and 4. Answers the Person 5 OPEN items in A2 and A3.
+
+**Outcomes.** `state.outcome` is one of `'orbit' | 'launch_failure' | 'came_home_early' | 'bankrupt' | 'window_closed' | 'aliens'`. `abort` and `lost` are removed. The crew is safe in every ending. `aliens` stays paused (A6).
+
+| Outcome | Trigger | Medal? |
+| --- | --- | --- |
+| `orbit` | All four stages pass, and every emergency in orbit is fixed | Yes, at 60 or more |
+| `launch_failure` | Any of the four stages fails, including an unfixed lightning strike at liftoff | No |
+| `came_home_early` | All four stages pass, then an emergency in orbit is not fixed. The crew reached space but ends the mission early | No |
+| `bankrupt`, `window_closed` | Unchanged | No |
+
+**Emergencies (section 6.5).** The save chance formula and the power penalty (0.25 lower) are unchanged. A fixed emergency lets the mission continue and costs 10 points of Smooth flight. An unfixed one ends the mission as `came_home_early`. Real examples: Gemini 8 (1966) and Apollo 13 (1970) both ended early and brought the crew home.
+
+**Score (section 6.8).** Still out of 100. Crew safety becomes Smooth flight, and science's 5 points move to Morale.
+
+| Part | Points | Rule |
+| --- | --- | --- |
+| Smooth flight | 30 | `orbit` or `aliens`: 30 minus 10 per fixed emergency. Otherwise 0 |
+| Reached orbit | 30 | `orbit` or `aliens`: 30. `came_home_early`: 15. Otherwise 0 |
+| Budget left | 15 | Unchanged |
+| Days to spare | 10 | Unchanged |
+| Morale | 15 | `15 * morale / 100` |
+
+**Badges.** Safety First is replaced by Honest Parts: earned when the `shady_part` flag (A5) is not set.
+
+**What each person needs to change**
+
+- **Persons 3 and 4 (history cards, section 7.4):** use the new names in `when.outcome`. Launch-time failures use `["launch_failure"]`. Problems that could also show up in orbit use `["launch_failure", "came_home_early"]`. Challenger keeps `tone: "memorial"`, because it is real history.
+- **Persons 2, 3 and 4 (game text):** no line should mention an abort or escape system, or put the crew in danger.
+- **Person 2:** the life support `emergencyChance` and `powerOk: false` now risk `came_home_early`, not a crew loss. For the A8 power question, Slice 5 currently treats power over supply as a certain emergency in orbit with a lower fix chance. Tell Person 5 if Lock In should block it instead.
+- **Person 1:** update the `outcome` comment in section 5. A10's tone rule about the `lost` ending no longer applies, since that ending is gone.
+
+**Related bug, not a rule change (Person 1):** `core/screens.js` ignores `done('trail')` when it comes from the finale, so Try Again's "Same plan, new luck" starts a fresh game. The finale branch needs the same `next` check the other slices get.
