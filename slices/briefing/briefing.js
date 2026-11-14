@@ -4,6 +4,8 @@
 
 import * as ui from '../../core/ui.js';
 import { saveCheckpoint } from '../../core/state.js';
+import { runHiring } from './hiring.js';
+import { crewReactionVariant } from './hiring-rules.js';
 
 export const meta = { id: 'briefing', owner: 'Person 1' };
 
@@ -37,7 +39,7 @@ const fillTokens = (text, state) => text.replaceAll('{agencyName}', state.agency
 
 // Plays dialogue lines (RULEBOOK 7.2). Passing the line as opts lets ui.say read line.mood.
 // Checked before every line, so lines stop as soon as the player skips.
-export async function playLines(state, lines = [], skipControl) {
+async function playLines(state, lines = [], skipControl) {
   for (const line of lines) {
     if (skipControl?.skipped) break;
     spotlightGauge(line.gauge);
@@ -238,20 +240,13 @@ async function playBriefing(state, scenesById) {
   }
 }
 
-// ---------- Hiring (placeholder until hiring.js lands in pass 2)
-
-function runHiringPlaceholder() {
-  return new Promise((resolve) => {
-    const root = ui.screen('briefing/hiring_hall');
-    root.append(ui.panel('Hiring screen coming soon'), ui.button('Continue', resolve));
-  });
-}
-
 // ---------- Entry point
 
 export async function show(state, done) {
   addStylesheet();
-  const sceneData = await loadJson('scenes.json');
+  const [sceneData, candidates, staff] = await Promise.all(
+    ['scenes.json', 'candidates.json', 'staff.json'].map(loadJson),
+  );
   const scenesById = Object.fromEntries(sceneData.scenes.map((scene) => [scene.id, scene]));
 
   // Try Again from the report sets resume to 'hiring': skip scenes 0 to 5 (RULEBOOK section 3).
@@ -260,12 +255,14 @@ export async function show(state, done) {
     await playBriefing(state, scenesById);
   }
 
-  await runHiringPlaceholder();
-  state.resume = null;
+  await runHiring(state, { candidates, staff, hiringText: sceneData.hiring });
+  state.resume = null; // cleared before saving, so the checkpoint doesn't resume again by itself
   saveCheckpoint(state, 'afterHiring');
 
+  // Scene 6: Rosa reacts to the crew, then always ends with her tic.
   const reaction = scenesById.reaction;
   ui.screen(reaction.background);
-  await playLines(state, [...reaction.variants.balanced, ...reaction.lines]);
+  const variantLines = reaction.variants[crewReactionVariant(state.crew)] ?? [];
+  await playLines(state, [...variantLines, ...reaction.lines]);
   done();
 }
