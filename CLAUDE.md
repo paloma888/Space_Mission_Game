@@ -4,6 +4,10 @@ The Shared Rulebook is loaded in full below. It is the one source of truth and b
 
 @docs/RULEBOOK.md
 
+After the Rulebook, read the amendments below. **Where an amendment disagrees with the Rulebook, follow the amendment.** Anything an amendment does not mention still follows the Rulebook.
+
+@docs/RULEBOOK-AMENDMENTS.md
+
 ## Rules (Rulebook section 11)
 
 - Plain HTML, CSS and JavaScript modules. No frameworks, no build step, no npm runtime dependencies.
