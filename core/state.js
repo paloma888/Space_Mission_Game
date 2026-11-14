@@ -64,6 +64,8 @@ export function createState() {
     outcome: null, stages: [], emergencies: [], score: null,
     // plumbing (Person 1)
     checkpoints: {}, resume: null,
+    // Person 1 only: typed in the briefing, read by Person 5 for the mission patch.
+    agencyName: 'Pioneer Space Agency',
   };
 }
 
@@ -147,21 +149,23 @@ function afterHiring() {
 
 function afterBuild() {
   const s = afterHiring();
+  // Standard build from Amendment A7 (parts list from A3: no abort, no science, computer required).
   s.parts = {
-    shell: 'standard', lifeSupport: 'standard', abort: 'standard',
-    power: { type: 'battery', tier: 'standard' }, comms: 'standard',
-    science: 'plant', warpCoil: false,
+    shell: 'standard', lifeSupport: 'standard',
+    power: { type: 'battery', tier: 'standard' },
+    comms: 'standard', computer: 'standard',
   };
   s.rocket = 'condor';
   s.site = 'canaveral';
   s.orbit = 'leo';
-  s.budget = 135;
-  s.rel.parts = 0.05;
-  // Placeholder derived numbers until Person 2's recompute() exists. Replace with a recompute(s) call then.
+  s.budget = 190;
+  s.rel.parts = 0.07;
+  // Hard-coded so this file never has to fetch. A7 says to call Person 2's recompute() here once it merges.
+  // scienceOk and solarFailChance stay false and 0 in Mission 1 (Amendment A4).
   Object.assign(s.derived, {
-    capsuleMass: 10, liftCapacity: 12, massMargin: 2,
-    powerSupply: 100, powerUse: 80, comms: 'standard', rocketReliability: 0.95,
-    powerOk: true, scienceOk: true, spent: 425,
+    capsuleMass: 7.3, liftCapacity: 12, massMargin: 4.7,
+    powerSupply: 600, powerUse: 320, comms: 'standard', rocketReliability: 0.97,
+    powerOk: true, emergencyChance: 0.08, solarFailChance: 0, scienceOk: false, spent: 370,
   });
   saveCheckpoint(s, 'afterBuild');
   return s;
@@ -209,6 +213,7 @@ const PRESETS = {
     const s = launched();
     s.site = 'kodiak';
     s.launchWeather = { risk: 40, tempF: 28, kind: 'cold' };
+    s.weatherPenalty = 0.225; // a freezing launch costs far more than launched's clear-sky 0.05
     s.overrulePenalty = 0.06;
     addFlag(s, 'cold_launch');
     addFlag(s, 'overruled_engineering');
