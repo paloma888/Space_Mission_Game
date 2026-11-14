@@ -15,6 +15,7 @@ Tick yours off as you finish:
 - [ ] `hal.png` (Person 2)
 - [ ] `dev.png` (Person 2)
 - [ ] `dmitri.png` (Person 2)
+- [ ] `myster.png` (Person 2)
 - [ ] `priya.png` (Person 2)
 - [ ] `marty.png` (Person 3)
 - [ ] `tasha.png` (Person 3)

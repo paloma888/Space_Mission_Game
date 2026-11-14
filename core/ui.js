@@ -56,26 +56,66 @@ export function screen(background) {
   return root;
 }
 
-// <img> of a 64x64 portrait shown at `size` CSS pixels. Falls back to a labeled box.
-export function portrait(characterId, size = 128) {
+// ---------- Portraits and moods (Amendment A10)
+
+// Anything that isn't 'sad' counts as happy, so old calls and data lines with no mood
+// look exactly as they did before moods existed.
+export function normalizeMood(mood) {
+  if (mood == null || mood === 'happy') return 'happy';
+  if (mood === 'sad') return 'sad';
+  console.warn(`Unknown mood "${mood}". Using happy. Moods are 'happy' or 'sad'.`);
+  return 'happy';
+}
+
+// File names to try, in order: the requested mood, then happy.
+// characters.json may give a character a `moods` list such as ["happy", "sad"]. If a list is
+// there and leaves out 'sad', we skip the sad file so the console doesn't fill with 404s.
+// If there's no list, we just try the file and fall through when it's missing.
+function portraitFileNames(characterId, mood) {
+  const moodsWithArt = characters[characterId]?.moods;
+  const sadArtMayExist = !Array.isArray(moodsWithArt) || moodsWithArt.includes('sad');
+  const fileNames = [];
+  if (mood === 'sad' && sadArtMayExist) fileNames.push(`${characterId}_sad.png`);
+  fileNames.push(`${characterId}.png`);
+  return fileNames;
+}
+
+// <img> of a 64x64 portrait shown at `size` CSS pixels, in an optional mood.
+// Fallback: mood file, then happy file, then a labeled colored box. Never throws.
+// data-source on the final element tells you which one showed (handy in F12 and ui-demo.html).
+export function portrait(characterId, size = 128, mood) {
+  const wantedMood = normalizeMood(mood);
+  const fileNames = portraitFileNames(characterId, wantedMood);
+  let attemptIndex = 0;
+
   const img = el('img', 'portrait');
   img.alt = nameOf(characterId);
   img.width = size;
   img.height = size;
+  img.dataset.mood = wantedMood;
+  img.onload = () => { img.dataset.source = fileNames[attemptIndex]; };
   img.onerror = () => {
-    const box = el('div', 'portrait placeholder-box', nameOf(characterId));
-    box.style.width = box.style.height = `${size}px`;
-    img.replaceWith(box);
+    attemptIndex += 1;
+    if (attemptIndex < fileNames.length) {
+      img.src = asset(`art/characters/${fileNames[attemptIndex]}`);
+      return;
+    }
+    img.onerror = null;
+    const placeholderBox = el('div', 'portrait placeholder-box', nameOf(characterId));
+    placeholderBox.style.width = placeholderBox.style.height = `${size}px`;
+    placeholderBox.dataset.mood = wantedMood;
+    placeholderBox.dataset.source = 'placeholder';
+    img.replaceWith(placeholderBox);
   };
-  img.src = asset(`art/characters/${characterId}.png`);
+  img.src = asset(`art/characters/${fileNames[0]}`);
   return img;
 }
 
 // ---------- Dialogue
 
-function dialogueBox(speakerId) {
+function dialogueBox(speakerId, mood) {
   const box = el('div', 'dialogue');
-  if (speakerId) box.append(portrait(speakerId, 128));
+  if (speakerId) box.append(portrait(speakerId, 128, mood));
   const body = el('div', 'dialogue-body');
   if (speakerId) body.append(el('div', 'dialogue-name', nameOf(speakerId)));
   const text = el('div', 'dialogue-text');
@@ -114,8 +154,10 @@ function typewriter(node, text) {
 }
 
 // Shows one line with a portrait. Resolves when the player clicks or presses a key to continue.
-export async function say(speakerId, text) {
-  const { box, text: node } = dialogueBox(speakerId);
+// opts.mood is 'happy' (default) or 'sad'. A data line already has the right shape,
+// so ui.say(line.speaker, line.text, line) picks up line.mood for free.
+export async function say(speakerId, text, opts) {
+  const { box, text: node } = dialogueBox(speakerId, opts?.mood);
   await typewriter(node, text);
   const hint = el('div', 'dialogue-hint', '▼');
   box.append(hint);
@@ -134,8 +176,9 @@ export async function say(speakerId, text) {
 }
 
 // Shows a line plus choices [{ label, disabled, why }]. Resolves with the picked index.
-export async function ask(speakerId, text, choices) {
-  const { box, body, text: node } = dialogueBox(speakerId);
+// opts.mood works the same as in say().
+export async function ask(speakerId, text, choices, opts) {
+  const { box, body, text: node } = dialogueBox(speakerId, opts?.mood);
   await typewriter(node, text);
   return new Promise((resolve) => {
     const list = el('div', 'choices');
