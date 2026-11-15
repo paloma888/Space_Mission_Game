@@ -14,6 +14,8 @@ Example:
 - Sat: Claude Code wrote amendment A10 (happy and sad portraits) and added mood support to `core/ui.js`, `core/base.css` and `core/ui-demo.html`.
 - Sat: Claude Code made 13 targeted fixes to `core/state.js`, `core/ui.js` and `core/screens.js` (A7 preset, lazy dashboard refresh, mute memory, slice fades, lost-contact panel, dev panel buttons) and wrote `core/state-test.html`.
 - Sat: Claude Code built the briefing slice (`briefing.js`, `hiring.js`, `hiring-rules.js`, `briefing.css`, test pages) and the data file layout with TODO placeholders. It later merged the character text I wrote back into the stat lists in `candidates.json` and `staff.json`.
+- Sat: Claude Code made layout fixes I asked for (How to Play buttons, Skip button position, hiring card alignment, staff list) and changed four astronaut stats in `candidates.json` and `core/state.js`, then re-ran the test pages.
+- Sat: Claude Code redesigned the hiring screen into three-card pages with arrows, a see-through detail strip and a bottom bar, added `--border-grey` and portrait borders to `core/base.css`, and added paging checks to `hiring-test.html`.
 
 ## Person 2: Build & Launch Setup
 

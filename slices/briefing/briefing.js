@@ -81,9 +81,14 @@ function titleScreen(scene) {
       const slides = scene.howToPlay;
       const slidePanel = ui.panel(`How to Play ${slideIndex + 1} of ${slides.length}`);
       slidePanel.append(el('p', null, slides[slideIndex]));
-      slidePanel.append(ui.button('Back', () => (slideIndex === 0 ? showMenu() : showSlide(slideIndex - 1)), { variant: 'quiet' }));
+      // Next sits above Back so the forward step is the first thing the eye lands on.
       const isLast = slideIndex === slides.length - 1;
-      slidePanel.append(ui.button(isLast ? 'Done' : 'Next', () => (isLast ? showMenu() : showSlide(slideIndex + 1))));
+      const slideButtons = el('div', 'briefing-slide-buttons');
+      slideButtons.append(
+        ui.button(isLast ? 'Done' : 'Next', () => (isLast ? showMenu() : showSlide(slideIndex + 1))),
+        ui.button('Back', () => (slideIndex === 0 ? showMenu() : showSlide(slideIndex - 1)), { variant: 'quiet' }),
+      );
+      slidePanel.append(slideButtons);
       menu.replaceChildren(slidePanel);
     };
 
