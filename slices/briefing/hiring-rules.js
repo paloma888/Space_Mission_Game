@@ -6,6 +6,21 @@ export const KEY_ROLES = ['engineer', 'inspector', 'meteorologist'];
 export const WHY_CREW_FULL = 'Your capsule only fits three.';
 export const WHY_NO_BUDGET = 'Not enough budget.';
 
+// ---------- Carousel: three cards at a time around a middle card, looping at both ends.
+export const VISIBLE_CARDS = 3;
+
+// Like a clock: one step past the last person is the first, one step before the first is the last.
+export function wrapIndex(index, totalPeople) {
+  return ((index % totalPeople) + totalPeople) % totalPeople;
+}
+
+// The person before the middle one, the middle one, and the one after.
+// With three people or fewer everyone shows once, so no card is ever repeated.
+export function peopleAround(people, middleIndex) {
+  if (people.length <= VISIBLE_CARDS) return people.slice();
+  return [-1, 0, 1].map((offset) => people[wrapIndex(middleIndex + offset, people.length)]);
+}
+
 // state.crew and state.staff hold exactly the RULEBOOK 7.1 fields, the same shape fakeState uses.
 // Bios and lines stay in the JSON files, so other slices never depend on them.
 const ASTRONAUT_FIELDS = ['id', 'name', 'pilot', 'eng', 'nerves', 'cost', 'portrait'];

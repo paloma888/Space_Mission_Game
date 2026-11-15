@@ -11,6 +11,19 @@
   --c8: #1f3b73;  --c9: #89ad84;  --c10: #d6aa4f; --c11: #915841;
   --c12: #6d95ca; --c13: #844136; --c14: #746b61; --c15: #e5bda3;
 
+  /* The same 16 colors as "r, g, b" triplets, so a palette color can be made see-through:
+     rgba(var(--c0-rgb), 0.8). Keep these in step with the hex values above on a palette swap. */
+  --c0-rgb: 5, 8, 22;       --c1-rgb: 195, 213, 235;  --c2-rgb: 187, 106, 82;   --c3-rgb: 138, 129, 119;
+  --c4-rgb: 16, 25, 46;     --c5-rgb: 72, 104, 70;    --c6-rgb: 201, 120, 62;   --c7-rgb: 230, 170, 133;
+  --c8-rgb: 31, 59, 115;    --c9-rgb: 137, 173, 132;  --c10-rgb: 214, 170, 79;  --c11-rgb: 145, 88, 65;
+  --c12-rgb: 109, 149, 202; --c13-rgb: 132, 65, 54;   --c14-rgb: 116, 107, 97;  --c15-rgb: 229, 189, 163;
+
+  /* See-through panel fill: the darkest palette color (c0) at --panel-alpha.
+     A container that needs to be more solid sets its own --panel-alpha AND --panel-bg, because
+     a custom property is worked out where it is declared (here), not where it is used. */
+  --panel-alpha: 0.8;
+  --panel-bg: rgba(var(--c0-rgb), var(--panel-alpha));
+
   /* Names to use in slice CSS, so a palette swap only changes the lines above. */
   --bg: var(--c0);
   --ink: var(--c7); 
@@ -21,6 +34,8 @@
   --good: var(--c11);
   --danger: var(--c8);
   --placeholder: var(--c13);
+  /* The most neutral grey in the palette (c14 is the darker, slightly warmer one). */
+  --border-grey: var(--c3);
 
   --font: 'Press Start 2P', monospace;
   --title: 32px;
@@ -106,13 +121,35 @@ small, .small { font-size: var(--small); }
    Kept quiet on purpose: sad faces appear in serious moments (Amendment A10 tone rule). */
 .placeholder-box[data-mood="sad"] { background: var(--c8); color: var(--c1); }
 
-/* ---------- Frames */
+/* Every portrait (art or placeholder box), icon and card image gets the same thin grey edge.
+   border-box keeps the border inside the given size, so a 64px portrait stays 64px and no card shifts. */
+.portrait, .placeholder-box, .icon, .card img {
+  box-sizing: border-box;
+  border: 2px solid var(--border-grey);
+}
+
+/* ---------- Frames
+   Text boxes are see-through dark (--panel-bg) so the background art shows behind them.
+   The pixel frame (border and outer ring) stays fully opaque, so they still read as boxes. */
 .panel, .dialogue, .card, .toast {
-  background: var(--frame);
+  background: var(--panel-bg);
   border: 4px solid var(--frame-edge);
   box-shadow: 0 0 0 4px var(--bg); /* chunky double border, no blur */
+  /* A 1px dark edge on every letter keeps text crisp when bright art shows through. */
+  text-shadow: 1px 1px 0 var(--bg);
 }
+/* Solid controls inside a box keep plain text: their own fill already gives contrast. */
+.btn, .bar, input, textarea, select { text-shadow: none; }
 .panel { padding: 24px; margin-bottom: 24px; }
+/* A light blur behind the dialogue box and panels only (not cards over portrait art).
+   Browsers without backdrop-filter skip this block and show the plain see-through fill,
+   which is readable on its own, so nothing breaks. */
+@supports ((backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))) {
+  .dialogue, .panel {
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+  }
+}
 
 /* ---------- Dialogue box */
 .dialogue {
@@ -186,11 +223,13 @@ small, .small { font-size: var(--small); }
   inset: 0;
   display: grid;
   place-items: center;
-  background: rgb(0 0 0 / 0.7);
+  background: var(--panel-bg); /* was raw black at 0.7, now the palette's darkest color */
   z-index: 20;
 }
 .card { width: 900px; max-height: 620px; overflow: auto; padding: 32px; line-height: 1.8; }
-.card a { color: var(--frame-edge); }
+/* Links in any text box use the light frame color: 7.6:1 or better over the brightest art.
+   The browser's default dark blue can't be read on a dark see-through box at any alpha. */
+.panel a, .dialogue a, .toast a, .card a { color: var(--frame); }
 
 /* ---------- Placeholder slices and the dev panel */
 .stub { padding: 96px; }

@@ -13,22 +13,27 @@
 .briefing-menu { display: flex; flex-direction: column; align-items: center; }
 .briefing-menu .btn { min-width: 320px; }
 .briefing-menu .panel { width: 640px; }
+.briefing-slide-buttons { display: flex; flex-direction: column; align-items: flex-start; }
 
 /* ---------- Cutscenes */
 .briefing-scene { padding: 32px; }
-/* Top right, below where the dashboard sits in scene 3. */
+/* Just above the dialogue box, on its right edge, so it never meets the dashboard or the
+   mute slot. The box (core/base.css) sits 32px up and is 184px tall: 128px portrait, 48px
+   padding, 8px border. Bottom-anchored, so it stays put whether the dashboard shows or not. */
 .briefing-skip {
   position: absolute;
-  top: 72px; right: 24px;
+  bottom: 224px; right: 32px;
   z-index: 15;
   font-size: var(--small);
   padding: 8px 12px;
+  margin: 0;
 }
 .briefing-skip-confirm {
   position: absolute;
-  top: 128px; right: 24px;
+  bottom: 272px; right: 32px;
   z-index: 15;
   width: 360px;
+  margin: 0;
 }
 .briefing-skip-confirm .btn { font-size: var(--small); }
 
@@ -60,13 +65,16 @@
   #dashboard.briefing-slide-in { animation: none; }
 }
 
-/* ---------- Hiring screen (brief section 10). Top 56px stays clear for the dashboard. */
-.screen.hiring { padding: 64px 24px 16px; }
+/* ---------- Hiring screen (brief section 10)
+   The hiring_hall background must stay visible: nothing covers the whole screen. Only the cards
+   have a solid fill; the detail strip and bottom bar are see-through palette colors.
+   The top 56px stays clear for the dashboard, which sits above #game (core/base.css z-index 5). */
+.screen.hiring { padding: 64px 0 0; }
 .hiring-layout {
-  display: grid;
-  grid-template-columns: 1fr 400px;
-  grid-template-rows: auto 1fr auto;
-  gap: 12px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   height: 100%;
   font-size: var(--small);
 }
@@ -75,18 +83,52 @@
 .hiring-layout .panel { margin: 0; }
 .hiring-layout .btn { font-size: var(--small); padding: 8px 12px; }
 
-.hiring-tabs { grid-column: 1; grid-row: 1; }
+.hiring-tabs { align-self: flex-start; margin-left: 24px; }
 .hiring-tabs .btn { margin-top: 0; }
 
-.hiring-cards {
-  grid-column: 1; grid-row: 2;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  align-content: start;
-  gap: 12px;
+/* Arrow, cards, arrow in one centered row: each arrow sits 8px from its nearest card. */
+.hiring-carousel {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
+.hiring-cards {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  height: 248px; /* every card is this tall, astronaut or staff */
+}
+/* Big, bright and easy to spot: the palette accent with a 2px dark edge. */
+.hiring-layout .hiring-arrow {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  margin: 0;
+  padding: 0;
+  font-size: var(--body);
+  color: var(--bg);
+  background: var(--accent);
+  border: 2px solid var(--bg);
+}
+.hiring-layout .hiring-arrow:hover,
+.hiring-layout .hiring-arrow:focus-visible {
+  background: var(--c15); /* the palette's lightest warm tone */
+  outline: 2px solid var(--frame);
+  outline-offset: 2px;
+}
+
+/* "4 of 8" under the row. A dark shadow keeps it readable over the background. */
+.hiring-counter { margin-top: 10px; color: var(--ink); text-shadow: 2px 2px 0 var(--bg); }
+
+/* A column, so the skill bars can be pushed to the bottom of every card. */
 .hire-card {
+  display: flex;
+  flex-direction: column;
   position: relative;
+  width: 280px;
+  height: 100%;
   background: var(--frame);
   border: 4px solid var(--frame-edge);
   padding: 8px;
@@ -97,7 +139,14 @@
 .hire-card.is-unaffordable { opacity: 0.55; }
 .hire-card-head { display: flex; gap: 8px; margin-bottom: 8px; }
 .hire-card-info { min-width: 0; }
-.hire-card-name { line-height: 1.4; margin-bottom: 4px; }
+/* Exactly two lines tall whatever the name, so the portraits and bars below always line up. */
+.hire-card-name {
+  line-height: 1.4;
+  height: 2.8em;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+.hire-card-head + .bar { margin-top: auto; }
 .hire-card-cost { color: var(--accent); }
 .hire-card .btn { margin: 6px 0 0; padding: 4px 8px; }
 .hire-card .bar { margin-top: 4px; }
@@ -106,41 +155,112 @@
 .hire-card-badge {
   display: none;
   position: absolute;
-  top: -4px; right: -4px;
+  top: -14px; right: 8px; /* rides on the top border, clear of the name's first line */
   padding: 4px 6px;
   background: var(--accent);
   color: var(--bg);
 }
 .hire-card.is-hired .hire-card-badge { display: block; }
 
-.hiring-detail { grid-column: 2; grid-row: 1 / 4; min-height: 0; }
-.hiring-detail .panel { height: 100%; overflow: auto; padding: 16px; }
-.hiring-detail .portrait { display: block; margin-bottom: 8px; }
-.hiring-subtitle { color: var(--accent); margin-bottom: 12px; }
-.hiring-bio, .hiring-line, .hiring-quote { font-size: var(--small); line-height: 1.6; margin-bottom: 10px; }
+/* The detail strip: see-through dark palette color, so the hall still shows around and through it.
+   --panel-bg (core/base.css) is the darkest palette color made see-through.
+   Portrait | stacked text | Hire, all vertically centered. Full width (same edges as the bottom
+   bar) so the text gets long lines instead of making the strip taller.
+   Height: 192px portrait + 2 x 12px padding + 2 x 4px border = 224px. It sits between the
+   counter (ends near y 390) and the bottom bar (starts at y 648), so there is no overlap or scroll. */
+.hiring-detail {
+  display: grid;
+  grid-template-columns: 192px minmax(0, 1fr) 160px;
+  align-items: center;
+  column-gap: 20px;
+  width: 1232px;
+  margin-top: 10px;
+  padding: 12px;
+  color: var(--ink);
+  background: var(--panel-bg);
+  text-shadow: 1px 1px 0 var(--bg); /* same crisp edge as base.css text boxes */
+  border: 4px solid var(--frame-edge);
+}
+/* Same size whether the art loaded or the placeholder box shows. */
+.hiring-detail .portrait { width: 192px; height: 192px; image-rendering: pixelated; }
+.hiring-detail-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; margin-bottom: 8px; }
+.hiring-detail-name { color: var(--frame); }
+.hiring-subtitle { color: var(--accent); }
+.hiring-bio, .hiring-line, .hiring-quote { font-size: var(--small); line-height: 1.5; margin: 0 0 6px; }
+.hiring-quote { margin: 0; }
 .hiring-line-label { color: var(--accent); }
 .hiring-quote { font-style: italic; }
-.hiring-hire .btn { margin-top: 4px; }
+.hiring-hire { width: 160px; }
+.hiring-hire .btn { margin: 0; }
+.hiring-hire .why { margin-top: 6px; line-height: 1.5; }
 
+/* One thin see-through bar along the bottom, as a grid with fixed columns:
+   seats | staff chips | spent | Continue. Only the chips column can grow, and only it scrolls.
+   Widths assume Press Start 2P at 12px, where every character is 12px wide:
+   - seats: 3 x 104px + 2 x 8px gaps = 328px (a 104px seat fits a 7-letter first name)
+   - spent: "Spent $565M" is 11 characters = 132px, so 144px
+   - continue: "Pick three astronauts." (264px) + 10px + the 128px button = 402px, so 408px
+   The game is always drawn at 1280x720 and scaled to the window (core/ui.js), so these
+   columns are the same at every window size. */
 .hiring-footer {
-  grid-column: 1; grid-row: 3;
-  display: flex;
+  position: absolute;
+  left: 24px; right: 24px; bottom: 12px;
+  display: grid;
+  grid-template-columns: 328px minmax(0, 1fr) 144px 408px;
   align-items: center;
-  gap: 16px;
-  padding: 12px;
-  background: var(--frame);
+  column-gap: 16px;
+  height: 60px;
+  padding: 0 12px;
+  color: var(--ink);
+  /* 0.86, not the 0.8 default: the "Empty" seat text is blue (--frame-edge), which only reaches
+     4.5:1 contrast over the brightest art from 0.86 up. Both lines are needed (see base.css). */
+  --panel-alpha: 0.86;
+  --panel-bg: rgba(var(--c0-rgb), var(--panel-alpha));
+  background: var(--panel-bg);
+  text-shadow: 1px 1px 0 var(--bg); /* same crisp edge as base.css text boxes */
   border: 4px solid var(--frame-edge);
 }
 .hiring-seats { display: flex; gap: 8px; }
 .hiring-seat {
-  width: 112px;
-  padding: 8px 4px;
+  width: 104px;
+  padding: 6px 4px;
   text-align: center;
-  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   border: 4px dashed var(--frame-edge);
-  color: var(--muted);
+  color: var(--frame-edge);
 }
 .hiring-seat.is-filled { border-style: solid; border-color: var(--accent); color: var(--ink); }
-.hiring-summary { flex: 1; line-height: 1.8; }
-.hiring-continue { text-align: right; }
-.hiring-continue .btn { margin: 0; }
+.hiring-staff { min-width: 0; display: flex; align-items: center; gap: 10px; }
+.hiring-staff-heading { flex: none; white-space: nowrap; color: var(--accent); }
+/* The one scrolling area in the bar. */
+.hiring-staff-chips {
+  display: flex;
+  gap: 6px;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--frame-edge) transparent;
+}
+.hiring-staff-chips::-webkit-scrollbar { height: 6px; }
+.hiring-staff-chips::-webkit-scrollbar-track { background: transparent; }
+.hiring-staff-chips::-webkit-scrollbar-thumb { background: var(--frame-edge); }
+.hiring-chip {
+  flex: none;
+  padding: 4px 8px;
+  white-space: nowrap;
+  border: 2px solid var(--frame-edge);
+}
+.hiring-spent { white-space: nowrap; overflow: hidden; }
+.hiring-continue {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  overflow: hidden;
+}
+.hiring-continue .why { white-space: nowrap; }
+.hiring-continue .btn { flex: none; margin: 0; }
