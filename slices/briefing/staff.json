@@ -1,50 +1,128 @@
 [
   {
-    "id": "hal", "name": "Hal Brennan", "role": "engineer", "title": "Chief Engineer", "skill": 5, "cost": 40, "portrait": "hal",
+    "id": "hal",
+    "name": "Hal Brennan",
+    "role": "engineer",
+    "title": "Chief Engineer",
+    "skill": 5,
+    "cost": 40,
+    "portrait": "hal",
     "effect": "Builds fast. Warns you when you cut corners",
-    "bio": "TODO: Hal bio. Two sentences.",
-    "strength": "TODO: Hal strength (60 characters or fewer)",
-    "flaw": "TODO: Hal flaw (60 characters or fewer)",
-    "lines": { "hired": ["TODO: Hal hired line"], "released": ["TODO: Hal released line"] }
+    "bio": "Hal Brennan has built rockets for decades and trusts none of them. He speaks in short sentences and means every word.",
+    "strength": "Builds fast and spots shortcuts",
+    "flaw": "Blunt, and never says please",
+    "lines": {
+      "hired": [
+        "You hired me. Good. I've seen this movie before."
+      ],
+      "released": [
+        "Your call. Check the welds twice."
+      ]
+    }
   },
   {
-    "id": "dev", "name": "Dev Okafor", "role": "engineer", "title": "Junior Engineer", "skill": 3, "cost": 20, "portrait": "dev",
+    "id": "dev",
+    "name": "Dev Okafor",
+    "role": "engineer",
+    "title": "Junior Engineer",
+    "skill": 3,
+    "cost": 20,
+    "portrait": "dev",
     "effect": "Builds steadily. Cheap",
-    "bio": "TODO: Dev bio. Two sentences.",
-    "strength": "TODO: Dev strength (60 characters or fewer)",
-    "flaw": "TODO: Dev flaw (60 characters or fewer)",
-    "lines": { "hired": ["TODO: Dev hired line"], "released": ["TODO: Dev released line"] }
+    "bio": "Dev Okafor is a junior engineer who gets excited about every bolt. He is not as fast as the veterans, but he is cheap and keen.",
+    "strength": "Steady builder, easy on the budget",
+    "flaw": "Still learning, needs guidance",
+    "lines": {
+      "hired": [
+        "Cool cool cool! I won't let you down."
+      ],
+      "released": [
+        "Cool. Cool cool. Okay. See you around!"
+      ]
+    }
   },
   {
-    "id": "inez", "name": "Inez Moreau", "role": "inspector", "title": "Quality Inspector", "skill": 4, "cost": 25, "portrait": "inez",
+    "id": "inez",
+    "name": "Inez Moreau",
+    "role": "inspector",
+    "title": "Quality Inspector",
+    "skill": 4,
+    "cost": 25,
+    "portrait": "inez",
     "effect": "Catches hidden flaws before launch",
-    "bio": "TODO: Inez bio. Two sentences.",
-    "strength": "TODO: Inez strength (60 characters or fewer)",
-    "flaw": "TODO: Inez flaw (60 characters or fewer)",
-    "lines": { "hired": ["TODO: Inez hired line"], "released": ["TODO: Inez released line"] }
+    "bio": "Inez Moreau reads a checklist like a mystery novel. She always finds the one line that does not belong.",
+    "strength": "Catches hidden flaws before launch",
+    "flaw": "Slow, trusts only what she has tested",
+    "lines": {
+      "hired": [
+        "Thank you. Trust, but verify."
+      ],
+      "released": [
+        "Noted. Please keep verifying without me."
+      ]
+    }
   },
   {
-    "id": "skye", "name": "Skye Patel", "role": "meteorologist", "title": "Meteorologist", "skill": 4, "cost": 25, "portrait": "skye",
+    "id": "skye",
+    "name": "Skye Patel",
+    "role": "meteorologist",
+    "title": "Meteorologist",
+    "skill": 4,
+    "cost": 25,
+    "portrait": "skye",
     "effect": "Gives a sharper weather forecast",
-    "bio": "TODO: Skye bio. Two sentences.",
-    "strength": "TODO: Skye strength (60 characters or fewer)",
-    "flaw": "TODO: Skye flaw (60 characters or fewer)",
-    "lines": { "hired": ["TODO: Skye hired line"], "released": ["TODO: Skye released line"] }
+    "bio": "Skye Patel reads the sky better than most computers. She can make a storm forecast sound like a bedtime story.",
+    "strength": "Sharper weather forecasts",
+    "flaw": "Cannot resist a weather pun",
+    "lines": {
+      "hired": [
+        "This is going to be a breeze. That forecast is looking up!"
+      ],
+      "released": [
+        "Looks like I'll blow away now. Good luck!"
+      ]
+    }
   },
   {
-    "id": "marty", "name": "Marty Kowalski", "role": "logistics", "title": "Logistics Manager", "skill": 3, "cost": 20, "portrait": "marty",
+    "id": "marty",
+    "name": "Marty Kowalski",
+    "role": "logistics",
+    "title": "Logistics Manager",
+    "skill": 3,
+    "cost": 20,
+    "portrait": "marty",
     "effect": "Fewer stolen or late deliveries",
-    "bio": "TODO: Marty bio. Two sentences.",
-    "strength": "TODO: Marty strength (60 characters or fewer)",
-    "flaw": "TODO: Marty flaw (60 characters or fewer)",
-    "lines": { "hired": ["TODO: Marty hired line"], "released": ["TODO: Marty released line"] }
+    "bio": "Marty Kowalski knows every shipper, truck and customs officer by name. His phone never stops ringing, and he somehow answers all of it.",
+    "strength": "Fewer late or stolen deliveries",
+    "flaw": "Talks fast and panics a little",
+    "lines": {
+      "hired": [
+        "Don't panic. Okay, panic a little. I'm on it."
+      ],
+      "released": [
+        "Okay, okay. My phone's ringing. Bye!"
+      ]
+    }
   },
   {
-    "id": "tasha", "name": "Tasha Brooks", "role": "pr", "title": "PR Lead", "skill": 4, "cost": 25, "portrait": "tasha",
+    "id": "tasha",
+    "name": "Tasha Brooks",
+    "role": "pr",
+    "title": "PR Lead",
+    "skill": 4,
+    "cost": 25,
+    "portrait": "tasha",
     "effect": "Turns a week into extra budget",
-    "bio": "TODO: Tasha bio. Two sentences.",
-    "strength": "TODO: Tasha strength (60 characters or fewer)",
-    "flaw": "TODO: Tasha flaw (60 characters or fewer)",
-    "lines": { "hired": ["TODO: Tasha hired line"], "released": ["TODO: Tasha released line"] }
+    "bio": "Tasha Brooks can turn a hard week into a great headline. Donors and reporters both love her.",
+    "strength": "Turns a week into extra budget",
+    "flaw": "Spins everything, even bad news",
+    "lines": {
+      "hired": [
+        "Welcome to the team! That's a headline!"
+      ],
+      "released": [
+        "That's a wrap. I'll call it a new chapter."
+      ]
+    }
   }
 ]

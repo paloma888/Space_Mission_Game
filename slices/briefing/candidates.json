@@ -1,82 +1,170 @@
 [
   {
-    "id": "amara", "name": "Amara Okonkwo", "pilot": 5, "eng": 2, "nerves": 3, "cost": 55, "portrait": "amara",
-    "bio": "TODO: Amara bio. Three sentences, 280 characters or fewer. Ace pilot who skims checklists.",
-    "strength": "TODO: Amara strength (60 characters or fewer)",
-    "flaw": "TODO: Amara flaw (60 characters or fewer)",
+    "id": "amara",
+    "name": "Amara Okonkwo",
+    "pilot": 5,
+    "eng": 2,
+    "nerves": 3,
+    "cost": 55,
+    "portrait": "amara",
+    "bio": "Amara Okonkwo has more test flight hours than anyone her age, and she never rattles. She trusts her hands over a manual. Give her a clear target and she will hit it.",
+    "strength": "Best pilot on the roster",
+    "flaw": "Skims checklists when she feels sure",
     "lines": {
-      "hired": ["TODO: Amara hired line 1. Ends with Easy.", "TODO: Amara hired line 2"],
-      "released": ["TODO: Amara released line"]
+      "hired": [
+        "Reporting for duty, Flight Director. Where's my rocket?",
+        "Checklists? I'll read the highlights. Easy."
+      ],
+      "released": [
+        "Understood. Save me a seat for next time."
+      ]
     }
   },
   {
-    "id": "jun", "name": "Jun Takahashi", "pilot": 2, "eng": 5, "nerves": 3, "cost": 50, "portrait": "jun",
-    "bio": "TODO: Jun bio. Three sentences, 280 characters or fewer. Brilliant engineer who talks to machines.",
-    "strength": "TODO: Jun strength (60 characters or fewer)",
-    "flaw": "TODO: Jun flaw (60 characters or fewer)",
+    "id": "jun",
+    "name": "Jun Takahashi",
+    "pilot": 2,
+    "eng": 5,
+    "nerves": 3,
+    "cost": 50,
+    "portrait": "jun",
+    "bio": "Jun Takahashi can find a loose bolt just by listening to a machine hum. He has fixed things other people gave up on. Ask him about people and he gets very quiet.",
+    "strength": "Top engineer, spots faults early",
+    "flaw": "Forgets to tell people what he found",
     "lines": {
-      "hired": ["TODO: Jun hired line 1", "TODO: Jun hired line 2"],
-      "released": ["TODO: Jun released line"]
+      "hired": [
+        "Glad to be here. The rocket and I have a lot to discuss.",
+        "Technically, I've already started on the design."
+      ],
+      "released": [
+        "Technically, I understand. Good luck out there."
+      ]
     }
   },
   {
-    "id": "lucia", "name": "Lucía Herrera", "pilot": 3, "eng": 2, "nerves": 5, "cost": 45, "portrait": "lucia",
-    "bio": "TODO: Lucía bio. Three sentences, 280 characters or fewer. Calm under pressure, keeps worries to herself.",
-    "strength": "TODO: Lucía strength (60 characters or fewer)",
-    "flaw": "TODO: Lucía flaw (60 characters or fewer)",
+    "id": "lucia",
+    "name": "Lucía Herrera",
+    "pilot": 3,
+    "eng": 2,
+    "nerves": 5,
+    "cost": 45,
+    "portrait": "lucia",
+    "bio": "Lucía Herrera stays calm when everything around her gets loud. Crews trust her because she never panics. She tends to keep her own worries to herself.",
+    "strength": "Calm when things go wrong",
+    "flaw": "Won't say out loud when she's worried",
     "lines": {
-      "hired": ["TODO: Lucía hired line 1", "TODO: Lucía hired line 2"],
-      "released": ["TODO: Lucía released line"]
+      "hired": [
+        "Thank you for choosing me. I won't let you down.",
+        "Breathe. Then decide. That's all I ask of anyone."
+      ],
+      "released": [
+        "I understand. I hope the crew stays safe."
+      ]
     }
   },
   {
-    "id": "dmitri", "name": "Dmitri Volkov", "pilot": 4, "eng": 3, "nerves": 3, "cost": 60, "portrait": "dmitri",
-    "bio": "TODO: Dmitri bio. Three sentences, 280 characters or fewer. Grumpy veteran test pilot.",
-    "strength": "TODO: Dmitri strength (60 characters or fewer)",
-    "flaw": "TODO: Dmitri flaw (60 characters or fewer)",
+    "id": "dmitri",
+    "name": "Dmitri Volkov",
+    "pilot": 4,
+    "eng": 3,
+    "nerves": 3,
+    "cost": 60,
+    "portrait": "dmitri",
+    "bio": "Dmitri Volkov has flown more risky first flights than he cares to count. He grumbles about everything and means almost none of it. When trouble hits, you want him in the seat.",
+    "strength": "Veteran test pilot with steady hands",
+    "flaw": "Grumpy, and it drags the mood down",
     "lines": {
-      "hired": ["TODO: Dmitri hired line 1", "TODO: Dmitri hired line 2"],
-      "released": ["TODO: Dmitri released line"]
+      "hired": [
+        "Fine. I'll fly it. Don't expect me to smile.",
+        "In my day, we built rockets with a slide rule. Let's go."
+      ],
+      "released": [
+        "Good. More time for my coffee."
+      ]
     }
   },
   {
-    "id": "priya", "name": "Priya Nair", "pilot": 2, "eng": 4, "nerves": 2, "cost": 30, "portrait": "priya",
-    "bio": "TODO: Priya bio. Three sentences, 280 characters or fewer. Nervous rookie genius.",
-    "strength": "TODO: Priya strength (60 characters or fewer)",
-    "flaw": "TODO: Priya flaw (60 characters or fewer)",
+    "id": "priya",
+    "name": "Priya Nair",
+    "pilot": 2,
+    "eng": 4,
+    "nerves": 2,
+    "cost": 30,
+    "portrait": "priya",
+    "bio": "Priya Nair is a rookie who solves problems older engineers miss. She reads every report twice. She worries a lot, but that worry has caught real mistakes.",
+    "strength": "Sharp engineer, catches small errors",
+    "flaw": "Gets nervous under pressure",
     "lines": {
-      "hired": ["TODO: Priya hired line 1", "TODO: Priya hired line 2"],
-      "released": ["TODO: Priya released line"]
+      "hired": [
+        "Wow, really? Sorry, quick question. When do I start?",
+        "I'll double check everything. Twice. Thank you!"
+      ],
+      "released": [
+        "Oh. Okay. Sorry. I understand."
+      ]
     }
   },
   {
-    "id": "sam", "name": "Sam 'Sparks' Whitaker", "pilot": 3, "eng": 3, "nerves": 3, "cost": 40, "portrait": "sam",
-    "bio": "TODO: Sam bio. Three sentences, 280 characters or fewer. Does everything okay, jokes at the wrong moment.",
-    "strength": "TODO: Sam strength (60 characters or fewer)",
-    "flaw": "TODO: Sam flaw (60 characters or fewer)",
+    "id": "sam",
+    "name": "Sam 'Sparks' Whitaker",
+    "pilot": 3,
+    "eng": 3,
+    "nerves": 3,
+    "cost": 40,
+    "portrait": "sam",
+    "bio": "Sam Whitaker is decent at every job and a star at none, which makes Sam a great teammate. Sam keeps the crew laughing through long days. The jokes just don't always land at the right moment.",
+    "strength": "Fine at every job, keeps spirits up",
+    "flaw": "Jokes at the wrong moment",
     "lines": {
-      "hired": ["TODO: Sam hired line 1", "TODO: Sam hired line 2"],
-      "released": ["TODO: Sam released line"]
+      "hired": [
+        "Roger that, boss. Sparks reporting for fun.",
+        "I brought snacks and skills. Mostly snacks."
+      ],
+      "released": [
+        "No hard feelings, boss. I'll be here with snacks."
+      ]
     }
   },
   {
-    "id": "zainab", "name": "Zainab Al-Rashid", "pilot": 3, "eng": 4, "nerves": 4, "cost": 65, "portrait": "zainab",
-    "bio": "TODO: Zainab bio. Three sentences, 280 characters or fewer. Perfectionist all-rounder.",
-    "strength": "TODO: Zainab strength (60 characters or fewer)",
-    "flaw": "TODO: Zainab flaw (60 characters or fewer)",
+    "id": "zainab",
+    "name": "Zainab Al-Rashid",
+    "pilot": 3,
+    "eng": 4,
+    "nerves": 4,
+    "cost": 65,
+    "portrait": "zainab",
+    "bio": "Zainab Al-Rashid is excellent at piloting, engineering and keeping her cool. She checks every detail until it is right. That care can slow a decision when time is short.",
+    "strength": "Top all-rounder, very steady",
+    "flaw": "Perfectionist who slows big decisions",
     "lines": {
-      "hired": ["TODO: Zainab hired line 1", "TODO: Zainab hired line 2"],
-      "released": ["TODO: Zainab released line"]
+      "hired": [
+        "I am honored. I will be thorough.",
+        "Before we begin, one more check."
+      ],
+      "released": [
+        "I understand. I hope your checks are thorough."
+      ]
     }
   },
   {
-    "id": "mateo", "name": "Mateo Silva", "pilot": 2, "eng": 2, "nerves": 4, "cost": 25, "portrait": "mateo",
-    "bio": "TODO: Mateo bio. Three sentences, 280 characters or fewer. Cheerful, cheap and forgetful.",
-    "strength": "TODO: Mateo strength (60 characters or fewer)",
-    "flaw": "TODO: Mateo flaw (60 characters or fewer)",
+    "id": "mateo",
+    "name": "Mateo Silva",
+    "pilot": 2,
+    "eng": 2,
+    "nerves": 4,
+    "cost": 25,
+    "portrait": "mateo",
+    "bio": "Mateo Silva is cheerful, cheap to hire and steady under stress. He is still learning the ropes. He sometimes forgets a step, so hand him a checklist.",
+    "strength": "Cheerful and steady for the price",
+    "flaw": "Forgets steps without a checklist",
     "lines": {
-      "hired": ["TODO: Mateo hired line 1", "TODO: Mateo hired line 2"],
-      "released": ["TODO: Mateo released line"]
+      "hired": [
+        "Thank you! I'll do my best. I think I know where my helmet is.",
+        "Wait, did we do that? Never mind. I'm ready!"
+      ],
+      "released": [
+        "Aw, okay. Wait, did I leave my badge? Bye!"
+      ]
     }
   }
 ]
