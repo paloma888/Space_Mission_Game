@@ -282,23 +282,25 @@ export async function runHiring(state, { candidates, staff, hiringText }) {
         if (astronaut) seat.title = astronaut.name;
         seats.append(seat);
       }
+      // Staff chips scroll sideways, so six hires never push Spent or Continue around.
       const staffCount = state.staff.length;
-      const staffHeading = el('div', 'hiring-staff-heading', staffCount > 0 ? `Staff: ${staffCount} hired` : 'Staff: No staff yet');
-      const summary = el('div', 'hiring-summary');
-      summary.append(staffHeading);
-      if (staffCount > 0) {
-        summary.append(el('div', 'hiring-staff-list', state.staff.map((member) => member.name).join(', ')));
-      }
-      summary.append(el('div', null, `Spent $${rules.totalSpent(state)}M`));
+      const staffArea = el('div', 'hiring-staff');
+      staffArea.append(el('div', 'hiring-staff-heading', staffCount > 0 ? `Staff ${staffCount}` : 'No staff yet'));
+      const staffChips = el('div', 'hiring-staff-chips');
+      staffChips.append(...state.staff.map((member) => el('span', 'hiring-chip', member.name.split(' ')[0])));
+      staffArea.append(staffChips);
+      const spent = el('div', 'hiring-spent', `Spent $${rules.totalSpent(state)}M`);
+
+      // Fixed width with the button on the right edge, so Continue never moves.
       const continueWrap = el('div', 'hiring-continue');
       const continueButton = ui.button('Continue', onContinue);
       if (!rules.canContinue(state)) {
         continueButton.disabled = true;
-        continueWrap.append(continueButton, el('div', 'why', 'Pick three astronauts.'));
-      } else {
-        continueWrap.append(continueButton);
+        continueButton.title = 'Pick three astronauts.';
+        continueWrap.append(el('div', 'why', 'Pick three astronauts.'));
       }
-      footer.replaceChildren(seats, summary, continueWrap);
+      continueWrap.append(continueButton);
+      footer.replaceChildren(seats, staffArea, spent, continueWrap);
     }
 
     // Brief section 10, rule 6: one combined warning if key staff are missing.
