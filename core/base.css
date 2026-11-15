@@ -11,6 +11,19 @@
   --c8: #1f3b73;  --c9: #89ad84;  --c10: #d6aa4f; --c11: #915841;
   --c12: #6d95ca; --c13: #844136; --c14: #746b61; --c15: #e5bda3;
 
+  /* The same 16 colors as "r, g, b" triplets, so a palette color can be made see-through:
+     rgba(var(--c0-rgb), 0.8). Keep these in step with the hex values above on a palette swap. */
+  --c0-rgb: 5, 8, 22;       --c1-rgb: 195, 213, 235;  --c2-rgb: 187, 106, 82;   --c3-rgb: 138, 129, 119;
+  --c4-rgb: 16, 25, 46;     --c5-rgb: 72, 104, 70;    --c6-rgb: 201, 120, 62;   --c7-rgb: 230, 170, 133;
+  --c8-rgb: 31, 59, 115;    --c9-rgb: 137, 173, 132;  --c10-rgb: 214, 170, 79;  --c11-rgb: 145, 88, 65;
+  --c12-rgb: 109, 149, 202; --c13-rgb: 132, 65, 54;   --c14-rgb: 116, 107, 97;  --c15-rgb: 229, 189, 163;
+
+  /* See-through panel fill: the darkest palette color (c0) at --panel-alpha.
+     A container that needs to be more solid sets its own --panel-alpha AND --panel-bg, because
+     a custom property is worked out where it is declared (here), not where it is used. */
+  --panel-alpha: 0.8;
+  --panel-bg: rgba(var(--c0-rgb), var(--panel-alpha));
+
   /* Names to use in slice CSS, so a palette swap only changes the lines above. */
   --bg: var(--c0);
   --ink: var(--c7); 
