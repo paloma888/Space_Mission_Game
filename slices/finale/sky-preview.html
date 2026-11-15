@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Sky art preview</title>
+  <link rel="stylesheet" href="../../core/base.css">
+  <!-- Dev tool. Open with Live Server. Shows the globe's deep-sky art (explorer-sky.js) 4x bigger,
+       so you can check it without hunting for it on the globe. The black hole swirls. -->
+  <style>
+    body { background: var(--c0); color: var(--c1); padding: 16px; }
+    canvas { width: 1280px; height: 320px; image-rendering: pixelated; display: block; }
+  </style>
+</head>
+<body>
+  <p>Andromeda, the Large and Small Magellanic Clouds, and the black hole.</p>
+  <canvas id="sky" width="320" height="80"></canvas>
+  <script type="module">
+    import { readPalette, pickColors } from './pixel.js';
+    import { SKY_COLORS, buildAndromeda, buildCloud, blackHolePixel, BLACK_HOLE_BOX } from './explorer-sky.js';
+
+    const pal = readPalette();
+    const C = pickColors(pal, { ...SKY_COLORS, star: '#d0e0f8', starDim: '#8a8178', space: '#03050f' });
+    const canvas = document.getElementById('sky');
+    const g = canvas.getContext('2d');
+    const plot = (x, y, c) => { g.fillStyle = pal.hex[c]; g.fillRect(x, y, 1, 1); };
+    // Draws a sprite with its center at (cx, cy).
+    const sprite = (art, cx, cy) => {
+      for (let y = 0; y < art.h; y++) for (let x = 0; x < art.w; x++) {
+        const c = art.px[y * art.w + x];
+        if (c >= 0) plot(cx - (art.w >> 1) + x, cy - (art.h >> 1) + y, c);
+      }
+    };
+    const andromeda = buildAndromeda(C);
+    const lmc = buildCloud(C, 28, 18, 3.1, true);
+    const smc = buildCloud(C, 16, 11, 7.7, false);
+    const start = performance.now();
+    function frame(ms) {
+      g.fillStyle = pal.hex[C.space];
+      g.fillRect(0, 0, 320, 80);
+      sprite(andromeda, 50, 40);
+      sprite(lmc, 125, 40);
+      sprite(smc, 160, 44);
+      const t = (ms - start) / 1000;
+      const B = BLACK_HOLE_BOX;
+      for (let y = B.top; y <= B.bottom; y++) for (let x = B.left; x <= B.right; x++) {
+        const c = blackHolePixel(C, x, y, t);
+        if (c >= 0) plot(240 + x, 50 + y, c);
+      }
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  </script>
+</body>
+</html>

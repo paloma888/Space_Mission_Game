@@ -1,30 +1,48 @@
 /* Slice 4 styles. Palette variables only (core/base.css). */
 
-.lw-talk { display: flex; gap: 24px; align-items: center; line-height: 1.8; }
+.lw-talk { display: flex; gap: 24px; align-items: center; line-height: 1.8; padding-block: 12px; }
 
 .lw-days { display: flex; justify-content: center; gap: 16px; margin-bottom: 24px; }
-/* Fixed width of one column out of 5, so fewer cards stay the same size (the square icon would otherwise grow taller) and sit centered. */
-.lw-col { flex: 0 0 calc((100% - 4 * 16px) / 5); display: flex; flex-direction: column; gap: 16px; }
-.lw-icon-box {
-  background: var(--frame);
+/* One day = one dark card holding the picture and the text, 1 of 5 columns wide.
+   ".lw-days .lw-day" is more specific than the shared .btn rule, so its padding, margin and border can't win over ours.
+   border-box makes every card exactly the same width, so none comes out smaller. */
+.lw-days .lw-day {
+  box-sizing: border-box;
+  flex: 0 0 calc((100% - 4 * 16px) / 5);
+  min-width: 0; margin: 0; padding: 12px;
+  display: flex; flex-direction: column; gap: 12px;
+  background: var(--panel-bg); color: var(--ink);
   border: 4px solid var(--frame-edge);
-  aspect-ratio: 1; /* square, as wide as the text box below */
-  display: flex; align-items: center; justify-content: center; /* centers the word when an icon is missing */
-  overflow: hidden;
-}
-.lw-day {
   white-space: pre-line; /* each card is a few short lines */
   line-height: 2;
   font-size: var(--small);
 }
+.lw-icon-box {
+  width: 100%; aspect-ratio: 1; /* square, as wide as the card's inside */
+  background: var(--frame);
+  display: flex; align-items: center; justify-content: center; /* centers the word when an icon is missing */
+  overflow: hidden;
+}
 .lw-icon { display: block; width: 100%; height: 100%; image-rendering: pixelated; } /* fills the frame, no gap */
 .lw-icon-text { text-transform: uppercase; } /* shown when the icon file is missing */
-.lw-day.lw-picked { background: var(--accent); outline: 4px solid var(--ink); }
+.lw-days .lw-day.lw-picked { background: var(--accent); color: var(--bg); outline: 4px solid var(--ink); }
 
-.lw-footer { display: flex; justify-content: space-between; align-items: center; }
+.lw-fee { margin: 0; padding: 12px 16px; background: var(--panel-bg); border: 4px solid var(--frame-edge); } /* same dark box as the day cards, as wide as its text */
+/* Before a day is picked the button sits quietly in the same dark style as the cards; gold appears only when it's ready. */
+.lw-footer .btn:disabled { background: var(--panel-bg); color: var(--border-grey); border-color: var(--frame-edge); }
+.lw-footer { display: flex; gap: 16px; align-items: stretch; }
+/* Fee box and button share the row equally: same width, same height, same level. */
+.lw-footer > * { flex: 1 1 0; margin: 0; display: flex; align-items: center; justify-content: center; text-align: center; }
+
+/* Centers the title, days and footer in the space below the dashboard (about 56px tall). */
+.screen.lw-forecast { display: flex; flex-direction: column; justify-content: center; padding-top: 56px; padding-bottom: 0; }
+
+/* Morning title card: one dark box centered on the picture. */
+.screen.lw-morning { display: flex; align-items: center; justify-content: center; }
+.lw-intro { margin: 0; padding: 24px 32px; background: var(--panel-bg); border: 4px solid var(--frame-edge); }
 
 /* Go/No-Go tally: two columns of vote badges, filled in as each voice speaks. */
-.lw-board { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.lw-board { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 32px; } /* clears the dashboard */
 .lw-board .panel-title { grid-column: 1 / -1; margin: 0; }
 .lw-vote { padding: 8px 12px; font-size: var(--small); color: var(--c1); }
 .lw-go { background: var(--c5); }

@@ -1,32 +1,33 @@
 {
   "shell": {
-    "budget":   { "label": "Cramped",  "cost": 40,  "mass": 3.0, "power": 0, "rel": 0.00, "morale": -5, "icon": "shell", "tradeoff": "Cheap and light, but the crew will be grumpy." },
-    "standard": { "label": "Standard", "cost": 70,  "mass": 3.5, "power": 0, "rel": 0.01, "morale": 0,  "icon": "shell", "tradeoff": "A fair home for three astronauts." },
-    "premium":  { "label": "Roomy",    "cost": 110, "mass": 4.5, "power": 0, "rel": 0.02, "morale": 8,  "icon": "shell", "tradeoff": "Happy crew, but you pay for every extra tonne." }
+    "budget":   { "label": "Cramped",  "cost": 40,  "mass": 3.0, "power": 0, "rel": 0.00, "morale": -5, "icon": "shell_0", "tradeoff": "Cheap and light, but the crew will be grumpy." },
+    "standard": { "label": "Standard", "cost": 70,  "mass": 3.5, "power": 0, "rel": 0.01, "morale": 0,  "icon": "shell_1", "tradeoff": "A fair home for three astronauts." },
+    "premium":  { "label": "Roomy",    "cost": 110, "mass": 4.5, "power": 0, "rel": 0.02, "morale": 8,  "icon": "shell_2", "tradeoff": "Happy crew, but you pay for every extra tonne." }
   },
   "lifeSupport": {
-    "budget":   { "label": "Budget",   "cost": 30, "mass": 1.2, "power": 150, "rel": 0.00, "emergencyChance": 0.25, "icon": "life_support", "tradeoff": "Cheap air. One in four chance of trouble in flight." },
-    "standard": { "label": "Standard", "cost": 50, "mass": 1.5, "power": 200, "rel": 0.02, "emergencyChance": 0.08, "icon": "life_support", "tradeoff": "Clean air and a small chance of hiccups." },
-    "premium":  { "label": "Premium",  "cost": 80, "mass": 1.8, "power": 250, "rel": 0.04, "emergencyChance": 0.02, "icon": "life_support", "tradeoff": "Almost never fails, but it is heavy and power-hungry." }
+    "budget":   { "label": "Budget",   "cost": 30, "mass": 1.2, "power": 150, "rel": 0.00, "emergencyChance": 0.25, "icon": "life_support_0", "tradeoff": "Cheap air. One in four chance of trouble in flight." },
+    "standard": { "label": "Standard", "cost": 50, "mass": 1.5, "power": 200, "rel": 0.02, "emergencyChance": 0.08, "icon": "life_support_1", "tradeoff": "Clean air and a small chance of hiccups." },
+    "premium":  { "label": "Premium",  "cost": 80, "mass": 1.8, "power": 250, "rel": 0.04, "emergencyChance": 0.02, "icon": "life_support_2", "tradeoff": "Almost never fails, but it is heavy and power-hungry." }
   },
   "power": {
     "battery": {
-      "budget":   { "label": "Budget",   "cost": 20, "mass": 1.0, "supply": 400, "rel": 0.00, "icon": "battery", "tradeoff": "Simple and light. Not much juice to spare." },
-      "standard": { "label": "Standard", "cost": 35, "mass": 1.4, "supply": 600, "rel": 0.01, "icon": "battery", "tradeoff": "Enough power for a normal capsule." },
-      "premium":  { "label": "Premium",  "cost": 55, "mass": 1.8, "supply": 800, "rel": 0.02, "icon": "battery", "tradeoff": "Lots of power, lots of weight." },
-      "shady":    { "label": "Used Battery Pack", "shady": true, "looksLike": "premium", "cost": 20, "mass": 1.8, "supply": 800, "rel": -0.04, "icon": "battery", "tradeoff": "Premium power at a bargain price. Barely used. Probably." }
+      "budget":   { "label": "Budget",   "cost": 20, "mass": 1.0, "supply": 400, "rel": 0.00, "icon": "battery_0", "tradeoff": "Simple and light. Not much juice to spare." },
+      "standard": { "label": "Standard", "cost": 35, "mass": 1.4, "supply": 600, "rel": 0.01, "icon": "battery_1", "tradeoff": "Enough power for a normal capsule." },
+      "premium":  { "label": "Premium",  "cost": 55, "mass": 1.8, "supply": 800, "rel": 0.02, "icon": "battery_2", "tradeoff": "Lots of power, lots of weight." },
+      "dealer":   { "label": "Used Battery Pack", "discount": 0.5, "relPenalty": 0.06, "tradeoff": "Same battery, half the price. Barely used. Probably." }
     }
   },
   "comms": {
-    "budget":   { "label": "Budget",   "cost": 20, "mass": 0.3, "power": 50,  "rel": 0.00, "icon": "comms", "tradeoff": "A basic radio. Mission Control hears less from you." },
-    "standard": { "label": "Standard", "cost": 35, "mass": 0.5, "power": 80,  "rel": 0.01, "icon": "comms", "tradeoff": "A clear line to the ground." },
-    "premium":  { "label": "Premium",  "cost": 60, "mass": 0.8, "power": 120, "rel": 0.02, "icon": "comms", "tradeoff": "Crystal clear, but it drinks more power." },
-    "shady":    { "label": "Surplus Radio", "shady": true, "looksLike": "premium", "cost": 20, "mass": 0.8, "power": 120, "rel": -0.03, "icon": "comms", "tradeoff": "Fell off a truck. A very nice truck." }
+    "budget":   { "label": "Budget",   "cost": 20, "mass": 0.3, "power": 50,  "rel": 0.00, "icon": "comms_0", "tradeoff": "A basic radio. Mission Control hears less from you." },
+    "standard": { "label": "Standard", "cost": 35, "mass": 0.5, "power": 80,  "rel": 0.01, "icon": "comms_1", "tradeoff": "A clear line to the ground." },
+    "premium":  { "label": "Premium",  "cost": 60, "mass": 0.8, "power": 120, "rel": 0.02, "icon": "comms_2", "tradeoff": "Crystal clear, but it drinks more power." },
+    "dealer":   { "label": "Surplus Radio", "discount": 0.5, "relPenalty": 0.05, "tradeoff": "Fell off a truck. A very nice truck." }
   },
   "computer": {
-    "budget":   { "label": "Budget",   "cost": 15, "mass": 0.3, "power": 30, "rel": 0.00, "icon": "computer", "tradeoff": "Cheap brain. More chances for a software bug." },
-    "standard": { "label": "Standard", "cost": 30, "mass": 0.4, "power": 40, "rel": 0.02, "icon": "computer", "tradeoff": "Tested software that does its job." },
-    "premium":  { "label": "Premium",  "cost": 50, "mass": 0.5, "power": 50, "rel": 0.04, "icon": "computer", "tradeoff": "Backup computers that check each other's math." },
-    "shady":    { "label": "Refurbished Flight Computer", "shady": true, "looksLike": "premium", "cost": 15, "mass": 0.5, "power": 50, "rel": -0.05, "icon": "computer", "tradeoff": "Premium brain, half the price. Only rebooted twice today." }
-  }
+    "budget":   { "label": "Budget",   "cost": 15, "mass": 0.3, "power": 30, "rel": 0.00, "icon": "computer_0", "tradeoff": "Cheap brain. More chances for a software bug." },
+    "standard": { "label": "Standard", "cost": 30, "mass": 0.4, "power": 40, "rel": 0.02, "icon": "computer_1", "tradeoff": "Tested software that does its job." },
+    "premium":  { "label": "Premium",  "cost": 50, "mass": 0.5, "power": 50, "rel": 0.04, "icon": "computer_2", "tradeoff": "Backup computers that check each other's math." },
+    "dealer":   { "label": "Refurbished Flight Computer", "discount": 0.5, "relPenalty": 0.09, "tradeoff": "Same brain, half the price. Only rebooted twice today." }
+  },
+  "mysteriousComponent": { "label": "Mysterious Component", "cost": 10, "mass": 0.2, "power": 0, "rel": -0.03, "shady": true, "icon": "mysterious_component", "tradeoff": "Don't ask what it does." }
 }

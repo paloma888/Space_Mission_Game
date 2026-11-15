@@ -50,8 +50,8 @@ parts = {
 - `science` is removed for Mission 1. Where its 5 score points go is OPEN (Person 5).
 - `computer` (flight computer) is new and required. It can cause software-error events (Person 3) and its reliability bonus raises launch odds.
 - Power is battery only. `type` stays in the data so solar can return in Mission 2.
-- `warpCoil` is removed for now (see A6).
-- Shady parts may use a tier of `'shady'` (see A5).
+- `warpCoil` is `true` only when the player buys the dealer's "mysterious component" (see A6).
+- Dealer parts use the tiers `'shady_budget'`, `'shady_standard'` and `'shady_premium'` (see A5).
 
 ## A4. Derived fields (changes section 5)
 
@@ -63,17 +63,19 @@ Status: ADOPTED (proposed by Person 2, approved by the team). Affects Person 5.
 
 Status: ADOPTED (proposed by Person 2, approved by the team). Affects Persons 3, 5.
 
-The shady dealer sells cheap parts with premium-tier stats and a hidden reliability penalty (through `rel.parts`). New flag-registry row:
+The shady dealer offers a trade-in after the shop: the same battery, radio or flight computer the player bought, for half the price, with a hidden reliability penalty (through `rel.parts`). It reports as the tier it copies, so other slices see no difference. New flag-registry row:
 
 | Flag | Set by | Read by | Meaning |
 | --- | --- | --- | --- |
 | `shady_part` | Person 2 | 3, 5 | At least one shady part was installed at Lock In. |
 
-## A6. Warp Coil and the secret ending are paused (changes sections 6.7, 6.9, 12 and Checkpoint 3)
+## A6. Warp Coil comes back as a dealer upsell (changes sections 6.7, 6.9 and 12)
 
-Status: ADOPTED (proposed by Person 2, approved by the team). Affects Person 5.
+Status: PROPOSED (by Person 2, Nov 15, 2026), replacing the earlier "paused" version. Affects Person 5.
 
-The Warp Coil is not sold in Mission 1, so the `aliens` ending cannot trigger. The `warp_coil` flag name and the `secret` preset stay reserved so it can come back. Checkpoint 3 no longer requires the secret ending.
+After the player takes the shady dealer's trade-in (A5), the dealer offers a "mysterious component" for $10M more. That is the Warp Coil: 0.2 t, no power, reliability -0.03 through `rel.parts`. Buying it sets `parts.warpCoil = true` and the `warp_coil` flag, and counts as a shady part for `shady_part`. It is offered only if it still fits on the rocket and the player can pay. The game never explains what it does.
+
+The secret `aliens` ending works as in Rulebook 6.9: `warp_coil` flag, launch on the last day of the window (`launchDay === windowCloses`), and the liftoff stage passes. `launch-sim.js` already checks this. Checkpoint 3 requires the secret ending again.
 
 ## A7. Presets (changes section 12)
 
@@ -136,7 +138,7 @@ Status: PROPOSED (proposed by Person 5 on Nov 14, 2026). Affects Persons 1, 2, 3
 | Days to spare | 10 | Unchanged |
 | Morale | 15 | `15 * morale / 100` |
 
-**Badges.** Safety First is replaced by Honest Parts: earned when the `shady_part` flag (A5) is not set.
+**Badges.** Safety First is replaced by Honest Parts: earned when the `shady_part` flag (A5) is not set. New secret badge, Close Encounter: earned in the `aliens` ending (A6). The report shows it only once it is earned, so it does not spoil the secret.
 
 **What each person needs to change**
 
@@ -145,9 +147,66 @@ Status: PROPOSED (proposed by Person 5 on Nov 14, 2026). Affects Persons 1, 2, 3
 - **Person 2:** the life support `emergencyChance` and `powerOk: false` now risk `came_home_early`, not a crew loss. For the A8 power question, Slice 5 currently treats power over supply as a certain emergency in orbit with a lower fix chance. Tell Person 5 if Lock In should block it instead.
 - **Person 1:** update the `outcome` comment in section 5. A10's tone rule about the `lost` ending no longer applies, since that ending is gone.
 
+**No-launch endings (`bankrupt`, `window_closed`).** Added by Erick (Person 5) on Sun Nov 15, 2026.
+
+- **Score.** Every part except Morale needs a launch, so those parts show "needs a launch" and score 0. The total is Morale only (at most 15). No medal, and every badge is locked ("Launch your ship to unlock badges").
+- **Why it ended.** `endReason(state)` in `slices/finale/launch-sim.js` gives one of 8 reasons:
+
+  | Reason | When |
+  | --- | --- |
+  | `gave_up` | Give up in launch week |
+  | `broke_overrun` | The `cost_overrun` flag is set |
+  | `broke_after_fundraise` | The `fundraised` flag is set (A13) |
+  | `broke_build` | No Lock In, or locked in with under $40M |
+  | `broke_trail` | Money ran out on the trail |
+  | `broke_launchweek` | Money ran out in launch week |
+  | `late_trail` | Out of days on the trail |
+  | `late_launchweek` | Out of days in launch week |
+
+  Rosa's debrief and the history card both follow the reason.
+- **How far you got.** In place of "What shaped your odds", the report shows a track: Hiring, Build, Trail, Launch week, Launch, with the player's rocket on the step where the game stopped.
+- **New card condition (section 7.4).** A history card's `when` may hold `reason`, either one reason or a list, for example `"reason": ["late_trail", "gave_up"]`.
+- **What other slices rely on.**
+  - The build slice saves the `afterBuild` checkpoint at Lock In.
+  - Launch week creates `state.weather` on its first day.
+  - Give up sets `outcome` to `bankrupt` with money left.
+
+  Tell Erick if any of these change.
+
 
 ## A12. Mission Control AI is out of scope for now (changes section 4)
 
 Status: ADOPTED (proposed by Person 4, team decision Sat 2:45pm). Affects Persons 4, 5.
 
 No Foundry or Azure AI service. `slices/launchweek/ask-rosa.js` stays a stub that always returns `null`. No screen may depend on it: every explanation uses scripted text in the character's voice. Person 5's report screen does not need the three "Why?" AI buttons. This overrides the `askRosa` parts of Rulebook section 4.
+
+## A13. Money: early debt, fundraising and launching at $0 (changes sections 6.2 and 6.7)
+
+Status: PROPOSED (agreed in team chat on Sat Nov 14, 2026; written up by Erick, Person 5). Affects Audrey (Person 1), Sharon (Person 3), Paloma (Person 4) and Erick (Person 5).
+
+**Early debt (trail weeks 1 and 2).** The budget may go to $0 or below in trail weeks 1 and 2 without ending the game. If the budget is still $0 or below when week 3 starts, the game ends as `bankrupt`. From week 3 on, $0 or below is `bankrupt` right away, as before. Finishing the build with exactly $0 left is also allowed, because week 1 hasn't started yet.
+
+**Fundraising.** Only possible with a PR lead on staff (`requires: "pr"`). The PR lead's salary, paid at hiring, is the price; the fundraiser itself costs nothing extra. Without a PR lead there is no fundraising, so early debt that isn't paid off by week 3 ends the game. Sharon decides how much it raises (for example, by PR skill), whether it is once only, and Tasha's lines.
+
+New flag-registry row:
+
+| Flag | Set by | Read by | Meaning |
+| --- | --- | --- | --- |
+| `fundraised` | Person 3 | 5 | A PR fundraiser ran on the trail. |
+
+**Launching at $0 (launch week).** Exactly $0 is not bankrupt; only below $0 is. Example: with $10M left, the player waits one more day for $10M and launches that day with $0. The launch site fee charged on confirmation may take the budget below $0. That was already allowed: `checkEnd()` ignores the budget once `launchDay` is set.
+
+What each person needs to change:
+- **Sharon (Person 3), trail:**
+  - [ ] Add a fundraising choice or event that needs a PR lead.
+  - [ ] Allow debt in weeks 1 and 2.
+  - [ ] End the game as `bankrupt` if the budget is $0 or below when week 3 starts, or any time after that.
+  - [ ] Set the `fundraised` flag when a fundraiser runs.
+- **Audrey (Person 1), `core/state.js`:**
+  - [ ] In `checkEnd()`, don't return `bankrupt` while `state.week` is 1 or 2 and no launch day is set. The trail enforces the week-3 rule itself.
+- **Paloma (Person 4), `launchweek.js`:**
+  - [ ] Use `budget < 0` in `ended()` and `endEarly()`.
+  - [ ] Warn in `waitUntil()` only when `budget - cost < 0`.
+- **Erick (Person 5), report:**
+  - [ ] Treat launch-week bankruptcy as `budget < 0`.
+  - [ ] Add a "broke after fundraising" reason for Rosa.

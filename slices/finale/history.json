@@ -1,1 +1,45 @@
-[]
+[
+  {
+    "id": "webb_overrun",
+    "todo": "Erick: open both sources in a private window and check the story (Claude already checked every sentence against them), then delete this todo line.",
+    "title": "James Webb Space Telescope, 2018",
+    "tone": "hopeful",
+    "story": "The James Webb Space Telescope was built to look deep into space, back toward the dawn of time. In 2018, an independent review board checked on the project. It found that technical issues, including human errors, had badly slowed the work. NASA set a new launch date of March 30, 2021, later than it had planned, and a new estimate of 8.8 billion dollars to build it. The board said Webb should keep going because of its amazing science, and NASA agreed. Webb finally launched on December 25, 2021, from French Guiana.",
+    "lesson": "Big projects almost always cost more than planned, so build a money cushion before you start.",
+    "sources": [
+      { "title": "NASA: NASA Completes Webb Telescope Review, Commits to Launch in Early 2021", "url": "https://www.nasa.gov/news-release/nasa-completes-webb-telescope-review-commits-to-launch-in-early-2021/" },
+      { "title": "NASA: Webb's Launch", "url": "https://science.nasa.gov/mission/webb/launch/" }
+    ],
+    "when": {
+      "outcome": ["bankrupt"],
+      "reason": ["broke_overrun", "broke_after_fundraise", "broke_build", "broke_trail", "broke_launchweek"],
+      "priority": 1
+    }
+  },
+  {
+    "id": "insight_delay",
+    "todo": "Erick: open both sources in a private window and check the story (Claude already checked every sentence against them), then delete this todo line.",
+    "title": "InSight Mars lander, 2016",
+    "tone": "hopeful",
+    "story": "InSight is a NASA lander built to study the deep inside of Mars. Its most important instrument was a seismometer from France's space agency, CNES. It could feel ground movements as small as an atom, but it needed a vacuum seal around its three main sensors. Before launch, the team found a leak. They tried to fix it, but in a freezing cold test it leaked again. So NASA called off the March 2016 launch. Earth and Mars line up well for only a few weeks every 26 months. InSight had to wait for its next window, which opened in May 2018.",
+    "lesson": "When the deadline can't move, a problem found late can cost you years.",
+    "sources": [
+      { "title": "NASA: NASA Suspends 2016 Launch of InSight Mission to Mars", "url": "https://www.nasa.gov/news-release/nasa-suspends-2016-launch-of-insight-mission-to-mars/" },
+      { "title": "NASA: NASA Targets May 2018 Launch of Mars InSight Mission", "url": "https://www.nasa.gov/news-release/nasa-targets-may-2018-launch-of-mars-insight-mission/" }
+    ],
+    "when": { "reason": ["late_trail", "gave_up"], "priority": 2 }
+  },
+  {
+    "id": "artemis1_scrub",
+    "todo": "Erick: open both sources in a private window and check the story (Claude already checked every sentence against them), then delete this todo line.",
+    "title": "Artemis I, 2022",
+    "tone": "hopeful",
+    "story": "Artemis I sent NASA's Orion spacecraft toward the Moon on the Space Launch System rocket. On September 3, 2022, the team was loading super-cold liquid hydrogen into the rocket's core stage when a leak appeared, right where the fuel is fed into the rocket. Engineers tried reseating a seal, but that did not fix it. That morning, the launch director called off the attempt. The rocket finally launched on November 16, 2022, after a small team called the red crew went to the pad and fixed another hydrogen leak.",
+    "lesson": "Waiting for a safe day is smart, but every day you wait has a cost.",
+    "sources": [
+      { "title": "NASA: Artemis I Launch Attempt Scrubbed", "url": "https://www.nasa.gov/blogs/missions/2022/09/03/artemis-i-launch-attempt-scrubbed/" },
+      { "title": "NASA: Artemis Red Crew Team Helps Enable Successful Launch", "url": "https://www.nasa.gov/humans-in-space/artemis-red-crew-team-helps-enable-successful-launch/" }
+    ],
+    "when": { "reason": ["late_launchweek"], "priority": 2 }
+  }
+]

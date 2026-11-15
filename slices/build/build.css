@@ -23,14 +23,18 @@
   color: var(--c1); background: var(--c4); border: 4px solid var(--c14); cursor: pointer; }
 .tier-card.tier-standard { border-color: var(--c12); }
 .tier-card.tier-premium { border-color: var(--c10); }
-.tier-card:hover:not(:disabled) { background: var(--c8); }
+.tier-card:hover:not(.is-disabled) { background: var(--c8); }
 .tier-card.chosen { background: var(--c8); outline: 4px solid var(--c1); }
-.tier-card:disabled { opacity: 0.55; cursor: not-allowed; }
-.tier-icon { width: 64px; height: 64px; image-rendering: pixelated; }
+/* Locked cards stay readable: only slightly faded, with a dashed border as the "can't pick" cue. */
+.tier-card.is-disabled { opacity: 0.8; border-style: dashed; cursor: not-allowed; }
+/* Part art is 554 x 580 (one drawing per tier). object-fit keeps its shape at any size. */
+.tier-icon { width: 96px; height: 100px; object-fit: contain; image-rendering: pixelated; }
 .tier-icon.placeholder-box { font-size: 8px; }
 .tier-name { font-size: var(--body); color: var(--c10); }
 .tier-trade { color: var(--c15); }
 .tier-why { font-size: var(--small); color: var(--c2); line-height: 1.6; margin: 8px 0 0; }
+/* In the shop, "Not enough budget." sits at the bottom of the card, so it lines up across tiers. */
+.shop-cards .tier-why { margin-top: auto; }
 .why-btn { align-self: flex-start; font-size: var(--small); padding: 8px 12px; }
 .why-mini { font-size: var(--small); padding: 2px 8px; margin: 0 0 0 8px; }
 .shop-note { grid-column: 1 / -1; font-size: var(--small); color: var(--c10); }
@@ -50,19 +54,23 @@
 /* Blocks clicks on cards while Rosa or Hal is talking. Sits under the dialogue box (z-index 10). */
 .shop-cover { position: absolute; inset: 0; z-index: 9; }
 
-/* ---------- Rocket, site, orbit and review: title / content / "Will it fly?" + buttons */
-.vehicle { display: grid; grid-template-rows: auto 1fr auto; gap: 12px; padding-top: 72px; color: var(--c1); }
+/* ---------- Rocket, site and review: title / content / "Will it fly?" + buttons */
+.vehicle { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 12px;
+  padding-top: 72px; color: var(--c1); }
 .v-head { display: flex; align-items: center; gap: 16px; }
 .v-head h2 { margin: 0; font-size: var(--body); color: var(--c10); }
 .v-head .btn { margin: 0; font-size: var(--small); padding: 8px 12px; }
 .v-body { min-height: 0; }
 .v-cards { display: grid; gap: 16px; align-content: start; }
 .v-cards-4 { grid-template-columns: repeat(4, 1fr); }
-.v-cards-2 { grid-template-columns: repeat(2, 360px); }
+
 .v-card { min-height: 0; }
-.v-sprite { width: 32px; height: 96px; image-rendering: pixelated; }
+/* Rocket art is 554 x 580 (nearly square, transparent around the rocket). object-fit keeps
+   its shape, so a differently sized drawing later still fits without stretching. */
+.v-sprite { width: 120px; height: 126px; object-fit: contain; image-rendering: pixelated; }
 .v-sprite.placeholder-box { font-size: 8px; }
-.v-fit { font-size: var(--small); }
+/* Pushed to the bottom of the card so it lines up across cards whatever the blurb length. */
+.v-fit { font-size: var(--small); margin-top: auto; }
 .v-fit.ok { color: var(--c9); }
 .v-fit.bad { color: var(--c2); }
 
@@ -78,9 +86,8 @@
 .v-dot { position: absolute; width: 16px; height: 16px; margin: -8px 0 0 -8px; padding: 0;
   background: var(--c10); border: 4px solid var(--c0); cursor: pointer; }
 .v-dot:hover, .v-dot.focus { background: var(--c15); }
-/* The chosen site is bright and bigger so it pops on the green land and navy sea. */
-.v-dot.chosen { background: var(--c1); width: 20px; height: 20px; margin: -10px 0 0 -10px; }
-.v-dot.chosen .v-dot-label { background: var(--c10); color: var(--c0); }
+/* The chosen site turns near-white so it pops on the green land and navy sea. Same size as the others. */
+.v-dot.chosen { background: var(--c1); }
 .v-dot-label { position: absolute; left: 16px; top: -4px; font-size: var(--small); color: var(--c1);
   background: var(--c0); padding: 2px 4px; white-space: nowrap; pointer-events: none; }
 .v-dot-label.left { left: auto; right: 16px; }
@@ -90,9 +97,16 @@
 .btn .check { display: inline-block; position: relative; top: -3px; margin-left: 8px; }
 
 /* Bottom row: the compatibility panel and Back / Next */
-.v-foot { display: grid; grid-template-columns: 1fr 300px; gap: 16px; align-items: start; }
-.v-buttons { display: flex; flex-wrap: wrap; align-items: center; }
-.v-buttons .tier-why { flex-basis: 100%; }
+.v-foot { display: grid; grid-template-columns: 1fr 300px; gap: 16px; }
+/* Next sits centered in the space beside the panel. */
+/* The Next area always matches the "Will it fly?" box's height. contain: size stops its own
+   text from making the row taller. "safe center" keeps the top of Next visible if it is ever too tall. */
+.v-buttons { display: flex; flex-direction: column; align-items: center; justify-content: safe center; text-align: center;
+  contain: size; overflow: hidden; }
+.big-next { font-size: var(--body); padding: 12px 48px; margin: 0; }
+.v-buttons .tier-why { margin: 6px 0 0; }
+.final-note { font-size: var(--small); color: var(--c14); line-height: 1.6; margin: 6px 0 0; text-align: center; }
+.shop-side .big-next { display: block; margin: 16px auto 0; }
 .compat { background: var(--c4); border: 4px solid var(--c12); padding: 12px 16px; font-size: var(--small); }
 .compat h2 { font-size: var(--small); color: var(--c10); margin: 0 0 8px; }
 .compat-row { display: flex; gap: 12px; line-height: 1.6; }
@@ -102,5 +116,61 @@
 .compat-row.bad span:last-child { color: var(--c2); }
 .compat-banner { background: var(--c2); color: var(--c0); padding: 8px; margin-bottom: 8px; line-height: 1.6; }
 
-/* Review: two summary boxes side by side */
-.v-review { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-content: start; }
+/* Review: the summary box on the left, the rocket picture in its own box on the right. */
+/* The rocket column is 300px, the same as the Lock In column below, so the rocket sits
+   right above Lock In. */
+/* Fills the space down to the "Will it fly?" panel, so the lower rows can sit at the bottom. */
+.v-review { display: grid; grid-template-columns: 1fr 300px; gap: 16px; align-items: stretch; height: 100%; }
+/* Drawn above the rocket box so the dotted lines can run across the gap to the rocket. */
+.v-summary { gap: 6px; position: relative; z-index: 1; }
+/* Six 40px rows (five parts + the rocket) run down the top of the 384px rocket. */
+.v-diagram { display: grid; grid-template-rows: repeat(6, 40px); margin-bottom: 8px; }
+/* Launch site and the rows under it sit at the bottom of the box, below the rocket's height. */
+.v-row.v-push { margin-top: auto; }
+/* Prices sit right after the pick (not at the far edge); the dotted line fills the rest. */
+.v-part { display: grid; grid-template-columns: 172px 340px 80px 1fr; align-items: center; gap: 12px;
+  border-left: 6px solid var(--c14); padding-left: 10px; }
+.v-part.tier-standard { border-left-color: var(--c12); }
+.v-part.tier-premium { border-left-color: var(--c10); }
+.v-part.tier-rocket { border-left-color: var(--c1); }
+.v-part.tier-none { border-left-color: var(--c4); }
+/* Runs past the box edge to the rocket: 16 padding + 4 border + 16 gap + 4 border + 16 padding
+   + 3 (the 254px picture centered in 260px) + 58 (Condor's boosters start 127/554 of the way in) = 117.
+   Pelican is a little wider and Sparrow narrower, so the lines land close to them too. */
+.v-leader { height: 0; border-top: 2px dashed var(--c14); margin-right: -117px; }
+/* Same height as the summary box. */
+.v-rocket-box { align-items: center; gap: 8px; padding: 12px 16px; }
+/* 554 x 580 art shown at 254 x 266. The drawn rocket fills about 90% of the height (about 240px),
+   which matches the six 40px rows, so each dotted line meets its own part of the rocket. */
+.v-rocket-sprite { width: 254px; height: 266px; object-fit: contain; image-rendering: pixelated; }
+/* Shown under the rocket when the dealer's mysterious component is on board. */
+.v-component { margin: 0; font-size: var(--small); color: var(--c10); text-align: center; line-height: 1.6; }
+.v-rocket-sprite.placeholder-box { font-size: 8px; padding: 0; }
+/* The rows below line up with the part rows: 172px + the 16px stripe and padding. */
+.v-row { display: grid; grid-template-columns: 188px 340px 80px; gap: 12px; }
+.v-row-label { color: var(--c14); }
+.v-row-price { text-align: right; }
+.v-row.v-total { border-top: 2px solid var(--c8); padding-top: 6px; color: var(--c10); }
+.v-row.v-total + .v-row.v-total { border-top: none; padding-top: 0; }
+
+/* ---------- Shady dealer pop-up. Under the dialogue box (z-index 10) so Hal can talk over it. */
+.dealer-overlay { position: absolute; inset: 0; z-index: 8; display: grid; place-items: center;
+  background: rgb(0 0 0 / 0.75); }
+.dealer-box { width: 920px; background: var(--c4); border: 4px solid var(--c13); padding: 24px;
+  color: var(--c1); font-size: var(--small); line-height: 1.6; }
+.dealer-head { display: grid; grid-template-columns: 96px 1fr; column-gap: 20px; align-items: center; margin-bottom: 16px; }
+.dealer-head > div:not(.portrait) { font-size: var(--body); color: var(--c10); }
+.dealer-head .portrait { grid-row: 1 / span 2; }
+.dealer-pitch { margin: 0; color: var(--c15); }
+.dealer-cards { display: grid; grid-template-columns: 1fr 48px 1fr; align-items: center; }
+.dealer-arrow { text-align: center; font-size: var(--title); color: var(--c14); }
+.dealer-card { background: var(--c0); border: 4px solid var(--c12); padding: 16px; display: flex;
+  flex-direction: column; gap: 6px; min-height: 220px; }
+.dealer-card.offer { border-color: var(--c13); }
+.dealer-card h3 { font-size: var(--small); color: var(--c14); margin: 0; }
+.dealer-stat .up { color: var(--c9); }
+.dealer-stat .down { color: var(--c10); }
+.dealer-warranty { margin-top: auto; color: var(--c14); }
+.dealer-after { text-align: center; color: var(--c10); margin: 16px 0 8px; }
+.dealer-buttons { display: flex; justify-content: center; gap: 16px; }
+.dealer-buttons .btn { margin: 0; }
