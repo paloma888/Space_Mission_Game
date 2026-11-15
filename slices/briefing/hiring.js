@@ -231,12 +231,14 @@ export async function runHiring(state, { candidates, staff, hiringText }) {
         if (astronaut) seat.title = astronaut.name;
         seats.append(seat);
       }
-      const staffNames = state.staff.map((member) => member.name).join(', ') || 'No staff yet';
+      const staffCount = state.staff.length;
+      const staffHeading = el('div', 'hiring-staff-heading', staffCount > 0 ? `Staff: ${staffCount} hired` : 'Staff: No staff yet');
       const summary = el('div', 'hiring-summary');
-      summary.append(
-        el('div', null, `Staff: ${staffNames}`),
-        el('div', null, `Spent $${rules.totalSpent(state)}M`),
-      );
+      summary.append(staffHeading);
+      if (staffCount > 0) {
+        summary.append(el('div', 'hiring-staff-list', state.staff.map((member) => member.name).join(', ')));
+      }
+      summary.append(el('div', null, `Spent $${rules.totalSpent(state)}M`));
       const continueWrap = el('div', 'hiring-continue');
       const continueButton = ui.button('Continue', onContinue);
       if (!rules.canContinue(state)) {
