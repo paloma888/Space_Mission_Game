@@ -55,7 +55,7 @@ function titleScreen(scene) {
     const root = ui.screen(scene.background, { dashboard: false });
     root.classList.add('briefing-title');
     const menu = el('div', 'briefing-menu');
-    root.append(el('h1', 'briefing-logo', 'LAUNCH TRAIL'), menu);
+    root.append(el('h1', 'briefing-logo', 'B[U]ILT 2 LAUNCH'), menu);
     ui.music('briefing_title'); // starts after the first click, because browsers block autoplay
 
     const soundButton = () => {
