@@ -7,7 +7,11 @@
       "Every part, every test and every hard call added up to this moment.",
       "Measure twice, launch once. You measured well."
     ],
-    "why": { "default": "TODO", "byStage": {}, "byCause": {} }
+    "rosaNoMedal": [
+      "You made it to orbit, Flight Director. Your crew is waving at you right now.",
+      "But a few shortcuts cost you points. Look at the badges you missed.",
+      "Measure twice, launch once. Next time, measure a little more."
+    ]
   },
   "launch_failure": {
     "title": "Launch failure",
@@ -16,8 +20,7 @@
       "Rockets are hard. Even NASA has had launches go wrong.",
       "The good news: your crew is safe, and now you know more than before.",
       "Look at what shaped your odds. Then let's try again."
-    ],
-    "why": { "default": "TODO", "byStage": {}, "byCause": {} }
+    ]
   },
   "came_home_early": {
     "title": "Home early",
@@ -26,8 +29,7 @@
       "You reached space. That part went right.",
       "Then a problem came up the crew couldn't fix. Coming home was the smart call.",
       "Real crews have had to do this too. Safety first, then try again."
-    ],
-    "why": { "default": "TODO", "byStage": {}, "byCause": {} }
+    ]
   },
   "bankrupt": {
     "title": "Out of money",
@@ -83,8 +85,7 @@
           "Sometimes the first good day is the best day. Pick it and go."
         ]
       }
-    },
-    "why": { "default": "TODO", "byStage": {}, "byCause": {} }
+    }
   },
   "window_closed": {
     "title": "Window closed",
@@ -109,8 +110,7 @@
           "A launch window is like catching a train. A good-enough day beats a missed train."
         ]
       }
-    },
-    "why": { "default": "TODO", "byStage": {}, "byCause": {} }
+    }
   },
   "aliens": {
     "title": "Secret ending found!",
@@ -119,7 +119,6 @@
       "Well. I flew for thirty years and never saw that.",
       "I'm not sure that mysterious component was in any manual.",
       "Measure twice, launch once... and wave back, I suppose."
-    ],
-    "why": { "default": "TODO", "byStage": {}, "byCause": {} }
+    ]
   }
 }

@@ -129,6 +129,9 @@ function endingFor(endings, state) {
   if (NO_PR_TIP_REASONS.includes(reason) && !hasPR && base.noPrTip && ending.rosa?.length) {
     ending.rosa = [...ending.rosa.slice(0, -1), base.noPrTip]; // swap the last line (the tip)
   }
+  // Orbit without a medal: Rosa shouldn't say "You measured well" to a player who cut corners.
+  // (state already holds the launch result here, so computeScore gives the report's own medal.)
+  if (state.outcome === 'orbit' && base.rosaNoMedal && !computeScore(state).medal) ending.rosa = base.rosaNoMedal;
   return ending;
 }
 
@@ -383,7 +386,9 @@ function orbitEnding(state, ending) {
   });
 }
 
-// Background art for each ending: art/backgrounds/finale/<name>.png (placeholder until drawn).
+// Background art for each ending: art/backgrounds/finale/<name>.png. Until one is drawn, the
+// ending gets a plain dark screen (see endingArt), so players never see the
+// "background: ..." placeholder label.
 const ENDING_ART = {
   launch_failure: 'ending_launch_failure',
   came_home_early: 'ending_came_home_early',
@@ -391,13 +396,24 @@ const ENDING_ART = {
   window_closed: 'ending_window',
 };
 
+// Resolves to 'finale/<name>' if that picture loads, otherwise null (no background).
+// A missing file answers in a few milliseconds, and the launch's dark fade still covers the screen.
+function endingArt(name) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(`finale/${name}`);
+    img.onerror = () => resolve(null);
+    img.src = here(`../../art/backgrounds/finale/${name}.png`);
+  });
+}
+
 // The simple ending screen for launch_failure, came_home_early, bankrupt and window_closed:
 // background, title, text and a Mission report button.
 async function plainEnding(state, ending) {
   ui.music(null);
   // womp womp womp wommmp... but not for "Home early": the crew made it to space, so that's no womp moment.
   if (state.outcome !== 'came_home_early') ui.sfx('finale/womp');
-  const root = ui.screen(`finale/${ENDING_ART[state.outcome] ?? 'ending_launch_failure'}`);
+  const root = ui.screen(await endingArt(ENDING_ART[state.outcome] ?? 'ending_launch_failure'));
   root.classList.add('fin-ending');
   unveil(root, 'dark');                // fades in from the launch's dark fade
   const box = ui.panel();
@@ -467,19 +483,23 @@ function report(state, result, data, ending) {
     left.append(el('div', `fin-medal fin-medal-${score.medal ?? 'none'}`,
       score.medal ? MEDAL_NAMES[score.medal] : score.medalReason));
   }
-  // Badges: lit if earned, dim with a hint if not. Labels come from badges.json.
-  // No launch: all greyed out with one caption, and no per-badge hints (they'd be confusing here).
+  // Badges: lit if earned, grey if not. Labels come from badges.json. Missed badges keep their
+  // hint as hover text, and the first one shows as a single "Next time" tip under the grid:
+  // a hint inside every missed chip made the panel spill over when most were missed.
+  // No launch: all greyed out with one caption instead.
   const badges = el('div', launched ? 'fin-badges' : 'fin-badges fin-badges-locked');
+  const tips = [];
   for (const b of data.badges) {
     const earned = score.badges.find((x) => x.id === b.id)?.earned;
     if (b.secret && !earned) continue; // a secret badge stays hidden until someone finds it
     const chip = el('div', `fin-badge ${earned ? 'on' : 'off'}`, b.label);
     chip.title = earned ? 'Earned!' : launched ? b.hint : 'Launch your ship to unlock badges'; // hover text
-    if (!earned && launched) chip.append(el('div', 'fin-badge-hint', b.hint));
+    if (!earned && launched) tips.push(b.hint);
     badges.append(chip);
   }
   left.append(badges);
   if (!launched) left.append(el('p', 'fin-badges-note', 'Launch your ship to earn a medal and unlock badges'));
+  else if (tips.length) left.append(el('p', 'fin-badges-note', `Next time: ${tips[0]}.`));
 
   // Middle: the real NASA story that matches what happened.
   const card = pickHistoryCard(data.cards, state, result);
@@ -508,7 +528,8 @@ function report(state, result, data, ending) {
   } else {
     // No card matched: a short note instead.
     let note = 'Every mission teaches something. Look at what shaped your odds, then try again.';
-    if (state.outcome === 'orbit') note = 'No history lesson needed today. Your launch went by the book.';
+    // True for every orbit, even one that cut corners (the badges and Rosa cover those).
+    if (state.outcome === 'orbit') note = 'No history lesson needed today. Your rocket made it to orbit.';
     if (state.outcome === 'aliens') note = "You won't find this one in any NASA history book. Some things can't be explained.";
     middle.append(el('p', '', note));
   }

@@ -299,12 +299,24 @@ export function medalFor(total, outcome) {
   // Honest Parts -> no shady parts bought
   // Close Encounter -> 🛸 found the secret ending (a secret badge: the report hides it until earned)
 
+// Was a shady part on board? Checks the parts themselves too, not just the flag: the build saves
+// its afterBuild checkpoint just before Lock In adds `shady_part`, so "Same plan, new luck"
+// comes back without the flag. Dealer parts have tiers named 'shady_...' (A3, A5), and the
+// mysterious component sets parts.warpCoil (A6).
+export function hadShadyPart(state) {
+  const flags = state.flags ?? [];
+  if (flags.includes('shady_part') || flags.includes('warp_coil')) return true;
+  const p = state.parts ?? {};
+  const tiers = [p.shell, p.lifeSupport, p.comms, p.computer, p.power?.tier];
+  return !!p.warpCoil || tiers.some((t) => typeof t === 'string' && t.startsWith('shady_'));
+}
+
 const BADGE_RULES = {
   measure_twice: (s) => (s.skippedTestingWeeks ?? 0) === 0,
   weather_wise: (s) => (s.scrubs ?? 0) === 0,
   under_budget: (s) => s.budget >= 150,
   team_player: (s) => !(s.flags ?? []).includes('overruled_nogo'),
-  honest_parts: (s) => !(s.flags ?? []).includes('shady_part'), // Amendment A5: the shady dealer
+  honest_parts: (s) => !hadShadyPart(s), // Amendments A5 and A6: the shady dealer and his component
   close_encounter: (s) => s.outcome === 'aliens',
 };
 
@@ -399,7 +411,8 @@ export function oddsWords(state) {
     ['rocket', 'Your rocket', pick(rocket, [[0.97, 'Proven', 'good'], [0.93, 'Good', 'neutral'], [-Infinity, 'Risky', 'bad']])],
     ['astronauts', 'Your astronauts', pick(-crewGap, [[0, 'Top pilot and engineer', 'good'], [-1, 'Nearly ready', 'neutral'], [-Infinity, 'Missing key skills', 'bad']])],
     ['weather', 'The weather', pick(-(state.weatherPenalty ?? 0), [[-0.0499, 'No problem', 'good'], [-0.1499, 'Hurt a little', 'bad'], [-Infinity, 'Hurt a lot', 'bad']])],
-    ['crew', 'Listening to the crew', (state.overrulePenalty ?? 0) > 0 ? ['You overruled them, and it hurt', 'bad'] : ['You listened', 'good']],
+    // The flag too, so this row always agrees with the Team Player badge.
+    ['crew', 'Listening to the crew', (state.overrulePenalty ?? 0) > 0 || (state.flags ?? []).includes('overruled_nogo') ? ['You overruled them, and it hurt', 'bad'] : ['You listened', 'good']],
   ];
   return rows.map(([id, label, [words, tone]]) => ({ id, label, words, tone }));
 }
