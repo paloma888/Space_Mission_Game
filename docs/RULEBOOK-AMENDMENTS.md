@@ -117,7 +117,7 @@ Every character now has two expressions, happy and sad. Happy is the default.
 
 Status: PROPOSED (proposed by Person 5 on Nov 14, 2026). Affects Persons 1, 2, 3 and 4. Answers the Person 5 OPEN items in A2 and A3.
 
-**Outcomes.** `state.outcome` is one of `'orbit' | 'launch_failure' | 'came_home_early' | 'bankrupt' | 'window_closed' | 'aliens'`. `abort` and `lost` are removed. The crew is safe in every ending. `aliens` stays paused (A6).
+**Outcomes.** `state.outcome` is one of `'orbit' | 'launch_failure' | 'came_home_early' | 'bankrupt' | 'window_closed' | 'aliens'`. `abort` and `lost` are removed. The crew is safe in every ending. `aliens` is the secret ending from A6 (the mysterious component, launching on the last day).
 
 | Outcome | Trigger | Medal? |
 | --- | --- | --- |
@@ -149,7 +149,7 @@ Status: PROPOSED (proposed by Person 5 on Nov 14, 2026). Affects Persons 1, 2, 3
 
 **No-launch endings (`bankrupt`, `window_closed`).** Added by Erick (Person 5) on Sun Nov 15, 2026.
 
-- **Score.** Every part except Morale needs a launch, so those parts show "needs a launch" and score 0. The total is Morale only (at most 15). No medal, and every badge is locked ("Launch your ship to unlock badges").
+- **Score.** Every part except Morale needs a launch, so those parts show "needs a launch" and score 0. The total is Morale only (at most 10 since A14). No medal, and every badge is locked ("Launch your ship to earn a medal and unlock badges").
 - **Why it ended.** `endReason(state)` in `slices/finale/launch-sim.js` gives one of 8 reasons:
 
   | Reason | When |
