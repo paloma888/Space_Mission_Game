@@ -43,13 +43,15 @@ export function showReview(state, ctx) {
       diagram.append(partRow(p.name, part?.label ?? '--', part ? `$${part.cost}M` : '', tier));
     });
     diagram.append(partRow('Rocket', rocket?.name ?? '--', rocket ? `$${rocket.cost}M` : '', 'rocket'));
-    // Right box: the rocket at exactly 4x (128 x 384), right above Lock In.
+    // Right box: the rocket art (554 x 580) shown at 254 x 266, right above Lock In.
     const rocketBox = el('div', 'v-info v-rocket-box');
     rocketBox.append(art(`art/sprites/${rocket?.sprite ?? 'rocket_condor'}.png`, 'v-rocket-sprite', rocket?.name ?? 'rocket'));
+    // The dealer's mysterious component is part of the build, so it gets a mention (but no explanation).
+    if (state.parts.warpCoil) rocketBox.append(el('p', 'v-component', lines.review?.component ?? '+ Mysterious component'));
     const partsCost = installedParts(state.parts, catalog).reduce((n, part) => n + part.cost, 0);
     summary.append(
       diagram,
-      row('Launch site', site?.name.split(',')[0] ?? '--', ''),
+      row('Launch site', site?.name.split(',')[0] ?? '--', '', 'v-push'),
       row('Launch fee', 'Paid in launch week', site ? `$${site.fee}M` : ''),
       row('Total', `${state.derived.capsuleMass} t capsule`, `$${partsCost + (rocket?.cost ?? 0)}M`, 'v-total'),
       row('Budget left', '', `$${state.budget}M`, 'v-total'));

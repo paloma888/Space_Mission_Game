@@ -94,6 +94,7 @@ export async function showDealer(state, ctx) {
   const chosen = new Promise((resolve) => { decide = resolve; });
   function finish(accepted) {
     take.disabled = pass.disabled = true;
+    if (!accepted) ui.sfx('shady-reject');
     decide(accepted);
   }
   const accepted = await chosen;
@@ -102,7 +103,7 @@ export async function showDealer(state, ctx) {
     state.parts = withTier(state.parts, offer.cat, offerTier);
     ctx.recompute(state);
     commit(state, ctx); // trade-in: refund the old part, charge the dealer's price
-    ui.sfx('build-cash');
+    ui.sfx('shady-deal'); // a dark, heavy sound: this deal has a catch
     await upsell(state, ctx, game, D);
   }
   // Rosa says nothing here on purpose (brief section 9).
@@ -129,8 +130,9 @@ async function upsell(state, ctx, game, D) {
     addFlag(state, 'warp_coil'); // flag name from the Rulebook registry; Person 5's ending reads it
     ctx.recompute(state);
     commit(state, ctx);
-    ui.sfx('build-cash');
+    ui.sfx('shady-deal');
   }
+  if (answer !== 0) ui.sfx('shady-reject');
   await talk(game, 'myster', answer === 0 ? D.upsellBought : D.upsellPassed);
 }
 

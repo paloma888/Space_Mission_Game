@@ -56,6 +56,16 @@ export async function halOnce(root, lines, key) {
   await talk(root, 'hal', lines.hal[key], { mood: 'sad' });
 }
 
+// Greys out a card the player can't pick. A real disabled button ignores clicks, so this one
+// stays clickable and plays build-deny instead, letting the player know "no" was heard.
+// aria-disabled tells screen readers the card is not available. Set it after any onclick.
+export function lockCard(card) {
+  card.classList.add('is-disabled');
+  card.setAttribute('aria-disabled', 'true');
+  card.onclick = () => ui.sfx('build-deny');
+  return card;
+}
+
 // The word players see instead of the hidden reliability number. It comes from
 // `rating` in rockets.json; the cutoffs are only a fallback for a rocket without one.
 export function reliabilityWord(rocket) {

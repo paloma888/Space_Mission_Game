@@ -3,7 +3,7 @@
 // so adding or changing one never touches this code.
 
 import * as ui from '../../core/ui.js';
-import { el, art, talk, halOnce, leftOver, cheapestCapsule, reliabilityWord, signed } from './common.js';
+import { el, art, talk, halOnce, leftOver, cheapestCapsule, reliabilityWord, signed, lockCard } from './common.js';
 import { compatPanel, currentLift } from './compat.js';
 import { findRocket, findSite, liftFor, siteProblem } from './recompute.js';
 
@@ -91,12 +91,12 @@ export function showRocket(state, ctx) {
             el('div', `v-fit ${fit[0]}`, fit[1]));
           // With no Back button, a rocket must leave enough money for at least the cheapest capsule.
           const after = leftOver(state, ctx) - (rocket.cost - currentCost);
+          card.onclick = () => pick(rocket);
           if (rocket.id !== state.rocket && after < cheapestCapsule(catalog)) {
-            card.disabled = true;
+            lockCard(card); // clicking it plays build-deny instead of picking it
             card.append(el('div', 'tier-why', after < 0 ? (lines.shop?.noMoney ?? 'Not enough budget.')
               : (lines.shop?.noCapsuleMoney ?? 'Leaves too little money for a capsule.')));
           }
-          card.onclick = () => pick(rocket);
           body.append(card);
         }
       },
