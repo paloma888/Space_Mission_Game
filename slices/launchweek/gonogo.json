@@ -1,0 +1,137 @@
+{
+  "hal": {
+    "go": [
+      "Engines are ready. I have no complaints. That is rare.",
+      "Checked every valve twice. Engineering is go.",
+      "I've seen this movie before. This time it ends well. Go."
+    ],
+    "nogo": {
+      "low_odds": ["The numbers are too thin. I'm calling it. No-go.", "I've seen this movie before. Bad odds, bad ending. No-go."],
+      "thin_margin": ["Rocket's too close to its weight limit. No room for surprises. No-go.", "Not enough spare lift. One heavy bolt and we're in trouble. No-go."],
+      "reused_software": ["We're flying old code nobody retested. I've seen this movie before. No-go.", "Old software, new rocket. Not a match until it's tested. No-go."],
+      "hidden_defect": ["There's a flaw in there nobody inspected. I won't sign off. No-go.", "Something got past inspection. I don't fly what I haven't seen. No-go."],
+      "software_bug": ["We know about a bug and we haven't fixed it. No-go.", "Patch it first. Fly it second. No-go."],
+      "cold": ["Cold stiffens rubber seals. I say no-go.", "It's freezing out there and we have no heaters. No-go."]
+    }
+  },
+  "dev": {
+    "go": ["Cool cool cool. Everything checks out. Engineering is go!", "I ran the numbers three times. All green. Go!"],
+    "nogo": {
+      "low_odds": ["Okay, so, um, the odds look really bad. I have to say no-go."],
+      "thin_margin": ["We're way too close to the weight limit. That's a no-go from me."],
+      "reused_software": ["Wait, we never retested the old software? Not cool. No-go."],
+      "hidden_defect": ["Nobody inspected that part, right? I can't say go. No-go."],
+      "software_bug": ["That bug is still open! I really don't want to fly with it. No-go."],
+      "cold": ["It's so cold the seals might not seal. No-go. Sorry. No-go."]
+    }
+  },
+  "skye": {
+    "forecast": ["Here's the week ahead. That forecast is looking up!", "Fresh charts, hot off the press! Let's find a day that's a breeze."],
+    "sharper": ["Closer days, clearer charts. My forecast is sharper now. No more foggy guesses!"],
+    "go": [
+      "Clear skies and calm winds. Weather is go, and I'm on cloud nine!",
+      "Not a cloud to worry about. That forecast is looking up. Go!",
+      "Winds are light and so is my mood. Weather is go!"
+    ],
+    "nogo": {
+      "risk_high": ["This sky is a real downer. Weather is no-go.", "Sorry, team, today is a total washout. Weather is no-go."],
+      "cold": ["It's freezing. I hate to give you the cold shoulder, but no-go.", "Ice on the pad. That's chilling, and not in a good way. No-go."],
+      "lightning": ["Lightning nearby. I'm shocked, but it's a no-go.", "Storm clouds are brewing trouble. Lightning risk is too high. No-go."]
+    }
+  },
+  "inez": {
+    "go": ["Checklist complete. Every box ticked. Quality is go.", "I verified it all. Twice. Quality is go."],
+    "nogo": {
+      "untested": ["Not enough testing. Trust, but verify. We haven't verified. No-go.", "The test log has gaps. Gaps are where problems hide. No-go."],
+      "skipped_testing": ["We skipped testing weeks. My checklist does not forgive that. No-go.", "Trust, but verify. We skipped the verify part. No-go."],
+      "hidden_defect": ["A part shipped without inspection. Quality is no-go.", "I found an unchecked box on a flight part. No-go."],
+      "bug_open": ["There is an open bug report. Open bugs don't fly. No-go.", "The bug is logged, not fixed. Quality is no-go."]
+    }
+  },
+  "amara": {
+    "go": ["Easy. Let's fly.", "I could fly this one with my eyes closed. Go.", "Easy. Strap me in."],
+    "nogo": {
+      "nervous": ["Even I don't like this list. No-go.", "When I'm the one saying wait, you should listen. No-go."],
+      "morale": ["Nobody's smiling. I'd wait.", "Team's worn out. A tired crew misses things. I'd hold."]
+    }
+  },
+  "jun": {
+    "go": ["Technically, every system is talking nicely to me. Go.", "The machines sound happy. I trust them. Go.", "Technically... yes. Go."],
+    "nogo": {
+      "nervous": ["Technically we could launch. But the experts said no. I'd listen. No-go.", "Too many warnings from the team. The machines can't fix that. No-go."],
+      "morale": ["Technically fine. But the team is not. People matter too. No-go.", "I listen to machines. Today I'm listening to the people. Let's wait."]
+    }
+  },
+  "lucia": {
+    "go": ["Breathe. Then decide. I've decided. Go.", "I feel calm about this one. Go.", "Steady hands, steady crew. Go."],
+    "nogo": {
+      "nervous": ["Breathe. Then decide. I've listened to everyone. My answer is no-go.", "I don't say this often. I'm worried. No-go."],
+      "morale": ["The team is tired and quiet. I am too. Let's wait a day.", "Breathe. Then decide. Today I'd decide to rest. No-go."]
+    }
+  },
+  "dmitri": {
+    "go": ["In my day, we flew with less. This is a fine rocket. Go.", "Good weather, good machine. Even I can't complain. Go.", "In my day... never mind. Go."],
+    "nogo": {
+      "nervous": ["In my day, we listened to engineers. I still do. No-go.", "I've flown test rockets. This one isn't ready. No-go."],
+      "morale": ["The team looks beaten. A crew needs its heart. No-go.", "Grumpy is my job. Today everyone's grumpy. Let's wait."]
+    }
+  },
+  "priya": {
+    "go": ["Sorry, quick question... no, never mind, it all checks out. Go!", "I checked my notes twice. I think we're good. Go!", "Okay. Okay! Go!"],
+    "nogo": {
+      "nervous": ["Sorry, quick question. Why launch when the team said no? No-go.", "I'm scared, and I think that's the right feeling today. No-go."],
+      "morale": ["Sorry, everyone seems so down. I don't feel ready. No-go.", "The mood is heavy. Can we wait one more day?"]
+    }
+  },
+  "sam": {
+    "go": ["Roger that, boss. Ready when you are. Go.", "All good from my seat. Go.", "Roger that, boss. Let's light this candle."],
+    "nogo": {
+      "nervous": ["No jokes this time, boss. Too many no-gos. I'm a no-go.", "Roger that, boss... but I'm worried. No-go."],
+      "morale": ["Even I can't find a joke today. Team's down. No-go.", "Folks look beat, boss. Let's take a day."]
+    }
+  },
+  "zainab": {
+    "go": ["One more check... done. Everything is right. Go.", "I checked it all three times. Go.", "Everything is where it should be. Go."],
+    "nogo": {
+      "nervous": ["One more check isn't enough today. Too many problems. No-go.", "The station leads said no. I agree. No-go."],
+      "morale": ["The team isn't sharp today. Sharp teams catch mistakes. No-go.", "One more day, please. Rested people check better."]
+    }
+  },
+  "mateo": {
+    "go": ["Wait, did we do that? Yes! We did. Go!", "Feeling good! Let's go!", "Bags packed, smile on. Go!"],
+    "nogo": {
+      "nervous": ["Wait, did we do that? I don't think we did. No-go.", "Even I'm nervous, and I'm never nervous. No-go."],
+      "morale": ["Usually I'm the happy one. Not today. Let's wait.", "The team needs a breather. Me too. No-go."]
+    }
+  },
+  "rosa": {
+    "forecast": ["Nobody on staff reads the sky, so this forecast is fuzzy. A meteorologist would help."],
+    "sharper": ["The closer the day, the better the guess. Like checking traffic right before you leave."],
+    "scrub": {
+      "storm": ["Lightning in the area."],
+      "fog": ["Fog. Tracking can't see the rocket."],
+      "wind": ["High winds over the pad."],
+      "rain": ["Heavy rain on the pad."],
+      "cold": ["Ice on the pad."],
+      "clear": ["Trouble on the range."]
+    },
+    "unknown": {
+      "engineering": ["No engineer on staff, so I can't read the rocket for you."],
+      "weather": ["No meteorologist on staff, so nobody can read the sky for you."],
+      "quality": ["No inspector on staff, so nobody double-checked the work."]
+    },
+    "summary": {
+      "allgo": ["Everyone says go. It's your call, Flight Director.", "Green across the board. It's your call, Flight Director."],
+      "somenogo": ["Some voices say no-go. It's your call, Flight Director.", "Not everyone is happy. Listen to why, then decide."],
+      "hold": ["We hold. One more day of checks. Measure twice, launch once.", "Good call. Waiting a day is cheaper than a bad launch."],
+      "overruleWarning": ["The team advised against this. Launching anyway makes our odds worse. Are you sure?"]
+    },
+    "countdown": ["Fee paid. Crew strapped in. Ten, nine, eight... The rest is up to the rocket."],
+    "crunch": ["The capsule isn't finished. A Crunch Day builds more, but long days tire the team."],
+    "raiseMoney": ["A day of phone calls and handshakes. It's like a bake sale, but for rockets."],
+    "lastDay": ["This is our last day. If we spend it on phone calls, the window closes. Think it over."],
+    "windowClosed": ["The window has closed. We ran out of days, but the crew is safe. We learned a lot."],
+    "outOfMoney": ["The money is gone. The crew is safe, and every mission teaches us something."],
+    "giveUp": ["We stop here. Not every mission flies, and that's okay. We learned a lot."]
+  }
+}

@@ -1,0 +1,102 @@
+/* Slice 3 screens. Colors come only from the palette names in core/base.css. */
+
+.trail {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 24px;
+  align-content: start;
+}
+.trail .panel { margin-bottom: 0; }
+
+/* One row per staff member: portrait, who they are, five task buttons. */
+.trail-row {
+  display: grid;
+  grid-template-columns: 64px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.trail-who { font-size: var(--small); line-height: 1.6; }
+.trail-who .bar { width: 120px; height: 20px; margin-top: 4px; }
+
+.task-btn {
+  font-size: var(--small);
+  padding: 8px;
+  margin: 0 4px 0 0;
+}
+.task-btn.task-on { background: var(--accent); outline: 4px solid var(--bg); }
+
+.trail-tip { min-height: 3.2em; margin: 12px 0 0; }
+
+/* Right side: progress bars with this week's preview under each. */
+.trail-progress { margin-bottom: 16px; }
+.trail-progress .small { margin: 6px 0 0; }
+/* steps() keeps the fill moving in chunky pixel jumps instead of a smooth slide. */
+.trail .bar-fill { transition: width 0.8s steps(8); }
+
+.trail-totals { font-size: var(--small); line-height: 2; margin: 0 0 8px; }
+
+.trail-summary { grid-column: 1 / -1; }
+.trail-summary ul { margin: 0 0 16px; padding-left: 24px; line-height: 2; }
+
+/* Zenith's bar sits under the Build bar: smaller, and in the rival's color. */
+.trail-rival { margin: -8px 0 16px; }
+.trail-rival .bar { height: 20px; }
+.trail-rival .bar-fill { background: var(--danger); }
+
+/* Rival news ticker. 24px tall, so it fits in the gap under the dialogue box. */
+.rival-ticker {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 24px;
+  overflow: hidden;
+  white-space: nowrap;
+  background: var(--bg);
+  color: var(--accent);
+  font-size: var(--small);
+  line-height: 24px;
+  z-index: 15;
+}
+/* The 1280px of padding starts the text just off the right edge. Sliding the
+   whole thing left by its own width carries the text across and out the other side. */
+.rival-ticker-text {
+  display: inline-block;
+  padding-left: 1280px;
+  animation: rival-scroll 18s linear infinite;
+}
+@keyframes rival-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+
+/* ---------- Week header: the trail map */
+.map-banner {
+  position: absolute;
+  top: 96px; left: 50%;
+  transform: translateX(-50%);
+  padding: 16px 24px;
+  background: var(--bg);
+  color: var(--accent);
+  white-space: nowrap;
+}
+.map-stop, .map-marker { position: absolute; }
+/* Stop names only show while the background is a placeholder. */
+.map-stop {
+  display: none;
+  transform: translate(-50%, 8px);
+  padding: 4px 8px;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: var(--small);
+  white-space: nowrap;
+}
+.placeholder-bg .map-stop { display: block; }
+/* 16 x 16 art at 4 times size. It stands on its stop and hops there in pixel-sized steps. */
+.map-marker {
+  width: 64px; height: 64px;
+  transform: translate(-50%, -100%);
+  transition: left 1.6s steps(16), top 1.6s steps(16);
+}
+
+/* ---------- Task icons: 32 x 32 art above each button's label */
+.task-icon { display: block; width: 32px; height: 32px; margin: 0 auto 4px; }

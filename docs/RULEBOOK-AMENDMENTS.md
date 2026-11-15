@@ -144,3 +144,10 @@ Status: PROPOSED (proposed by Person 5 on Nov 14, 2026). Affects Persons 1, 2, 3
 - **Persons 2, 3 and 4 (game text):** no line should mention an abort or escape system, or put the crew in danger.
 - **Person 2:** the life support `emergencyChance` and `powerOk: false` now risk `came_home_early`, not a crew loss. For the A8 power question, Slice 5 currently treats power over supply as a certain emergency in orbit with a lower fix chance. Tell Person 5 if Lock In should block it instead.
 - **Person 1:** update the `outcome` comment in section 5. A10's tone rule about the `lost` ending no longer applies, since that ending is gone.
+
+
+## A12. Mission Control AI is out of scope for now (changes section 4)
+
+Status: ADOPTED (proposed by Person 4, team decision Sat 2:45pm). Affects Persons 4, 5.
+
+No Foundry or Azure AI service. `slices/launchweek/ask-rosa.js` stays a stub that always returns `null`. No screen may depend on it: every explanation uses scripted text in the character's voice. Person 5's report screen does not need the three "Why?" AI buttons. This overrides the `askRosa` parts of Rulebook section 4.
