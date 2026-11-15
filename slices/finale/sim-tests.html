@@ -62,6 +62,23 @@
       // 4b. The secret Close Encounter badge is earned only in the secret ending.
       const badge = (outcome) => computeScore({ ...s, outcome }, { outcome, emergencies: [] }).badges.find((b) => b.id === 'close_encounter')?.earned;
       check('4b. Close Encounter badge only for the secret ending', badge('aliens') === true && badge('orbit') === false);
+      // 4c. Honest Parts: lost with any dealer part, even when the shady_part flag is missing
+      // ("Same plan, new luck" reloads a save made before Lock In adds the flag).
+      const honest = (change) => {
+        const t = fakeState('launched');
+        change(t);
+        return computeScore({ ...t, outcome: 'orbit' }, { outcome: 'orbit', emergencies: [] }).badges.find((b) => b.id === 'honest_parts')?.earned;
+      };
+      const cases = [
+        honest(() => {}),                                            // nothing shady: earned
+        honest((t) => { t.parts.comms = 'shady_standard'; }),        // dealer radio, no flag
+        honest((t) => { t.parts.power = { type: 'battery', tier: 'shady_budget' }; }),
+        honest((t) => { t.parts.warpCoil = true; }),                 // the mysterious component
+        honest((t) => { t.flags.push('warp_coil'); }),
+        honest((t) => { t.flags.push('shady_part'); }),
+      ];
+      check('4c. Honest Parts lost with any dealer part, flag or not',
+        cases[0] === true && cases.slice(1).every((x) => x === false), cases.join(', '));
     }
     // 5. Budget life support (0.25): about a quarter of orbit runs have an emergency, nearly all saved.
     {

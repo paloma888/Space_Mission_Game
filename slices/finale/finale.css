@@ -1,6 +1,15 @@
 /* slices/finale/finale.css: launch, endings and report. Owner: Person 5.
    Colors only come from the palette variables in core/base.css (Rulebook 9). */
 
+/* Our own color names for "earned / helped", "hurt" and "not earned". Since the palette update
+   (Sat), the shared --good is brown and --danger is dark blue, which made unearned badges look
+   green (won) and earned ones look brown (dim). These point at the palette colors we mean. */
+:root {
+  --fin-yes: var(--c9);   /* sage green: earned, helped, done */
+  --fin-no: var(--c2);    /* terracotta red: hurt */
+  --fin-off: var(--c3);   /* neutral grey: not earned yet */
+}
+
 /* ---------- Launch animation (launch-anim.js draws the scene; these are the words on top of it).
    The caption boxes are dark with light text so they stay readable over a bright sky. */
 .fin-launch { padding: 0; background: var(--bg); }
@@ -106,6 +115,7 @@
 .fin-rosa-note .portrait, .fin-debrief .portrait { flex: none; }
 
 /* ---------- Launch failure, came home early, bankrupt and window-closed endings */
+.fin-ending { background-color: var(--bg); } /* dark under the ending art, or on its own until art exists */
 .fin-ending .panel { width: 900px; margin: 80px auto 0; }
 
 /* ---------- Mission report (1280x720, top 56px kept for the dashboard) */
@@ -137,13 +147,12 @@
 }
 @keyframes fin-drop { from { transform: translateY(-40px); visibility: hidden; } }
 .fin-medal-gold { background: var(--c10); color: var(--bg); }
-.fin-medal-silver { background: var(--c6); color: var(--bg); }
-.fin-medal-bronze { background: var(--c4); color: var(--ink); }
-.fin-medal-none { color: var(--muted); border: 4px solid var(--c5); }
+.fin-medal-silver { background: var(--c1); color: var(--bg); }   /* pale blue-grey, the closest to silver */
+.fin-medal-bronze { background: var(--c11); color: var(--bg); }  /* copper brown */
+.fin-medal-none { color: var(--muted); border: 4px solid var(--fin-off); }
 .fin-badges { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-.fin-badge { padding: 4px 6px; border: 4px solid var(--good); color: var(--good); line-height: 1.4; }
-.fin-badge.off { border-color: var(--c5); color: var(--c5); }
-.fin-badge-hint { margin-top: 2px; color: var(--muted); line-height: 1.4; }
+.fin-badge { padding: 4px 6px; border: 4px solid var(--fin-yes); color: var(--fin-yes); line-height: 1.4; }
+.fin-badge.off { border-color: var(--fin-off); color: var(--fin-off); }
 .fin-card-lesson { color: var(--accent); }
 /* Real NASA history cards about crew losses keep a quiet, respectful look (Rulebook 1, Amendment A2). */
 .fin-card-memorial .panel-title { color: var(--ink); }
@@ -151,12 +160,12 @@
 /* History card: title on top, story and lesson in the middle (they scroll if long), sources pinned
    at the bottom so they're always visible. min-height: 0 is what lets the middle part shrink and scroll. */
 .fin-report .fin-card { display: flex; flex-direction: column; overflow: hidden; }
-.fin-card-body { flex: 1; min-height: 0; overflow: auto; }
+.fin-card-body { flex: 1; min-height: 0; overflow: auto; scrollbar-color: var(--frame-edge) transparent; } /* palette scrollbar, not browser white */
 .fin-card-sources { flex: none; border-top: 4px solid var(--frame-edge); padding-top: 4px; }
 .fin-odds { margin-bottom: 14px; line-height: 1.6; }
-.fin-good { color: var(--good); }
-.fin-neutral { color: var(--muted); }
-.fin-bad { color: var(--danger); }
+.fin-good { color: var(--fin-yes); }
+.fin-neutral { color: var(--ink); }
+.fin-bad { color: var(--fin-no); }
 .fin-debrief {
   grid-column: 1 / -1;
   display: flex; gap: 16px; align-items: center;
@@ -183,10 +192,10 @@
 .fin-step-words { padding-bottom: 18px; } /* the space between steps lives here, so the line runs through it */
 .fin-step-mark { flex: none; width: 24px; display: flex; flex-direction: column; align-items: center; }
 .fin-step-line { flex: 1; width: 4px; background: var(--border-grey, var(--c3)); }
-.fin-step-done .fin-step-line { background: var(--good); } /* the part of the road already travelled */
+.fin-step-done .fin-step-line { background: var(--fin-yes); } /* the part of the road already travelled */
 .fin-step:last-child .fin-step-line { display: none; }
 .fin-step-box { width: 20px; height: 20px; box-sizing: border-box; border: 4px solid var(--border-grey, var(--c3)); background: none; }
-.fin-step-done .fin-step-box { border-color: var(--good); background: var(--good); }
+.fin-step-done .fin-step-box { border-color: var(--fin-yes); background: var(--fin-yes); }
 /* The placeholder rocket at its real size (1 art pixel = 1 screen pixel) stays sharp. A team PNG
    is capped at the same height. */
 /* The rocket's body is the same light color as the panel, so on its own it vanishes into a thin
