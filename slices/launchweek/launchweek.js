@@ -5,6 +5,7 @@ import { random, roll, pick, clamp, hasFlag, launchProbability } from '../../cor
 import { applyEffects } from '../../core/events.js';
 import * as ui from '../../core/ui.js';
 import { CATALOG } from '../build/catalog.js'; // Person 2's site list: fee and name per site
+import { updateTestingReliability } from '../trail/week.js'; // Person 3's testing formula (Rulebook 6.3)
 
 export const meta = { id: 'launchweek', owner: 'Person 4' };
 
@@ -412,6 +413,7 @@ async function poll(state, today, lines, site) {
     const choice = await ui.ask('rosa', summary, choices);
     if (choice === 1) {
       applyEffects(state, { day: 1, budget: -HOLD_COST, progress: { testing: 10 } });
+      updateTestingReliability(state); // the extra day of checks raises the launch odds too
       await ui.say('rosa', lineAt(lines, ['rosa', 'summary', 'hold'], 'We hold for one more day of checks.'));
       return 'again';
     }

@@ -31,18 +31,18 @@
     const sequence = (...values) => { let i = 0; return () => values[Math.min(i++, values.length - 1)]; };
     const many = (state, runs = 5000) => Array.from({ length: runs }, () => resolveLaunch(state));
 
-    // 1. Brief numbers: 0.92 x 0.97 x 0.95 x 1.0. These match the `launched` preset with a Condor at 0.97.
+    // 1. Brief numbers: 0.84 x 0.97 x 0.95 x 1.0 (base reliability 0.72 since A14). These match the `launched` preset with a Condor at 0.97.
     {
       const s = fakeState('launched');
       s.derived.rocketReliability = 0.97;
       const p = launchProbability(s);
-      check('1. launch probability is 0.848, stage about 0.960', near(p, 0.848) && near(Math.pow(p, 0.25), 0.960), `p ${p.toFixed(4)}, stage ${Math.pow(p, 0.25).toFixed(4)}`);
+      check('1. launch probability is 0.774, stage about 0.938', near(p, 0.774) && near(Math.pow(p, 0.25), 0.938), `p ${p.toFixed(4)}, stage ${Math.pow(p, 0.25).toFixed(4)}`);
     }
-    // 2. A sensible build reaches orbit 80 to 90 percent of the time.
+    // 2. A sensible build reaches orbit 75 to 85 percent of the time (A14 made launches less forgiving).
     {
       const runs = many(fakeState('readyToLaunch'));
       const orbit = runs.filter((r) => r.outcome === 'orbit').length / runs.length;
-      check('2. readyToLaunch orbit rate is 80 to 90%', orbit >= 0.8 && orbit <= 0.9, `${(orbit * 100).toFixed(1)}%`);
+      check('2. readyToLaunch orbit rate is 75 to 85%', orbit >= 0.75 && orbit <= 0.85, `${(orbit * 100).toFixed(1)}%`);
     }
     // 3. Any failed stage is a launch failure (Amendment A2: no abort part, the crew is always safe).
     {
@@ -84,22 +84,22 @@
         lower && r.emergencies.some((e) => e.type === 'power') && r.outcome === 'came_home_early' && r.cause === 'power',
         `save ${saveChance(s).toFixed(2)}, power save ${emergencySaveChance(s, 'power').toFixed(2)}`);
     }
-    // 7. Sample score (budget 45, launch day 41 of 46, morale 68): 30 + 30 + 3.4 + 8.3 + 10.2 = 81.9, silver.
-    //    Science is gone (A3) and its 5 points moved to Morale, which is now worth 15.
+    // 7. Sample score (budget 45, launch day 41 of 46, morale 68, three good-call badges, odds under 0.85):
+    //    30 + 25 + 15 + 2.25 + 4.17 + 6.8 = 83.2, silver. Weights from amendment A14.
     {
       const s = fakeState('launched');
       const sc = computeScore(s, { outcome: 'orbit', emergencies: [] });
       const pts = Object.fromEntries(sc.lines.map((l) => [l.id, l.points]));
       const max = sc.lines.reduce((sum, l) => sum + l.max, 0);
-      check('7. sample score is 81.9 and silver, out of 100',
-        near(sc.total, 81.9, 0.05) && sc.medal === 'silver' && near(pts.budget, 3.375) && near(pts.days, 8.333)
-        && near(pts.morale, 10.2) && max === 100,
+      check('7. sample score is 83.2 and silver, out of 100',
+        near(sc.total, 83.2, 0.05) && sc.medal === 'silver' && near(pts.goodcalls, 15) && near(pts.budget, 2.25)
+        && near(pts.days, 4.167) && near(pts.morale, 6.8) && max === 100,
         `total ${sc.total.toFixed(2)}, ${sc.medal}, max ${max}`);
     }
-    // 8. Medal edges. Only a finished mission earns a medal.
-    check('8. medal edges 59.9 / 60 / 75 / 90',
-      medalFor(59.9, 'orbit') === null && medalFor(60, 'orbit') === 'bronze' && medalFor(75, 'orbit') === 'silver'
-      && medalFor(90, 'aliens') === 'gold' && medalFor(95, 'launch_failure') === null && medalFor(95, 'came_home_early') === null);
+    // 8. Medal edges (A14). Only a finished mission earns a medal.
+    check('8. medal edges 69.9 / 70 / 82 / 92',
+      medalFor(69.9, 'orbit') === null && medalFor(70, 'orbit') === 'bronze' && medalFor(82, 'orbit') === 'silver'
+      && medalFor(92, 'aliens') === 'gold' && medalFor(95, 'launch_failure') === null && medalFor(95, 'came_home_early') === null);
     // 9. Smooth flight and Reached orbit for each kind of ending.
     {
       const s = fakeState('launched');
@@ -107,9 +107,9 @@
       const failed = pts({ outcome: 'launch_failure', emergencies: [] });
       const oneFix = pts({ outcome: 'orbit', emergencies: [{ type: 'life_support', saved: true }] });
       const early = pts({ outcome: 'came_home_early', emergencies: [{ type: 'power', saved: false }] });
-      check('9. smooth flight: 0 on failure, 20 after one fix; home early gets 0 + 15',
-        failed.smooth === 0 && failed.orbit === 0 && oneFix.smooth === 20 && oneFix.orbit === 30
-        && early.smooth === 0 && early.orbit === 15);
+      check('9. smooth flight: 0 on failure, 20 after one fix; home early gets 0 + 12.5',
+        failed.smooth === 0 && failed.orbit === 0 && oneFix.smooth === 20 && oneFix.orbit === 25
+        && early.smooth === 0 && early.orbit === 12.5);
     }
     // 10 and 11. Card choice. These fixture cards copy the priorities from the brief. The real
     // cards live in each slice's history.json; check their `when` with their owners.
@@ -188,13 +188,13 @@
       try { endReason({ outcome: 'bankrupt' }); endReason({ outcome: 'window_closed' }); progressTrack({}); } catch (err) { thin = err.message; }
       check('16b. a nearly empty state never crashes endReason or progressTrack', thin === 'ok', thin);
     }
-    // 17. No launch: Morale only (68 -> 10.2 of 15), no medal, every other row and every badge locked.
+    // 17. No launch: Morale only (68 -> 6.8 of 10), no medal, every other row and every badge locked.
     {
       const sc = computeScore(noLaunchState('bankrupt', (s) => { s.morale = 68; broke(s); }), {});
       const locked = sc.lines.filter((l) => l.locked);
       check('17. no-launch score is Morale only, no medal, badges locked',
-        near(sc.total, 10.2) && sc.medal === null && sc.medalReason === 'Launch the rocket to earn a medal.'
-        && locked.length === 4 && locked.every((l) => l.points === 0) && !locked.some((l) => l.id === 'morale')
+        near(sc.total, 6.8) && sc.medal === null && sc.medalReason === 'Launch the rocket to earn a medal.'
+        && locked.length === 5 && locked.every((l) => l.points === 0) && !locked.some((l) => l.id === 'morale')
         && sc.badges.length === 6 && sc.badges.every((b) => !b.earned && b.locked),
         `total ${sc.total}, ${locked.length} rows locked`);
       const launchedScore = computeScore(fakeState('launched'), { outcome: 'orbit', emergencies: [] });

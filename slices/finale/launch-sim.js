@@ -272,10 +272,11 @@ export function progressTrack(state, reason = endReason(state)) {
 
 // ---------- Score, medals and badges (Rulebook 6.8)
 
+// Raised from 60 / 75 / 90 (amendment A14) so a clean orbit alone is no longer a medal.
 const MEDALS = [
-  { id: 'gold', min: 90 },
-  { id: 'silver', min: 75 },
-  { id: 'bronze', min: 60 },
+  { id: 'gold', min: 92 },
+  { id: 'silver', min: 82 },
+  { id: 'bronze', min: 70 },
 ];
 
 /**
@@ -311,16 +312,17 @@ const BADGE_RULES = {
  * Job: the mission score out of 100, plus the medal and badges.
  * Changed from Rulebook 6.8 by Amendments A2 and A3 (written up as A11):
  *   "Crew safety" became "Smooth flight", and the 5 science points moved to Morale.
+ * Reweighted by A14: Smooth 30, Orbit 25, Good calls 20, Budget 10, Days 5, Morale 10.
  * @param {Object} state - the shared backpack. Reads budget, launchDay, windowCloses, morale, flags.
  * @param {Object} result - what resolveLaunch (or noLaunch) returned. Reads outcome and emergencies.
  * @returns {Object}:
- *   lines       - 5 score rows { id, label, max, points, locked }, e.g. { label: 'Morale', max: 15, points: 10.2 }
+ *   lines       - 6 score rows { id, label, max, points, locked }, e.g. { label: 'Morale', max: 10, points: 6.8 }
  *   total       - all points added up, out of 100
  *   medal       - 'gold', 'silver', 'bronze' or null
  *   medalReason - a short sentence explaining why there's no medal (null if there is one)
  *   badges      - 5 rows { id, earned, locked }, e.g. { id: 'honest_parts', earned: true, locked: false }
  * No launch (bankrupt, window_closed): every row but Morale is locked at 0, so the total is Morale
- *   only (max 15), there's no medal, and every badge is locked. A rocket on the ground can't earn them.
+ *   only (max 10), there's no medal, and every badge is locked. A rocket on the ground can't earn them.
  * ⭐
  */
 export function computeScore(state, result = {}) {
@@ -334,17 +336,23 @@ export function computeScore(state, result = {}) {
   // nothing if the mission didn't get done.
   const smooth = finished ? Math.max(0, 30 - 10 * fixed) : 0;
   // Reached orbit: half marks for getting to space but coming home early.
-  const orbit = finished ? 30 : outcome === 'came_home_early' ? 15 : 0;
+  const orbit = finished ? 25 : outcome === 'came_home_early' ? 12.5 : 0;
+  // Good calls (amendment A14): careful choices earn points, so rushing and penny-pinching
+  // no longer beat them. 5 each for three badges, and 5 for a well-prepared rocket.
+  const goodBadges = ['measure_twice', 'team_player', 'honest_parts'].filter((id) => BADGE_RULES[id](state)).length;
+  const goodCalls = 5 * goodBadges + (launchProbability(state) >= 0.85 ? 5 : 0);
 
+  // Budget and days weigh less than before (A14), because both reward skipping careful steps.
   const lines = [
     { id: 'smooth', label: 'Smooth flight', max: 30, points: smooth },
-    { id: 'orbit', label: 'Reached orbit', max: 30, points: orbit },
-    { id: 'budget', label: 'Budget left', max: 15, points: 15 * Math.min(1, Math.max(0, state.budget) / 200) },
+    { id: 'orbit', label: 'Reached orbit', max: 25, points: orbit },
+    { id: 'goodcalls', label: 'Good calls', max: 20, points: goodCalls },
+    { id: 'budget', label: 'Budget left', max: 10, points: 10 * Math.min(1, Math.max(0, state.budget) / 200) },
     {
-      id: 'days', label: 'Days to spare', max: 10,
-      points: state.launchDay == null ? 0 : 10 * clamp((state.windowCloses - state.launchDay) / 6, 0, 1),
+      id: 'days', label: 'Days to spare', max: 5,
+      points: state.launchDay == null ? 0 : 5 * clamp((state.windowCloses - state.launchDay) / 6, 0, 1),
     },
-    { id: 'morale', label: 'Morale', max: 15, points: (15 * clamp(state.morale, 0, 100)) / 100 },
+    { id: 'morale', label: 'Morale', max: 10, points: (10 * clamp(state.morale, 0, 100)) / 100 },
   ];
   // No launch: lock every row except Morale. The team's mood still counts, nothing else can.
   for (const l of lines) {
@@ -357,7 +365,7 @@ export function computeScore(state, result = {}) {
   let medalReason = null;
   if (!medal) {
     if (!launched) medalReason = 'Launch the rocket to earn a medal.';
-    else if (finished) medalReason = 'You reached orbit, but scored under 60.';
+    else if (finished) medalReason = `You reached orbit, but scored under ${MEDALS.at(-1).min}.`;
     else if (outcome === 'came_home_early') medalReason = 'The crew came home before the mission was done.';
     else medalReason = 'Medals are only for finishing the mission.';
   }

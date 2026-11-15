@@ -54,7 +54,8 @@ export function createState() {
     skippedTestingWeeks: 0,
     // gauges
     morale: 70,
-    rel: { base: 0.80, parts: 0, testing: 0, events: 0 }, // hidden: read it with getReliability()
+    // hidden: read it with getReliability(). base lowered from 0.80 (amendment A14) so a careless build really risks failing.
+    rel: { base: 0.72, parts: 0, testing: 0, events: 0 },
     // launch week (launchweek)
     weather: null, launchDay: null, scrubs: 0,
     weatherPenalty: 0, overrulePenalty: 0, launchWeather: null,

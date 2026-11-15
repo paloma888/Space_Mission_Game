@@ -123,7 +123,9 @@
 .fin-row {
   display: flex; justify-content: space-between; gap: 8px;
   margin: 6px 0;
-  animation: fin-pop 0.3s steps(3) both;
+  /* jump-start: the last step is the resting spot, so a delay like 5 x 0.35 = 1.7500000000000002s
+     (floating-point rounding) can't leave a row stuck one step to the left. */
+  animation: fin-pop 0.3s steps(3, jump-start) both;
 }
 @keyframes fin-pop { from { transform: translateX(-16px); visibility: hidden; } }
 .fin-total { border-top: 4px solid var(--frame-edge); padding-top: 8px; color: var(--accent); }

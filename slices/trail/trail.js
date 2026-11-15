@@ -6,7 +6,7 @@
 // The rival ticker lives in rival.js and the trail map header in map.js.
 
 import * as ui from '../../core/ui.js';
-import { checkEnd, pick } from '../../core/state.js';
+import { checkEnd, pick, clamp } from '../../core/state.js';
 import { applyEffects, describeChanges, loadAllEvents, pickEvent, runEvent } from '../../core/events.js';
 import { TASK_IDS, PROGRESS_IDS, planWeek, projectWeek, resolveWeek, sumChanges, crunchRules, withHigherPrices } from './week.js';
 import { loadRival, mountTicker, rivalPercent } from './rival.js';
@@ -330,7 +330,8 @@ export async function show(state, done) {
     // Events can add days, so the launch window may open before week 5 is over.
     const isLast = week === LAST_WEEK || state.day + 7 >= state.windowOpens;
     await summaryScreen(state, weekChanges, week, isLast, chatter, crunch);
-    applyEffects(state, { day: 7 });
+    // The last week only runs up to the window (Rulebook 6.1), so it can't push the day past windowCloses.
+    applyEffects(state, { day: isLast ? clamp(state.windowOpens - state.day, 0, 7) : 7 });
     if (checkEnd(state)) return finish('finale');
     if (isLast) break;
   }
