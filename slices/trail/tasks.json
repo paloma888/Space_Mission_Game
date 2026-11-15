@@ -1,8 +1,45 @@
 {
-  "build":     { "best": ["engineer"],  "bestMult": 1.0, "otherMult": 0.4, "baseline": 4 },
-  "testing":   { "best": ["inspector"], "bestMult": 1.0, "altMult": { "engineer": 0.7 }, "otherMult": 0.4, "baseline": 0 },
-  "training":  { "best": [],            "otherMult": 0.8, "baseline": 4 },
-  "fundraise": { "best": ["pr"],        "bestMult": 1.0, "otherMult": 0.3, "base": 3, "perSkill": 3 },
-  "rest":      { "perPerson": 5, "weekCap": 15 },
-  "weekly":    { "overhead": 5, "moraleDrift": -2 }
+  "build": {
+    "label": "Build", "name": "Build", "icon": "build",
+    "tip": "Building is like cooking dinner. Engineers are your best cooks.",
+    "best": ["engineer"], "bestMult": 1.0, "otherMult": 0.4, "baseline": 4
+  },
+  "testing": {
+    "label": "Test", "name": "Test & inspect", "icon": "test",
+    "tip": "Testing is tasting the soup before you serve it. Inspectors do it best.",
+    "best": ["inspector"], "bestMult": 1.0, "altMult": { "engineer": 0.7 }, "otherMult": 0.4, "baseline": 0
+  },
+  "training": {
+    "label": "Train", "name": "Train crew", "icon": "train",
+    "tip": "Training is practice laps for the crew. Anyone can run the drills.",
+    "best": [], "otherMult": 0.8, "baseline": 4
+  },
+  "fundraise": {
+    "label": "Funds", "name": "Fundraise", "icon": "fundraise",
+    "tip": "Fundraising brings in money. A PR lead is the best at asking.",
+    "best": ["pr"], "bestMult": 1.0, "otherMult": 0.3, "base": 3, "perSkill": 2
+  },
+  "rest": {
+    "label": "Rest", "name": "Rest", "icon": "rest",
+    "tip": "Rest lifts morale. A happy team gets more done every week.",
+    "perPerson": 8, "weekCap": 20
+  },
+  "weekly": { "overhead": 12, "moraleDrift": -5 },
+  "crunch": { "costMult": 1.5, "progressMult": 1.5 },
+  "text": {
+    "crewTip": "On a road trip you want someone who can fix a flat and someone who stays calm. Space is the same. Training helps too.",
+    "weekHints": {
+      "1": "Week 1, Design: start building. Keep one person on Test so no week goes untested.",
+      "2": "Week 2, Parts: keep building and keep testing. Flaws are cheapest to fix early.",
+      "3": "Week 3, Assembly: Build should be past halfway. Start training the crew.",
+      "4": "Week 4, Testing: push Testing to 60 or more, or expect a No-Go vote at launch.",
+      "5": "Week 5, Rollout: Build must reach 100 to launch. Then train, or rest a tired team."
+    },
+    "crunchWarn": "{left}, and we are not done yet. We are running out of time.",
+    "crunchAsk": "Do you want to hold a crunch week? Everything costs more this week, but your progress goes up faster.",
+    "crunchYes": "Hold a crunch week",
+    "crunchNo": "Keep the normal pace",
+    "crunchYesLine": "Long days and a lot of coffee, then. Let's make this week count.",
+    "crunchNoLine": "Steady it is. We do what we can with the time we have."
+  }
 }

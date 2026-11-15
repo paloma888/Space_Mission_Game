@@ -6,21 +6,79 @@
   <link rel="stylesheet" href="../../core/base.css">
 </head>
 <body>
-  <!-- Open with Live Server. Try ?preset=launched&seed=123 (presets: RULEBOOK section 12). -->
-  <div id="app"><div id="game"></div></div>
+  <!-- Open with Live Server. Examples (presets: RULEBOOK section 12):
+         ?preset=launched&seed=123                 a real roll
+         ?outcome=orbit                            force an ending: orbit, launch_failure, came_home_early,
+                                                   bankrupt, window_closed, aliens (paused in Mission 1, A6)
+         ?outcome=orbit&report=1                   skip the launch and ending, open the mission report
+
+       Launch animation previews (mix and match):
+         &site=kodiak          canaveral, kodiak, kourou, mahia, sriharikota
+         &rocket=pelican       sparrow, condor, condor_reflown, pelican
+         &weather=storm        clear, rain, fog, wind, storm, cold
+         ?outcome=orbit&emergency=life_support     a problem in orbit that the crew FIXES (or =power)
+         ?outcome=came_home_early&cause=power      lights flicker, then go dark (or cause=life_support)
+         ?outcome=launch_failure&cause=lightning   a storm, and the strike stops the launch
+
+       Also see sim-tests.html (automatic checks) and balance.html (5,000 launches). -->
+  <div id="app"><div id="game"></div><div id="dashboard"></div></div>
   <script type="module">
     import { fakeState } from '../../core/state.js';
     import { show } from './finale.js';
 
     const params = new URLSearchParams(location.search);
-    const state = fakeState(params.get('preset') || 'launched');
+    const outcome = params.get('outcome');
+    const cause = params.get('cause');
+    const emergency = params.get('emergency');
+    const state = fakeState(params.get('preset') || (outcome === 'aliens' ? 'secret' : 'launched'));
     window.state = state; // type "state" in the browser console (F12) to inspect it
 
-    show(state, (next) => {
-      console.log('done() called. Next:', next ?? 'the following slice', state);
+    // Preview a launch site, rocket or weather without playing the earlier slices.
+    if (params.has('site')) state.site = params.get('site');
+    if (params.has('rocket')) state.rocket = params.get('rocket');
+    if (params.has('weather')) {
+      const kind = params.get('weather');
+      state.launchWeather = { ...(state.launchWeather ?? {}), kind, risk: kind === 'storm' ? 80 : 30 };
+    }
+
+    // Force an ending by rigging the dice. dice(0) passes every roll; dice(0.9999) fails the first one.
+    // With several numbers, the rolls use them in order, then keep repeating the last one.
+    const dice = (...values) => { let i = 0; return () => values[Math.min(i++, values.length - 1)]; };
+    const opts = {};
+    if (outcome) {
+      // A clean flight unless you ask for trouble (the build's own numbers could add a random emergency).
+      state.derived.emergencyChance = emergency === 'life_support' || emergency === '1' ? 0.25 : 0;
+      state.derived.powerOk = emergency !== 'power';
+    }
+    if (outcome === 'orbit' || outcome === 'aliens') opts.rng = dice(0); // any emergency happens and gets fixed
+    if (outcome === 'launch_failure') {
+      if (cause === 'lightning') {
+        // A storm: the strike hits (0), and the crew can't recover from it (0.99).
+        state.launchWeather = { ...(state.launchWeather ?? {}), kind: 'storm', risk: 80 };
+        opts.rng = dice(0, 0.99);
+      } else {
+        opts.rng = dice(0.9999);
+      }
+    }
+    if (outcome === 'came_home_early') {
+      if (cause === 'life_support') {
+        // 4 stages pass (0), life support breaks (0 is under 0.25), the fix fails (0.99).
+        state.derived.emergencyChance = 0.25;
+        opts.rng = dice(0, 0, 0, 0, 0, 0.99);
+      } else {
+        // Power (the default): 0.8 passes every stage but fails the harder power fix.
+        state.derived.powerOk = false;
+        opts.rng = dice(0.8);
+      }
+    }
+    if (outcome === 'bankrupt' || outcome === 'window_closed') state.outcome = outcome;
+    if (params.has('report')) opts.reportOnly = true; // ?report=1 jumps straight to the mission report
+
+    show(state, (next, extra) => {
+      console.log('done() called. Next:', next ?? 'the following slice', extra ?? '', state);
       document.getElementById('game').insertAdjacentHTML('beforeend',
-        '<p>Slice finished. See the console (F12) for the final state.</p>');
-    });
+        `<div class="toast">done('${next ?? ''}') called. See the console (F12). Reload to play again.</div>`);
+    }, opts);
   </script>
 </body>
 </html>

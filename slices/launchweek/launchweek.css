@@ -1,0 +1,32 @@
+/* Slice 4 styles. Palette variables only (core/base.css). */
+
+.lw-talk { display: flex; gap: 24px; align-items: center; line-height: 1.8; }
+
+.lw-days { display: flex; justify-content: center; gap: 16px; margin-bottom: 24px; }
+/* Fixed width of one column out of 5, so fewer cards stay the same size (the square icon would otherwise grow taller) and sit centered. */
+.lw-col { flex: 0 0 calc((100% - 4 * 16px) / 5); display: flex; flex-direction: column; gap: 16px; }
+.lw-icon-box {
+  background: var(--frame);
+  border: 4px solid var(--frame-edge);
+  aspect-ratio: 1; /* square, as wide as the text box below */
+  display: flex; align-items: center; justify-content: center; /* centers the word when an icon is missing */
+  overflow: hidden;
+}
+.lw-day {
+  white-space: pre-line; /* each card is a few short lines */
+  line-height: 2;
+  font-size: var(--small);
+}
+.lw-icon { display: block; width: 100%; height: 100%; image-rendering: pixelated; } /* fills the frame, no gap */
+.lw-icon-text { text-transform: uppercase; } /* shown when the icon file is missing */
+.lw-day.lw-picked { background: var(--accent); outline: 4px solid var(--ink); }
+
+.lw-footer { display: flex; justify-content: space-between; align-items: center; }
+
+/* Go/No-Go tally: two columns of vote badges, filled in as each voice speaks. */
+.lw-board { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.lw-board .panel-title { grid-column: 1 / -1; margin: 0; }
+.lw-vote { padding: 8px 12px; font-size: var(--small); color: var(--c1); }
+.lw-go { background: var(--c5); }
+.lw-nogo { background: var(--c13); }
+.lw-unknown { background: var(--c14); }

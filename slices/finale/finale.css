@@ -1,0 +1,153 @@
+/* slices/finale/finale.css: launch, endings and report. Owner: Person 5.
+   Colors only come from the palette variables in core/base.css (Rulebook 9). */
+
+/* ---------- Launch animation (launch-anim.js draws the scene; these are the words on top of it).
+   The caption boxes are dark with light text so they stay readable over a bright sky. */
+.fin-launch { padding: 0; background: var(--bg); }
+.fin-launch-canvas { cursor: default; } /* the launch can't be dragged, unlike the globe */
+.fin-count {
+  position: absolute;
+  top: 32px; left: 0; right: 0;
+  text-align: center;
+  font-size: var(--title);
+  color: var(--accent);
+  text-shadow: 4px 4px 0 var(--bg);
+  pointer-events: none;
+}
+.fin-alt, .fin-log {
+  position: absolute;
+  font-size: var(--small);
+  color: var(--c1);
+  background: var(--c4);
+  border: 4px solid var(--frame-edge);
+  box-shadow: 0 0 0 4px var(--bg);
+}
+.fin-alt { top: 32px; right: 24px; padding: 8px 12px; }
+.fin-log { left: 24px; bottom: 24px; width: 470px; padding: 8px 16px; line-height: 1.7; }
+.fin-log:empty, .fin-alt:empty { display: none; }
+.fin-log > div { margin: 6px 0; }
+.fin-go { color: var(--c9); }   /* sage green: GO */
+.fin-fail { color: var(--c2); } /* terracotta red: FAIL */
+.fin-warn { color: var(--accent); }
+.fin-skip { position: absolute; right: 24px; bottom: 24px; }
+
+/* Fades between screens: the launch fades TO white (success) or dark (failure, home early),
+   then the next screen fades back FROM it (.fin-unveil). Kept slow: no fast flashing. */
+.fin-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+  display: grid;
+  place-items: center;
+  padding: 0 160px;
+  text-align: center;
+  font-size: var(--body);
+  line-height: 2;
+  color: var(--c1);
+  background: var(--bg);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1.2s ease;
+}
+.fin-veil-white { background: var(--c1); color: var(--bg); transition-duration: 0.35s; }
+.fin-veil.on { opacity: 1; }
+.fin-unveil { animation: fin-unveil 0.9s ease forwards; }
+@keyframes fin-unveil { to { opacity: 0; } }
+
+/* ---------- Orbit explorer (orbit and aliens endings) */
+.fin-explore { padding: 0; background: var(--bg); }
+.fin-canvas {
+  position: absolute;
+  inset: 0;
+  width: 1280px;
+  height: 720px;
+  image-rendering: pixelated;
+  cursor: grab;
+  touch-action: none; /* lets fingers drag and pinch the globe instead of scrolling the page */
+}
+.fin-canvas:active { cursor: grabbing; }
+.fin-explore-title {
+  position: absolute;
+  top: 72px; left: 0; right: 0;
+  text-align: center;
+  font-size: var(--title);
+  color: var(--accent);
+  text-shadow: 4px 4px 0 var(--bg);
+  pointer-events: none;
+}
+.fin-explore-hint {
+  position: absolute;
+  left: 24px; bottom: 28px;
+  font-size: var(--small);
+  color: var(--muted);
+  text-shadow: 2px 2px 0 var(--bg);
+  pointer-events: none;
+}
+.fin-explore-next { position: absolute; right: 24px; bottom: 16px; }
+.fin-zoom { position: absolute; right: 24px; top: 72px; display: flex; flex-direction: column; }
+.fin-zoom .btn { margin: 0 0 8px; padding: 8px 12px; font-size: var(--small); }
+.fin-info { position: absolute; left: 24px; top: 132px; width: 440px; font-size: var(--small); }
+.fin-info p { margin: 0; line-height: 1.8; }
+.fin-rosa-note {
+  position: absolute;
+  left: 24px; bottom: 64px;
+  width: 640px;
+  display: flex; gap: 16px; align-items: center;
+  margin: 0; padding: 16px;
+  font-size: var(--small);
+  cursor: pointer;
+}
+.fin-rosa-note p { margin: 0; line-height: 1.8; }
+.fin-rosa-note .portrait, .fin-debrief .portrait { flex: none; }
+
+/* ---------- Launch failure, came home early, bankrupt and window-closed endings */
+.fin-ending .panel { width: 900px; margin: 80px auto 0; }
+
+/* ---------- Mission report (1280x720, top 56px kept for the dashboard) */
+.fin-report {
+  padding: 72px 24px 24px;
+  display: grid;
+  grid-template-columns: 380px 1fr 340px;
+  grid-template-rows: 1fr auto;
+  gap: 16px;
+  font-size: var(--small);
+}
+.fin-report .panel { margin: 0; padding: 16px; overflow: auto; }
+.fin-report .panel-title { font-size: var(--small); color: var(--accent); margin-bottom: 12px; }
+.fin-report p { line-height: 1.8; margin: 0 0 12px; }
+.fin-row {
+  display: flex; justify-content: space-between; gap: 8px;
+  margin: 6px 0;
+  animation: fin-pop 0.3s steps(3) both;
+}
+@keyframes fin-pop { from { transform: translateX(-16px); visibility: hidden; } }
+.fin-total { border-top: 4px solid var(--frame-edge); padding-top: 8px; color: var(--accent); }
+.fin-medal {
+  margin: 12px 0; padding: 8px;
+  text-align: center;
+  line-height: 1.6;
+  animation: fin-drop 0.5s steps(5) 2.4s both;
+}
+@keyframes fin-drop { from { transform: translateY(-40px); visibility: hidden; } }
+.fin-medal-gold { background: var(--c10); color: var(--bg); }
+.fin-medal-silver { background: var(--c6); color: var(--bg); }
+.fin-medal-bronze { background: var(--c4); color: var(--ink); }
+.fin-medal-none { color: var(--muted); border: 4px solid var(--c5); }
+.fin-badges { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.fin-badge { padding: 6px; border: 4px solid var(--good); color: var(--good); line-height: 1.4; }
+.fin-badge.off { border-color: var(--c5); color: var(--c5); }
+.fin-badge-hint { margin-top: 4px; color: var(--muted); line-height: 1.4; }
+.fin-card-lesson { color: var(--accent); }
+/* Real NASA history cards about crew losses keep a quiet, respectful look (Rulebook 1, Amendment A2). */
+.fin-card-memorial .panel-title { color: var(--ink); }
+.fin-source { display: block; color: var(--frame-edge); margin-top: 8px; line-height: 1.6; }
+.fin-odds { margin-bottom: 14px; line-height: 1.6; }
+.fin-good { color: var(--good); }
+.fin-neutral { color: var(--muted); }
+.fin-bad { color: var(--danger); }
+.fin-debrief {
+  grid-column: 1 / -1;
+  display: flex; gap: 16px; align-items: center;
+}
+.fin-debrief-lines { flex: 1; }
+.fin-debrief-lines p { margin: 0 0 6px; }

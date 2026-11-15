@@ -1,0 +1,18 @@
+{
+  "countdown": "All stations are Go. Here we go.",
+  "stages": {
+    "liftoff": { "name": "LIFTOFF", "pass": "Engines roaring. We have liftoff!", "fail": "Something is wrong at liftoff. The launch is called off." },
+    "maxq": { "name": "MAX-Q", "pass": "Through the roughest air. Holding together.", "fail": "The rocket could not take the strain." },
+    "separation": { "name": "SEPARATION", "pass": "Boosters away. A clean split.", "fail": "The boosters did not separate cleanly." },
+    "orbit": { "name": "ORBIT", "pass": "Engine cut-off. We are in orbit!", "fail": "Not enough speed to stay in orbit." }
+  },
+  "skipped": "Something is pulling the capsule up...",
+  "failure": "Launch failure. The crew is safe.",
+  "homeEarly": "Heading home early. The crew is safe.",
+  "emergencies": {
+    "lightning": { "alert": "Lightning hits the rocket!", "saved": "The crew resets the systems. Still flying.", "unfixed": "The strike knocked out the controls!" },
+    "life_support": { "alert": "Life support alarm!", "saved": "The crew patches it. Air is flowing again.", "unfixed": "Life support can't be fixed up here. Time to head home early." },
+    "solar": { "alert": "A solar panel is stuck!", "saved": "The crew works it loose. Power is back.", "unfixed": "Without the panel, power runs low. Time to head home early." },
+    "power": { "alert": "Power is running low!", "saved": "The crew shuts down everything extra. Just enough.", "unfixed": "Not enough power to stay up here. Time to head home early." }
+  }
+}

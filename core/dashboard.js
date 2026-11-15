@@ -10,8 +10,8 @@ const asset = (path) => new URL(`../${path}`, import.meta.url).href;
 // Left to right, in the order the team picked. `tip` is the hover text, `rosa` the click explanation.
 const GAUGES = [
   { id: 'days', label: 'DAYS', icon: 'dash_calendar',
-    tip: 'Days: today, out of 42. You can launch from day 36 to day 42.',
-    rosa: 'We have 42 days in all. Launch day can be 36 to 42. Think of the last train home: miss it and the trip is off.' },
+    tip: 'Days: today, out of 46. You can launch from day 40 to day 46.',
+    rosa: 'We have 46 days in all. Launch day can be 40 to 46. Think of the last train home: miss it and the trip is off.' },
   { id: 'morale', label: 'MORALE', icon: 'dash_morale',
     tip: 'Morale: how your team feels, from 0 to 100.',
     rosa: 'Morale is how the team feels. A happy crew is like a happy road trip: fewer arguments, better choices.' },
@@ -36,7 +36,7 @@ let cardOpen = false;
 
 const STYLE = `
 /* Fixed columns so a gauge never resizes when its text changes ("--" to "STANDARD").
-   Days and Power are wider to fit "Day 42 of 42" and "420 / 800 W" at 16px; the rest share evenly.
+   Days and Power are wider to fit "Day 46 of 46" and "420 / 800 W" at 16px; the rest share evenly.
    6 gauges + 56px mute slot = 1280px. The tight padding and gap are what make the longest text fit. */
 #dashboard .dash { display: grid; grid-template-columns: 240px 185px 190px 190px 234px 185px 56px;
   height: 56px; background: var(--c4); border-bottom: 4px solid var(--c12); color: var(--c1); }
@@ -126,7 +126,7 @@ async function explain(g) {
 function read(state) {
   const d = state.derived ?? {};
   const day = state.day ?? 1;
-  const closes = state.windowCloses ?? 42;
+  const closes = state.windowCloses ?? 46;
   return {
     day, closes, left: closes - day,
     morale: state.morale ?? 0,

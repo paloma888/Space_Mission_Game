@@ -1,0 +1,73 @@
+{
+  "note": "Break room chatter: one person says one line on the week summary. Moods: good, tired (morale under 45), crunch (a crunch week).",
+  "hal": {
+    "good": "Good week. Don't tell anyone I said that.",
+    "tired": "Team's running on fumes. Make them rest. That's an order. Mostly.",
+    "crunch": "Crunch week. I've seen this movie before. Bring snacks."
+  },
+  "dev": {
+    "good": "Cool cool cool! I tightened a bolt and nobody had to redo it!",
+    "tired": "Cool... cool... is it normal to see bolts when I close my eyes?",
+    "crunch": "Crunch week! I made a playlist! It's ninety hours long!"
+  },
+  "inez": {
+    "good": "Checklist complete. I made a new checklist to celebrate.",
+    "tired": "Item one on my list: sleep. I have not checked it off.",
+    "crunch": "Crunch week. Trust, but verify. Then verify the verifying."
+  },
+  "skye": {
+    "good": "Team spirits are sunny, with a high of awesome!",
+    "tired": "Forecast for this team: cloudy, with a big chance of naps.",
+    "crunch": "Crunch week! Expect a storm of work and scattered coffee."
+  },
+  "marty": {
+    "good": "Every shipment on time! I don't trust it. Don't panic.",
+    "tired": "My phone rang 400 times. I answered 399. Okay, panic a little.",
+    "crunch": "Crunch week? I've got three phones and one ear. Let's go!"
+  },
+  "tasha": {
+    "good": "'Tiny Team Has Huge Week!' That's a headline!",
+    "tired": "'Exhausted Heroes Need Nap.' Not my best headline. Like us.",
+    "crunch": "'Crunch Week: Rocket Team Refuses to Blink!' That's a headline!"
+  },
+  "amara": {
+    "good": "Flying this thing will be easy. Building it, less easy. Still easy.",
+    "tired": "Even I need a nap. Don't tell the other pilots.",
+    "crunch": "Crunch week? Easy. Where's the coffee? Easy."
+  },
+  "jun": {
+    "good": "The capsule and I had a good talk today. Technically, I talked.",
+    "tired": "Technically, I am awake. My eyes disagree.",
+    "crunch": "Crunch week. I told the rocket. It took it well."
+  },
+  "lucia": {
+    "good": "A good week. Breathe. Then enjoy it.",
+    "tired": "Everyone is tired. Breathe. Then rest. Then decide.",
+    "crunch": "Crunch week. Breathe. Then decide. Then do it fast."
+  },
+  "dmitri": {
+    "good": "In my day, a good week meant nothing went bang. Good week.",
+    "tired": "In my day, we slept on the launch pad. I do not recommend it.",
+    "crunch": "In my day, every week was crunch week. You will survive."
+  },
+  "priya": {
+    "good": "Sorry, quick question. Is it okay to feel this proud?",
+    "tired": "Sorry, quick question. Do rockets need naps? Asking for me.",
+    "crunch": "Sorry, quick question. Is crunch week always this crunchy?"
+  },
+  "sam": {
+    "good": "Roger that, boss. Great week. I only dropped one wrench.",
+    "tired": "Roger that, boss. Running on two hours of sleep and one joke.",
+    "crunch": "Crunch week? Roger that, boss. I'll bring the cereal. Crunchy."
+  },
+  "zainab": {
+    "good": "A nearly perfect week. One more check and it will be perfect.",
+    "tired": "I did one more check. Then forty more. I should sleep.",
+    "crunch": "Crunch week. No time for one more check. I will do it anyway."
+  },
+  "mateo": {
+    "good": "Great week! We did everything. Wait, did we do that?",
+    "tired": "So tired I forgot my lunch. Wait, did I eat it? I ate it.",
+    "crunch": "Crunch week! I made a list so I don't forget. Where's the list?"
+  }
+}
