@@ -248,9 +248,33 @@ export function weatherPenalty({ risk, tempF }, state) {
   return Math.round(Math.min(penalty, 0.25) * 1000) / 1000;
 }
 
+// Title card before the morning report: the forecast fades to black, the morning picture fades in,
+// then it lingers 3 seconds (a click skips the wait so it never feels stuck).
+const FADE_OUT = 1500, FADE_IN = 1500, LINGER = 3000; // ms
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function morningCard() {
+  const old = document.querySelector('#game .screen'); // #game's own dark background shows as it fades
+  if (old) { old.style.transition = `opacity ${FADE_OUT}ms`; old.style.opacity = '0'; await wait(FADE_OUT); }
+
+  const root = ui.screen('launchweek/morning');
+  root.classList.add('lw-morning');
+  root.style.opacity = '0';
+  root.append(el('p', 'lw-intro', "It's the morning of the launch..."));
+  root.getBoundingClientRect(); // makes the browser register opacity 0 first, so the fade-in actually plays
+  root.style.transition = `opacity ${FADE_IN}ms`;
+  root.style.opacity = '1';
+
+  await new Promise((resolve) => {
+    const timer = setTimeout(resolve, FADE_IN + LINGER);
+    root.addEventListener('pointerdown', () => { clearTimeout(timer); resolve(); }, { once: true });
+  });
+}
+
 // Reveals today's real weather. Returns { risk, tempF, kind, penalty }, or null after paying for a scrub.
 async function launchMorning(state, lines) {
   const w = state.weather[state.day];
+  await morningCard();
   ui.screen('launchweek/control_room');
   if (w.kind === 'storm') ui.sfx('launchweek-thunder');
   const met = bestStaff(state, 'meteorologist');
