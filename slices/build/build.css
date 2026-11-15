@@ -185,3 +185,17 @@
 .dealer-after { text-align: center; color: var(--c10); margin: 16px 0 8px; }
 .dealer-buttons { display: flex; justify-content: center; gap: 16px; }
 .dealer-buttons .btn { margin: 0; }
+
+/* ---------- Opener between the briefing and the build (matches the trail's week map).
+   It reuses the rocket screen's layout, invisible, so the rockets land where they sit next. */
+.intro-ghost-head { visibility: hidden; }
+.intro-ghost-card { background: transparent; border-color: transparent; cursor: default; overflow: visible; }
+/* Each rocket starts below the screen and rises in 8px steps, like the trail marker's hop. */
+.intro-rocket { transform: translateY(600px); animation: intro-rise 1.05s steps(75) forwards; }
+@keyframes intro-rise { to { transform: translateY(0); } }
+/* Banner sits below the rockets so it never covers them. Same see-through box and blue edge
+   as the screen titles (--panel-bg from base.css). */
+.intro-banner { position: absolute; top: 380px; left: 50%; transform: translateX(-50%); z-index: 1;
+  padding: 16px 24px; background: var(--panel-bg); border: 4px solid var(--c12); color: var(--accent); white-space: nowrap; }
+.intro-sub { position: absolute; top: 456px; left: 50%; transform: translateX(-50%); z-index: 1;
+  padding: 8px 16px; background: var(--panel-bg); border: 4px solid var(--c12); color: var(--c1); font-size: var(--small); white-space: nowrap; }

@@ -3,7 +3,7 @@
 // so adding or changing one never touches this code.
 
 import * as ui from '../../core/ui.js';
-import { el, art, talk, halOnce, leftOver, cheapestCapsule, reliabilityWord, signed, lockCard } from './common.js';
+import { el, art, talk, halOnce, leftOver, cheapestCapsule, reliabilityWord, signed, lockCard, playSound } from './common.js';
 import { compatPanel, currentLift } from './compat.js';
 import { findRocket, findSite, liftFor, siteProblem } from './recompute.js';
 
@@ -59,7 +59,7 @@ export function showRocket(state, ctx) {
       state.rocket = rocket.id;
       recompute(state);
       ui.refresh(); // the budget itself is charged when the player presses Next
-      ui.sfx('build-select');
+      playSound('build-select');
       screen.redraw();
       const hal = { condor_reflown: 'condorReflown', pelican: 'pelican' }[rocket.id];
       await halOnce(screen.root, lines, hal);
@@ -130,7 +130,7 @@ export function showSite(state, ctx) {
       state.site = site.id;
       recompute(state); // sites cost nothing now (the fee is paid in launch week)
       ui.refresh();
-      ui.sfx('build-select');
+      playSound('build-select');
       screen.redraw();
       await halOnce(screen.root, lines, site.id);
       await halOnce(screen.root, lines, marginKey(state, catalog));
@@ -156,7 +156,7 @@ export function showSite(state, ctx) {
           // Labels near the right edge go on the left so they stay on the map.
           const label = el('span', `v-dot-label${mapX(site) > MAP_W - 120 ? ' left' : ''}`, site.name.split(',')[0]);
           dot.append(label);
-          dot.onclick = () => { focus = site.id; ui.sfx('build-select'); redraw(); };
+          dot.onclick = () => { focus = site.id; playSound('build-select'); redraw(); };
           map.append(dot);
         }
         body.append(map, siteCard(findSite(catalog, focus)));

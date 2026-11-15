@@ -6,7 +6,7 @@
 
 import * as ui from '../../core/ui.js';
 import { random, addFlag } from '../../core/state.js';
-import { el, talk, commit } from './common.js';
+import { el, talk, commit, playSound } from './common.js';
 import { recompute as recomputeWith, findRocket, liftFor } from './recompute.js';
 
 // Only these have a "dealer" template in parts.json. The dealer's version copies the
@@ -62,7 +62,7 @@ export async function showDealer(state, ctx) {
   // The little scene before the deal: the dealer whispers, Hal objects, the dealer insists.
   // It plays over the shop that was just paid for; talk() blocks clicks until it ends.
   const game = document.getElementById('game');
-  ui.sfx('shady-whisper');
+  await playSound('shady-deal'); // the dealer's sound, the moment they appear
   await talk(game, 'myster', D.intro ?? ['...', 'Psst. Over here.']);
   await talk(game, 'hal', lines.hal?.dealer ?? "Don't.", { mood: 'sad' });
   // Say what the player just bought, so it is clear the dealer is offering a cheaper swap.
@@ -94,16 +94,16 @@ export async function showDealer(state, ctx) {
   const chosen = new Promise((resolve) => { decide = resolve; });
   function finish(accepted) {
     take.disabled = pass.disabled = true;
-    if (!accepted) ui.sfx('shady-reject');
     decide(accepted);
   }
   const accepted = await chosen;
   overlay.remove();
+  if (!accepted) await playSound('shady-reject');
   if (accepted) {
     state.parts = withTier(state.parts, offer.cat, offerTier);
     ctx.recompute(state);
     commit(state, ctx); // trade-in: refund the old part, charge the dealer's price
-    ui.sfx('shady-deal'); // a dark, heavy sound: this deal has a catch
+    await playSound('shady-deal');
     await upsell(state, ctx, game, D);
   }
   // Rosa says nothing here on purpose (brief section 9).
@@ -130,9 +130,9 @@ async function upsell(state, ctx, game, D) {
     addFlag(state, 'warp_coil'); // flag name from the Rulebook registry; Person 5's ending reads it
     ctx.recompute(state);
     commit(state, ctx);
-    ui.sfx('shady-deal');
+    await playSound('shady-deal');
   }
-  if (answer !== 0) ui.sfx('shady-reject');
+  if (answer !== 0) await playSound('shady-reject');
   await talk(game, 'myster', answer === 0 ? D.upsellBought : D.upsellPassed);
 }
 

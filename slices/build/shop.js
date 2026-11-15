@@ -5,7 +5,7 @@
 import * as ui from '../../core/ui.js';
 import { installedParts } from './recompute.js';
 import { currentLift } from './compat.js';
-import { leftOver, lockCard } from './common.js';
+import { leftOver, lockCard, playSound } from './common.js';
 
 // Power is last on purpose: pick what needs power first, then a battery big enough
 // to cover it, the same way engineers size a power system.
@@ -92,7 +92,7 @@ export function showShop(state, ctx) {
       if (talking || pickedTier(state, cat) === tier) return;
       setTier(state, cat, tier);
       recompute(state);
-      ui.sfx('build-select');
+      playSound('build-select');
       ui.refresh(); // mass and power gauges move now; the budget waits for Next
       // Stay on this category so the player can compare tiers before moving on.
       render();
