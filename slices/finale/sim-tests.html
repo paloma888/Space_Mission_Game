@@ -48,7 +48,7 @@
       const r = resolveLaunch(fakeState('launched'), always(0.9999));
       check('3. a failed liftoff is a launch_failure', r.outcome === 'launch_failure' && r.failedStage === 'liftoff');
     }
-    // 4. Warp coil on day 42 plus a good liftoff gives aliens. A bad liftoff is a normal failure.
+    // 4. Warp coil on day 46 plus a good liftoff gives aliens. A bad liftoff is a normal failure.
     //    (Paused in Mission 1 by Amendment A6, but the logic is kept so it can come back.)
     {
       const s = fakeState('secret');

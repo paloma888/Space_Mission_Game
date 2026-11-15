@@ -4,7 +4,7 @@
       "number": 0, "id": "title", "background": "briefing/title_screen",
       "lines": [],
       "howToPlay": [
-        "You are the Flight Director. Hire a crew, build a capsule and choose a rocket. You have $800M and 42 days, and both run out fast.",
+        "You are the Flight Director. Hire a crew, build a capsule and choose a rocket. You have $800M and 46 days, and both run out fast.",
         "Each week you assign staff and handle surprises. Every choice costs money, time or risk. There is rarely a perfect answer, only trade-offs.",
         "Before launch, your crew votes Go or No-Go. Listen to them. If a mission fails, you will learn the real NASA story behind it."
       ],
@@ -23,7 +23,7 @@
         { "speaker": "rosa", "text": "I'm Rosa Vega. I spent most of my career running launches from Mission Control." },
         { "speaker": "rosa", "text": "Officially I'm retired. Unofficially, I couldn't stay away from a good rocket." },
         { "speaker": "rosa", "text": "This agency is tiny, and it needs a leader who isn't afraid of a hard decision. That's you." },
-        { "speaker": "rosa", "text": "You have $800 million and 42 days. Miss the launch window and it's gone, and so is the mission." },
+        { "speaker": "rosa", "text": "You have $800 million and 46 days. Miss the launch window and it's gone, and so is the mission." },
         { "speaker": "rosa", "text": "Before we start, every agency needs a name. What shall we put on the door?" }
       ],
       "agencyNamePrompt": "What should we call our agency?",
@@ -38,7 +38,7 @@
         "facts": [
           "Crew of three to low Earth orbit",
           "Budget: $800M",
-          "Time: 42 days",
+          "Time: 46 days",
           "Win: crew safe, in orbit, score 60 or more"
         ]
       },
