@@ -54,12 +54,13 @@ function routePath(stops) {
   return svg;
 }
 
-// The marker is art/sprites/trail_marker.png. Until it is drawn, a plain box stands in.
-function marker() {
+// The marker is the player's rocket (art/sprites/rocket_<id>.png), or trail_marker.png if none is chosen yet.
+// Until the art exists, a plain box stands in.
+function marker(rocket) {
   const img = el('img', 'map-marker');
   img.alt = '';
   img.onerror = () => img.replaceWith(Object.assign(el('div', 'map-marker placeholder-box', 'YOU'), { style: img.style.cssText }));
-  img.src = new URL('../../art/sprites/trail_marker.png', import.meta.url).href;
+  img.src = new URL(`../../art/sprites/${rocket ? `rocket_${rocket}` : 'trail_marker'}.png`, import.meta.url).href;
   return img;
 }
 
@@ -82,11 +83,23 @@ function mapScreen(background) {
   return root;
 }
 
+// Resting pose: upright and 80px above its stop (its 128px body clears the name), so the rocket never covers the stop's name.
+// Set as CSS variables so they survive if the image is swapped for the placeholder box.
+function park(pin) {
+  pin.style.setProperty('--lift', '80px');
+  pin.style.setProperty('--turn', '0deg');
+}
+
+// Degrees to turn a sprite that points up, so its nose follows the way from one stop to the next.
+function heading(from, to) {
+  return Math.round(Math.atan2(to.x - from.x, from.y - to.y) * 180 / Math.PI);
+}
+
 /**
  * Shows the map for a few seconds, then resolves. A click or key press skips ahead.
  * The marker starts at last week's stop and travels to this week's.
  */
-export async function showMap(week, lastWeek, day) {
+export async function showMap(week, lastWeek, day, rocket) {
   const { stops, seconds, background, snow } = await loadMap();
   const root = mapScreen(background);
   root.classList.add('trail-map');
@@ -111,8 +124,9 @@ export async function showMap(week, lastWeek, day) {
 
   const here = stops[Math.min(week, stops.length) - 1];
   const from = stops[Math.max(week - 2, 0)];
-  let pin = marker();
+  let pin = marker(rocket);
   place(pin, from);
+  park(pin);
   root.append(pin);
   ui.sfx('trail-week');
 
@@ -120,7 +134,12 @@ export async function showMap(week, lastWeek, day) {
     // Pause briefly so the player sees where the marker starts before it sets off.
     setTimeout(() => {
       pin = root.querySelector('.map-marker') ?? pin; // the image may have been swapped for the box
+      if (from === here) return; // week 1: it just sits above the first stop
+      // On the way it rides the route itself, nose along the path. On arrival it pops back above the stop.
+      pin.style.setProperty('--lift', '0px');
+      pin.style.setProperty('--turn', `${heading(from, here)}deg`);
       place(pin, here);
+      pin.addEventListener('transitionend', () => park(pin), { once: true });
     }, 400);
     const finish = () => {
       clearTimeout(timer);

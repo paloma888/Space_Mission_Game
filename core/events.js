@@ -310,6 +310,7 @@ function pinChanges(box, lines) {
  */
 export async function runEvent(state, event) {
   const root = ui.screen(event.scene || 'trail/mission_floor');
+  root.classList.add('trail-event'); // lets trail.css move the title box off the dashboard
   if (event.title) root.append(ui.panel(event.title));
   ui.sfx('trail-event');
 
