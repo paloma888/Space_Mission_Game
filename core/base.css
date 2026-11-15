@@ -135,7 +135,11 @@ small, .small { font-size: var(--small); }
   background: var(--panel-bg);
   border: 4px solid var(--frame-edge);
   box-shadow: 0 0 0 4px var(--bg); /* chunky double border, no blur */
+  /* A 1px dark edge on every letter keeps text crisp when bright art shows through. */
+  text-shadow: 1px 1px 0 var(--bg);
 }
+/* Solid controls inside a box keep plain text: their own fill already gives contrast. */
+.btn, .bar, input, textarea, select { text-shadow: none; }
 .panel { padding: 24px; margin-bottom: 24px; }
 /* A light blur behind the dialogue box and panels only (not cards over portrait art).
    Browsers without backdrop-filter skip this block and show the plain see-through fill,
