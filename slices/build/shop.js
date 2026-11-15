@@ -4,6 +4,8 @@
 
 import * as ui from '../../core/ui.js';
 import { applyEffects } from '../../core/events.js';
+import { installedParts } from './recompute.js';
+import { currentLift } from './compat.js';
 
 // Power is last on purpose: pick what needs power first, then a battery big enough
 // to cover it, the same way engineers size a power system.
@@ -169,11 +171,20 @@ export function showShop(state, { catalog, lines, recompute }) {
         side.append(r);
         return r;
       };
-      row('Parts', `$${d.spent}M`);
+      // derived.spent includes the rocket, so add up the parts on their own.
+      row('Parts', `$${installedParts(state.parts, catalog).reduce((n, p) => n + p.cost, 0)}M`);
       const massRow = row('Mass', `${d.capsuleMass} t`);
       const massWhy = ui.button('?', () => { if (!talking) talk('rosa', lines.rosa?.mass); }, { variant: 'quiet' });
       massWhy.classList.add('why-mini');
       massRow.append(massWhy);
+      // The rocket is already picked, so show the room left as parts go in.
+      const lift = currentLift(state, catalog);
+      if (lift != null) {
+        const margin = Math.round((lift - d.capsuleMass) * 10) / 10;
+        row('Lift', `${lift.toFixed(1)} t`);
+        const marginRow = row('Margin', `${margin >= 0 ? '+' : ''}${margin.toFixed(1)} t`);
+        marginRow.classList.add(margin < 0 ? 'bad' : margin < 1 ? 'warn' : 'ok');
+      }
       // Before a battery is picked there is nothing to measure against, so the bar stays empty
       // instead of looking maxed out. Colors match the dashboard: yellow over 90%, red when over.
       const hasBattery = Boolean(state.parts.power?.tier);
@@ -185,14 +196,15 @@ export function showShop(state, { catalog, lines, recompute }) {
       row('Radio', d.comms === 'none' ? '--' : d.comms.toUpperCase());
       row('Budget', `$${state.budget}M`);
 
+      const back = ui.button('Back', () => { if (!talking) resolve('back'); }, { variant: 'quiet' });
       const next = ui.button('Next', () => { if (!talking) resolve('next'); });
+      back.classList.add('shop-next');
       next.classList.add('shop-next');
+      side.append(back, next);
       if (!allPicked(state)) {
         next.disabled = true;
         next.title = lines.shop?.needAll ?? '';
-        side.append(next, el('p', 'tier-why', lines.shop?.needAll ?? ''));
-      } else {
-        side.append(next);
+        side.append(el('p', 'tier-why', lines.shop?.needAll ?? ''));
       }
     }
 

@@ -19,7 +19,7 @@ export function runChecks(catalog) {
   // 1. Standard everything on Condor at Canaveral, low orbit.
   let s = run(tier('standard'), 'condor', 'canaveral');
   check('1. Standard: mass', s.derived.capsuleMass, 7.3);
-  check('1. Standard: margin', s.derived.massMargin, 4.7);
+  check('1. Standard: margin', s.derived.massMargin, 2.7);
   check('1. Standard: power use', s.derived.powerUse, 320);
   check('1. Standard: power supply', s.derived.powerSupply, 600);
   check('1. Standard: reliability bonus', s.rel.parts, 0.07);
@@ -27,28 +27,32 @@ export function runChecks(catalog) {
   check('1. Standard: comms', s.derived.comms, 'standard');
   check('1. Standard: legal', lockInProblems(s, catalog).length, 0);
 
-  // 2. Cheapest legal capsule. Sparrow is too small, Condor passes.
+  // 2. Cheapest capsule. With the retuned rockets it is the only build Sparrow can carry.
   s = run(tier('budget'));
   check('2. Cheapest: mass', s.derived.capsuleMass, 5.8);
   check('2. Cheapest: parts cost', s.derived.spent, 125);
   s = run(tier('budget'), 'sparrow', 'canaveral');
-  check('2. Cheapest on Sparrow: margin', s.derived.massMargin, -0.8);
-  check('2. Cheapest on Sparrow: blocked', lockInProblems(s, catalog).includes('Too heavy by 0.8 t.'), true);
-  s = run(tier('budget'), 'sparrow', 'kourou');
-  check('2. Sparrow at Kourou: lift', s.derived.liftCapacity, 5.5);
-  check('2. Sparrow at Kourou: still too heavy', s.derived.massMargin < 0, true);
-  s = run(tier('budget'), 'condor', 'canaveral');
-  check('2. Cheapest on Condor: legal', lockInProblems(s, catalog).length, 0);
+  check('2. Cheapest on Sparrow: margin', s.derived.massMargin, 0.7);
+  check('2. Cheapest on Sparrow: legal', lockInProblems(s, catalog).length, 0);
+  s = run(tier('standard'), 'sparrow', 'canaveral');
+  check('2. Standard on Sparrow: margin', s.derived.massMargin, -0.8);
+  check('2. Standard on Sparrow: blocked', lockInProblems(s, catalog).includes('Too heavy by 0.8 t.'), true);
+  s = run(tier('standard'), 'sparrow', 'kourou');
+  check('2. Sparrow at Kourou: lift', s.derived.liftCapacity, 7.2);
+  check('2. Standard on Sparrow at Kourou: still too heavy', s.derived.massMargin < 0, true);
 
   // 3. Premium everything.
   s = run(tier('premium'), 'condor', 'canaveral');
   check('3. Premium: mass', s.derived.capsuleMass, 9.4);
-  check('3. Premium on Condor: margin', s.derived.massMargin, 2.6);
+  check('3. Premium on Condor: margin', s.derived.massMargin, 0.6);
   check('3. Premium: power', `${s.derived.powerUse}/${s.derived.powerSupply}`, '420/800');
   s = run(tier('premium'), 'condor', 'kodiak', 'polar');
-  check('3. Premium polar at Kodiak: lift', s.derived.liftCapacity, 10.2);
-  check('3. Premium polar at Kodiak: margin', s.derived.massMargin, 0.8);
-  check('3. Premium polar at Kodiak: legal', lockInProblems(s, catalog).length, 0);
+  check('3. Premium polar at Kodiak: lift', s.derived.liftCapacity, 8.5);
+  check('3. Premium polar at Kodiak: margin', s.derived.massMargin, -0.9);
+  check('3. Premium polar at Kodiak: blocked', lockInProblems(s, catalog).includes('Too heavy by 0.9 t.'), true);
+  s = run(tier('premium'), 'pelican', 'kodiak', 'polar');
+  check('3. Premium polar at Kodiak on Pelican: lift', s.derived.liftCapacity, 11.9);
+  check('3. Premium polar at Kodiak on Pelican: legal', lockInProblems(s, catalog).length, 0);
 
   // 4. Too much power for a budget battery.
   s = run({ ...tier('premium'), power: { type: 'battery', tier: 'budget' } });
@@ -63,9 +67,9 @@ export function runChecks(catalog) {
   check('6. Condor at Mahia polar is fine', siteProblem(findSite(catalog, 'mahia'), 'condor', 'polar'), null);
 
   // 7. Lift bonuses.
-  check('7. Condor at Kourou: lift', run(tier('standard'), 'condor', 'kourou').derived.liftCapacity, 13.2);
-  check('7. Condor polar at Kodiak: lift', run(tier('standard'), 'condor', 'kodiak', 'polar').derived.liftCapacity, 10.2);
-  check('7. Condor at Sriharikota: lift', run(tier('standard'), 'condor', 'sriharikota').derived.liftCapacity, 12.6);
+  check('7. Condor at Kourou: lift', run(tier('standard'), 'condor', 'kourou').derived.liftCapacity, 11);
+  check('7. Condor polar at Kodiak: lift', run(tier('standard'), 'condor', 'kodiak', 'polar').derived.liftCapacity, 8.5);
+  check('7. Condor at Sriharikota: lift', run(tier('standard'), 'condor', 'sriharikota').derived.liftCapacity, 10.5);
 
   // Shady parts (amendment A5): premium-like stats, cheap, hidden penalty.
   s = run({ ...tier('standard'), power: { type: 'battery', tier: 'shady' } });

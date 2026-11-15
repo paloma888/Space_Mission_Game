@@ -6,6 +6,8 @@ import { CATALOG, LINES } from './catalog.js';
 import * as math from './recompute.js';
 import * as ui from '../../core/ui.js';
 import { showShop } from './shop.js';
+import { showRocket, showSite, showOrbit } from './vehicle.js';
+import { showReview } from './review.js';
 
 export const meta = { id: 'build', owner: 'Person 2' };
 export { CATALOG };
@@ -23,32 +25,25 @@ function loadStyles() {
   document.head.append(link);
 }
 
+// The screens in order. Each one resolves 'next' or 'back'.
+// Rocket first: it sets how heavy the capsule may be, so the shop can show the margin live.
+const SCREENS = [showRocket, showShop, showSite, showOrbit, showReview];
+
 export async function show(state, done) {
   loadStyles();
-  // Whatever is already in the build counts as paid. The shop only charges changes from here.
+  // Whatever is already in the build counts as paid. Screens only charge changes from here.
   recompute(state);
   ui.refresh();
-  if (state.resume === 'build') state.resume = null; // Try Again: open on the shop with the old build
+  if (state.resume === 'build') state.resume = null; // Try Again: open on the rocket screen with the old build
 
   const ctx = { catalog: CATALOG, lines: LINES, recompute };
-  while (true) {
-    await showShop(state, ctx);
-    // Step 6: the shady dealer pops up here and compares the player's part with a dealer part.
-    const next = await rocketPlaceholder(state);
-    if (next === 'next') return done();
+  let i = 0;
+  while (i < SCREENS.length) {
+    const result = await SCREENS[i](state, ctx);
+    if (result === 'back') { i = Math.max(0, i - 1); continue; }
+    // Step 6: the shady dealer pops up here, after the shop (SCREENS[i] === showShop),
+    // comparing the player's part with a dealer part.
+    i += 1;
   }
-}
-
-// Temporary until step 4 builds the rocket, site and orbit screens.
-function rocketPlaceholder(state) {
-  return new Promise((resolve) => {
-    const root = ui.screen('build/rocket_yard');
-    root.classList.add('stub');
-    const box = document.createElement('div');
-    box.innerHTML = `<h1>Rocket, site and orbit</h1>
-      <p>Coming in step 4. Capsule: ${state.derived.capsuleMass} t, budget $${state.budget}M.</p>`;
-    root.append(box,
-      ui.button('Back', () => resolve('back'), { variant: 'quiet' }),
-      ui.button('Next', () => resolve('next')));
-  });
+  done();
 }
