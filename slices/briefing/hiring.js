@@ -96,13 +96,15 @@ export async function runHiring(state, { candidates, staff, hiringText }) {
       card.setAttribute('role', 'button');
       card.setAttribute('aria-label', person.name);
 
+      // The name gets the full card width (two lines fit every name, even Sam 'Sparks' Whitaker).
+      // Beside the portrait it only had room for about 10 characters a line.
       const head = el('div', 'hire-card-head');
       const info = el('div', 'hire-card-info');
-      info.append(el('div', 'hire-card-name', person.name), el('div', 'hire-card-cost', `$${person.cost}M`));
+      info.append(el('div', 'hire-card-cost', `$${person.cost}M`));
       const whyButton = ui.button('Why?', () => explain(person), { variant: 'quiet' });
       info.append(whyButton);
       head.append(ui.portrait(person.portrait ?? person.id, 64), info);
-      card.append(head);
+      card.append(el('div', 'hire-card-name', person.name), head);
 
       if (activeKind === 'astronaut') {
         for (const skill of ['pilot', 'eng', 'nerves']) {

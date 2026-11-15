@@ -88,10 +88,14 @@
   grid-column: 1; grid-row: 2;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 1fr; /* both rows the same height, so all 8 cards line up */
   align-content: start;
   gap: 12px;
 }
+/* A column, so the skill bars can be pushed to the bottom of every card. */
 .hire-card {
+  display: flex;
+  flex-direction: column;
   position: relative;
   background: var(--frame);
   border: 4px solid var(--frame-edge);
@@ -103,7 +107,14 @@
 .hire-card.is-unaffordable { opacity: 0.55; }
 .hire-card-head { display: flex; gap: 8px; margin-bottom: 8px; }
 .hire-card-info { min-width: 0; }
-.hire-card-name { line-height: 1.4; margin-bottom: 4px; }
+/* Exactly two lines tall whatever the name, so the portraits and bars below always line up. */
+.hire-card-name {
+  line-height: 1.4;
+  height: 2.8em;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+.hire-card-head + .bar { margin-top: auto; }
 .hire-card-cost { color: var(--accent); }
 .hire-card .btn { margin: 6px 0 0; padding: 4px 8px; }
 .hire-card .bar { margin-top: 4px; }
@@ -112,7 +123,7 @@
 .hire-card-badge {
   display: none;
   position: absolute;
-  top: -4px; right: -4px;
+  top: -14px; right: 8px; /* rides on the top border, clear of the name's first line */
   padding: 4px 6px;
   background: var(--accent);
   color: var(--bg);
