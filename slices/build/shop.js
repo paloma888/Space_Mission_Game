@@ -5,7 +5,7 @@
 import * as ui from '../../core/ui.js';
 import { installedParts } from './recompute.js';
 import { currentLift } from './compat.js';
-import { leftOver } from './common.js';
+import { leftOver, lockCard } from './common.js';
 
 // Power is last on purpose: pick what needs power first, then a battery big enough
 // to cover it, the same way engineers size a power system.
@@ -145,11 +145,11 @@ export function showShop(state, ctx) {
         card.append(el('div', 'tier-stat', powerText(part)));
         card.append(el('div', 'tier-trade', part.tradeoff));
         // Swapping only costs the difference, so a card is affordable if the difference fits.
+        card.onclick = () => pick(current, tier);
         if (tier !== chosen && part.cost - chosenCost > leftOver(state, ctx)) {
-          card.disabled = true;
+          lockCard(card); // clicking it plays build-deny instead of picking it
           card.append(el('div', 'tier-why', lines.shop?.noMoney ?? 'Not enough budget.'));
         }
-        card.onclick = () => pick(current, tier);
         middle.append(card);
       }
       // A dealer part isn't one of the three cards, so say what is installed instead.
@@ -239,7 +239,7 @@ function powerText(part) {
   return part.power ? `Uses ${part.power} W` : 'No power needed';
 }
 
-// 32x32 part icon shown at 2x. Missing art becomes a labeled box, never an error.
+// The tier's part art (see "icon" in parts.json). Missing art becomes a labeled box, never an error.
 function icon(name) {
   const img = el('img', 'tier-icon');
   img.alt = '';

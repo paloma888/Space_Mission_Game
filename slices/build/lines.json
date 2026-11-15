@@ -98,5 +98,8 @@
     "upsellNo": "No thanks",
     "upsellBought": "Excellent. Don't ask what it does. I don't know either.",
     "upsellPassed": "Suit yourself. It was a one-time offer."
+  },
+  "review": {
+    "component": "+ Mysterious component attached. Whatever it is."
   }
 }

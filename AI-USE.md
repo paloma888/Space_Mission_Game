@@ -23,6 +23,10 @@ Example:
 - Sat: Claude Code wrote `parts.json`, `rockets.json`, `sites.json`, `recompute.js` and a checks page that tests the build math against my test cases. I supplied the numbers and checked the results.
 - Sat: Claude Code wrote `core/dashboard.js` and its test page. I chose the gauge order and tuned the gauge widths.
 - Sat: Claude Code wrote the capsule shop (`shop.js`, `build.css`) and first-draft Hal and Rosa lines in `lines.json`. I tested it and chose the category order (power last), one Why? per category, and no auto-advance.
+- Sun: Claude Code built the rocket, launch-site map and review screens (`vehicle.js`, `compat.js`, `review.js`, `common.js`). It also reworked the flow to Rocket → Shop → Site → Review, with no Back buttons and money charged on Next. I designed the flow and the layouts and tuned them over many rounds.
+- Sun: Claude Code wrote the shady dealer (`dealer.js`), the per-tier dealer parts and the mysterious component upsell, plus their lines in `lines.json`. I designed the dealer's scene, the trade-in and the upsell.
+- Sun: Claude Code sized and wired in the rocket sprites and per-tier part art. The art itself is hand-drawn by our team; Claude did not make or edit any images.
+- Sun: Claude Code generated the nine Slice 2 sound effects (`audio/sfx/build-*.wav`, `shady-whisper.wav`, `shady-reject.wav`, `shady-deal.wav`) with a small synth script that uses square waves and noise, the same way jsfxr does. I chose what each sound should be and listened to them.
 
 ## Person 3: The Trail
 
