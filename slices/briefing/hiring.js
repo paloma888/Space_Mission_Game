@@ -105,8 +105,17 @@ export async function runHiring(state, { candidates, staff, hiringText }) {
 
     function shiftRow(step) {
       if (rosaIsTalking) return;
-      middleIndex = rules.wrapIndex(middleIndex + step, peopleFor(activeKind).length);
+      centerOn(middleIndex + step);
+    }
+
+    // The selected person is always the middle card, so the detail strip and Hire button
+    // always describe the card in the center.
+    function centerOn(personIndex) {
+      const people = peopleFor(activeKind);
+      middleIndex = rules.wrapIndex(personIndex, people.length);
+      selectedId = people[middleIndex].id;
       renderCards();
+      renderDetail();
     }
 
     // Arrow keys move the row too. Ignored while Rosa talks, since any key advances her lines then.
@@ -150,11 +159,10 @@ export async function runHiring(state, { candidates, staff, hiringText }) {
       }
       card.append(el('div', 'hire-card-badge', 'HIRED'));
 
+      // Clicking a side card slides it into the middle, which selects it.
       const select = () => {
-        if (rosaIsTalking) return;
-        selectedId = person.id;
-        updateCards();
-        renderDetail();
+        if (rosaIsTalking || person.id === selectedId) return;
+        centerOn(peopleFor(activeKind).indexOf(person));
       };
       card.addEventListener('click', select);
       card.addEventListener('keydown', (event) => {
