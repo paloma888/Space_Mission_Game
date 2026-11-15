@@ -24,7 +24,7 @@ export const SKY_COLORS = {
 // Where each object sits, as a direction from the STARTING view (x right, y up, z toward the
 // player). orbit-explorer.js turns these into fixed sky directions, the same way as the Moon.
 export const SKY_PLACES = {
-  andromeda: [-0.5, 0.3, 0.81],         // up and to the left: on screen right away
+  andromeda: [0.6, -0.12, 0.79],        // lower right: on screen right away, across the sky from the Sun
   galacticCenter: [0.82, -0.3, -0.48],  // behind you, to the right: the black hole, on the Milky Way band
   lmc: [-0.25, -0.9, 0.36],             // far below you (they're in the southern sky)
   smc: [-0.1, -0.93, 0.35],

@@ -18,7 +18,7 @@ import {
   makeCanvas, skyStops, buildSkyStrip, buildScene, buildFog, buildTower, buildRocket, splitRocketImage,
   buildCapsule, buildCloud, makePuffCache, buildEarthLimb, buildSaucer, SAUCER_LIGHTS,
 } from './launch-art.js';
-import { buildSite } from './launch-sites.js';
+import { buildSite } from './sites/index.js';
 
 const FOLLOW_Y = 118;   // once it climbs, the camera keeps the rocket's base on this row
 const HOLD_DOWN = 0.8;  // seconds the engines roar before the rocket lets go of the pad (like real clamps)
@@ -84,7 +84,7 @@ export function mountLaunchAnim(parent, state, opts = {}) {
   // ---------- Art, drawn once now (placeholders until the team's pictures exist)
   const art = {
     sky: g.createPattern(buildSkyStrip(pal, skyStops(C, weather)), 'repeat-x'),
-    // The launch site as layers [{ img, rate }], far to near (launch-sites.js). A site that isn't
+    // The launch site as layers [{ img, rate }], far to near (sites/index.js). A site that isn't
     // drawn there yet gets the simple scene as one layer that moves with the ground.
     site: buildSite(ink, state.site ?? 'canaveral') ?? [{ img: buildScene(ink, state.site), rate: 1 }],
     fog: weather === 'fog' ? buildFog(ink) : null,

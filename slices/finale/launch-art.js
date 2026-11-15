@@ -36,7 +36,7 @@ export const LAUNCH_COLORS = {
   light: '#e0b048', alarm: '#c0604a', ok: '#88b084', ocean: '#6a98d0', land: '#80b080', landShade: '#446c44',
 };
 
-// The simple scene for sites that launch-sites.js doesn't draw yet (the sites from Amendment A1).
+// The simple scene for sites that sites/ does not draw yet (the sites from Amendment A1).
 //   far: what's on the horizon    ground: what the pad stands on    props: decorations on the sides
 export const SCENES = {
   canaveral: { far: 'sea', ground: 'sand', props: 'palms' },
@@ -59,7 +59,7 @@ export function makeCanvas(w, h) {
   g.imageSmoothingEnabled = false;
   return { canvas, g };
 }
-// (Exported so launch-sites.js draws with the same tools.)
+// (Exported so the site files in sites/ draw with the same tools.)
 export const dot = (g, x, y, color) => { g.fillStyle = color; g.fillRect(x, y, 1, 1); };
 export const box = (g, x, y, w, h, color) => { g.fillStyle = color; g.fillRect(x, y, w, h); };
 // A filled pixel circle, drawn one row at a time.
@@ -249,7 +249,7 @@ function drawPine(g, ink, x, baseY) {
 }
 
 // The concrete launch pad, with a dark flame trench under the rocket. Its top surface is row PAD_Y.
-// (Exported so every site in launch-sites.js gets the same pad, where the rocket expects it.)
+// (Exported so every site in sites/ gets the same pad, where the rocket expects it.)
 export function drawPad(g, ink) {
   box(g, 128, PAD_Y + 8, 64, 4, ink.concreteShade);   // wide base step
   box(g, 134, PAD_Y, 52, 10, ink.concreteShade);      // the pad block

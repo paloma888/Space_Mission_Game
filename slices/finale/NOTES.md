@@ -24,7 +24,7 @@ The Rulebook and `docs/RULEBOOK-AMENDMENTS.md` still win over anything here.
   - On the globe, the saucer is twice as big and flies right next to the capsule.
   - The secret Close Encounter badge shows on the report only when earned. Test: `test.html?outcome=aliens`.
 - **Built: the deep sky on the globe** (`explorer-sky.js`): Andromeda (on screen at the start), the Milky Way band, the black hole Sagittarius A* (on the band, behind the starting view), and the two Magellanic Clouds (below). Click any of them, or the band, for a NASA fact. Facts and sources are in `explorer-facts.json`. Each has a `todo` until Erick checks it. `sky-preview.html` shows all the sky art 4x bigger.
-- **Built: Cape Canaveral and Kodiak** as hand-tuned scenes with parallax (`launch-sites.js`). Still to do: Kourou, Mahia, Sriharikota, then one file per site in a `sites/` folder.
+- **Built: all five launch sites** (Cape Canaveral, Kodiak, Kourou, Mahia, Sriharikota) as hand-tuned scenes with parallax, one file per site in `sites/` (`draw.js` is their shared toolbox). Next: sound effects and music.
 - **⚠️ Erick still to do:** open each history card's NASA link in a private window, check the story, then delete its `todo` line. Two facts are NOT on the linked pages:
   - Webb launched in December 2021.
   - Artemis I's new dates and its November 2022 launch.

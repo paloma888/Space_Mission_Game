@@ -122,7 +122,7 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
 
   // The Sun and Moon are placed relative to the starting view: the Sun lights the front-left,
   // and the Moon hides off to the right so the player can go looking for it.
-  const sun = fromView(...normalize([-0.55, 0.45, 0.7]));
+  const sun = fromView(...normalize([-0.6, 0.3, 0.74])); // top left, just on screen, so its glow shows
   const moon = fromView(...normalize([0.95, 0.25, -0.25]));
 
   // 🌌 The deep sky (explorer-sky.js): fixed directions like the Moon, and pictures drawn once now.
@@ -357,6 +357,7 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
     drawDeepSky();
     const sunAt = skyPoint(sun);
     if (sunAt) {
+      sunGlow(sunAt.x, sunAt.y, calm ? 0 : now); // the halo and rays go behind the Sun's disc
       disc(sunAt.x, sunAt.y, 7, () => C.sunRim);
       disc(sunAt.x, sunAt.y, 5, () => C.sun);
       if (!behindEarth(sunAt)) spots.push({ x: sunAt.x, y: sunAt.y, r: 9, title: 'The Sun', text: 'Sunlight takes about 8 minutes to reach Earth. Never look straight at the real one!' });
@@ -370,6 +371,31 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
         return (px * 7 + py * 3) % 11 === 0 ? C.moonDark : C.moon; // a few crater pixels
       });
       if (!behindEarth(moonAt)) spots.push({ x: moonAt.x, y: moonAt.y, r: 8, title: 'The Moon', text: 'About 384,000 km away. Getting there is a mission for another day.' });
+    }
+  }
+
+  // ☀️ The Sun's glow, drawn just before its disc:
+  //   - a soft halo: lots of gold dots near the Sun, fewer and orange farther out, so it fades away
+  //   - 8 thin rays that slowly turn and gently grow and shrink. Their outer ends break into dots.
+  // t = seconds (0 with reduced motion, so the rays hold still).
+  function sunGlow(cx, cy, t) {
+    const R = 20; // how far the halo reaches, in pixels
+    for (let y = -R; y <= R; y++) {
+      for (let x = -R; x <= R; x++) {
+        const d = Math.hypot(x, y);
+        if (d < 7 || d > R) continue;
+        const strength = (1 - (d - 7) / (R - 7)) ** 1.6 * 0.75;      // 0.75 next to the Sun, 0 at the edge
+        const b = BAYER[((Math.round(cy) + y) & 3) * 4 + ((Math.round(cx) + x) & 3)];
+        if (b < strength) plot(cx + x, cy + y, d < 11 ? C.sun : C.sunRim);
+      }
+    }
+    for (let k = 0; k < 8; k++) {
+      const a = (k / 8) * Math.PI * 2 + t * 0.08;                    // a slow turn
+      const len = (k % 2 ? 22 : 30) + Math.sin(t * 1.5 + k) * 3;     // long and short rays, breathing
+      for (let s = 8; s < len; s++) {
+        if (s > len * 0.6 && s % 2) continue;                        // the outer end fades into dots
+        plot(cx + Math.cos(a) * s, cy + Math.sin(a) * s, s < 14 ? C.sun : C.sunRim);
+      }
     }
   }
 
