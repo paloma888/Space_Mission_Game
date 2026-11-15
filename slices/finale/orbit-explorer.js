@@ -8,6 +8,7 @@
 // continent outlines at the bottom of this file.
 
 import { button } from '../../core/ui.js';
+import { BAYER, rad, clampN, hash, hash2, noise3, readPalette, pickColors, nearestColor, darker } from './pixel.js';
 
 const W = 320;
 const H = 180;
@@ -21,13 +22,22 @@ const ORBIT_RADIUS = 1.12; // in Earth radii. Real low orbit is about 1.06; a bi
 const ORBIT_SECONDS = 24; // one lap on screen (the real one takes about 90 minutes)
 const SPIN_SECONDS = 120; // one Earth turn on screen
 
-// Palette indices (core/base.css --c0 to --c15). Each surface has a [day, dusk, night] color.
-const OCEAN = 12, LAND = 3, DRY = 4, ICE = 7;
-const TONES = { [OCEAN]: [12, 1, 1], [LAND]: [3, 5, 1], [DRY]: [4, 5, 1], [ICE]: [7, 6, 5] };
-const CLOUD = [7, 6];
+// 🎨 Colors described by what they should LOOK like. pickColors() (pixel.js) swaps each one for the
+// closest of the team's 16 palette colors, so the globe keeps working if the palette changes again.
+// (It used to use palette numbers directly, which broke when the team picked a new palette.)
+const GLOBE_COLORS = {
+  space: '#03050f', night: '#0e1830',
+  ocean: '#5a8ad0', oceanDusk: '#1c3a78', land: '#80b080', landDusk: '#406840',
+  dry: '#e2b088', dryDusk: '#925a42', ice: '#d0e0f0', iceDusk: '#8a8a8a',
+  cloud: '#d4e2f2', cloudDusk: '#8c8478', city: '#e0b040', glow: '#6890d0', glowDark: '#1c3a78',
+  star: '#d0e0f8', starWarm: '#ecc0a0', starDim: '#8a8178',
+  sun: '#e0b048', sunRim: '#cc7a40', moon: '#9a9088', moonDark: '#706860',
+  orbitFront: '#9a9088', orbitBack: '#746b61',
+  capsule: '#d8e2f0', capsuleWindow: '#6d95ca', capsuleShield: '#746b61', capsuleLight: '#c0604a',
+  siteMark: '#c06850', siteGlow: '#ecc4a8', alien: '#88ae84', hull: '#8a8178',
+};
+const FIREWORK_ROLES = ['capsuleLight', 'sun', 'alien', 'ocean', 'siteGlow', 'sunRim'];
 const CLOUD_CUTOFF = 0.66;
-const CITY = 10;
-const FIREWORK_COLORS = [8, 9, 10, 11, 12, 14];
 
 // Real launch-site coordinates in degrees (rounded). Only used to place the blinking marker.
 // The five sites from Amendment A1 (south and west are negative).
@@ -38,12 +48,6 @@ const SITES = {
   mahia: { name: 'Mahia', lat: -39.3, lon: 177.9 },
   sriharikota: { name: 'Sriharikota', lat: 13.7, lon: 80.2 },
 };
-
-const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((n) => (n + 0.5) / 16);
-// Degrees to radians (JavaScript's Math.sin and Math.cos use radians).
-const rad = (d) => (d * Math.PI) / 180;
-// Keeps a number between lo and hi. Same idea as clamp in core/state.js.
-const clampN = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
 
 /**
  * Job: puts the interactive 3D globe on the page and keeps it running until destroy() is called.
@@ -69,9 +73,20 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
   const buf = new Uint32Array(image.data.buffer);
   const pal = readPalette();
   const P = pal.u32;
+  const C = pickColors(pal, GLOBE_COLORS); // role -> palette number, e.g. C.ocean
 
-  let surface = buildSurface();
-  loadSurfaceArt(pal.rgb).then((s) => { if (s) surface = s; });
+  // Each kind of ground has a [day, dusk, night] color. Anything else (a hand-drawn map's own
+  // colors) gets a darker version of itself for dusk.
+  const TONES = new Map([
+    [C.ocean, [C.ocean, C.oceanDusk, C.night]],
+    [C.land, [C.land, C.landDusk, C.night]],
+    [C.dry, [C.dry, C.dryDusk, C.night]],
+    [C.ice, [C.ice, C.iceDusk, C.night]],
+  ]);
+  const tonesFor = (kind) => TONES.get(kind) ?? [kind, darker(pal, kind), C.night];
+
+  let surface = buildSurface(C);
+  loadSurfaceArt(pal).then((s) => { if (s) surface = s; });
 
   // ---------- 📷 CAMERA ----------
   // yaw   = turn left/right, like shaking your head "no". Spins Earth like a desk globe on its stand.
@@ -112,7 +127,7 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
     const a = hash(i * 3 + 2) * Math.PI * 2;
     const r = Math.sqrt(1 - z * z);
     const b = hash(i * 3 + 3);
-    return { d: [r * Math.cos(a), z, r * Math.sin(a)], c: b > 0.85 ? 7 : b > 0.5 ? 6 : 13 };
+    return { d: [r * Math.cos(a), z, r * Math.sin(a)], c: b > 0.85 ? C.star : b > 0.5 ? C.starWarm : C.starDim };
   });
 
   // ---------- The orbit. It is tilted at least as much as the launch site's latitude, because a
@@ -291,8 +306,8 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
     }
     const sunAt = skyPoint(sun);
     if (sunAt) {
-      disc(sunAt.x, sunAt.y, 7, () => 9);
-      disc(sunAt.x, sunAt.y, 5, () => 10);
+      disc(sunAt.x, sunAt.y, 7, () => C.sunRim);
+      disc(sunAt.x, sunAt.y, 5, () => C.sun);
       if (!behindEarth(sunAt)) spots.push({ x: sunAt.x, y: sunAt.y, r: 9, title: 'The Sun', text: 'Sunlight takes about 8 minutes to reach Earth. Never look straight at the real one!' });
     }
     const moonAt = skyPoint(moon);
@@ -300,8 +315,8 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
       const sv = toView(...sun);
       disc(moonAt.x, moonAt.y, 5, (nx, ny, nz, px, py) => {
         const light = nx * sv[0] + ny * sv[1] + nz * sv[2];
-        if (light < -0.05) return 1;
-        return (px * 7 + py * 3) % 11 === 0 ? 5 : 6; // a few crater pixels
+        if (light < -0.05) return C.night;
+        return (px * 7 + py * 3) % 11 === 0 ? C.moonDark : C.moon; // a few crater pixels
       });
       if (!behindEarth(moonAt)) spots.push({ x: moonAt.x, y: moonAt.y, r: 8, title: 'The Moon', text: 'About 384,000 km away. Getting there is a mission for another day.' });
     }
@@ -357,8 +372,8 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
           const k = 1 / Math.sqrt(n2);
           const [wx, wy, wz] = fromView(vx * k, vy * k, 0);
           const light = wx * sx + wy * sy + wz * sz;
-          if (light > -0.25 + b * 0.3) buf[py * W + px] = P[12];
-          else if (light > -0.6) buf[py * W + px] = P[1];
+          if (light > -0.25 + b * 0.3) buf[py * W + px] = P[C.glow];
+          else if (light > -0.6) buf[py * W + px] = P[C.glowDark];
           continue;
         }
 
@@ -384,12 +399,12 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
         // About 15% cloud cover. Raise CLOUD_CUTOFF for clearer skies, lower it for more clouds.
         const cloud = noise3(ex * 4 + drift, wy * 5, ez * 4) * 0.65 + noise3(ex * 9, wy * 9, ez * 9 + drift) * 0.35;
         if (cloud > CLOUD_CUTOFF && light > -0.05 + b * 0.1) {
-          c = light > 0.15 ? CLOUD[0] : CLOUD[1];
+          c = light > 0.15 ? C.cloud : C.cloudDusk;
         } else {
-          c = shade(TONES[kind] ?? [kind, 5, 1], light, b);
+          c = shade(tonesFor(kind), light, b);
           // City lights sprinkle the night side of the land.
-          if (light < -0.12 && kind !== OCEAN && kind !== ICE
-            && hash2(Math.floor((lon + Math.PI) * 57.3), Math.floor((lat + 2) * 57.3)) < 0.06) c = CITY;
+          if (light < -0.12 && kind !== C.ocean && kind !== C.ice
+            && hash2(Math.floor((lon + Math.PI) * 57.3), Math.floor((lat + 2) * 57.3)) < 0.06) c = C.city;
         }
         buf[py * W + px] = P[c];
       }
@@ -401,7 +416,7 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
     const n = Math.round(clampN(cam.r * 3, 90, 600));
     for (let i = 0; i < n; i += 2) { // every other point: a dotted line
       const q = project(orbitPoint((i / n) * Math.PI * 2));
-      if ((q.z >= 0) === front) plot(q.x, q.y, front ? 6 : 5);
+      if ((q.z >= 0) === front) plot(q.x, q.y, front ? C.orbitFront : C.orbitBack);
     }
   }
 
@@ -426,7 +441,8 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
   function drawCapsule(q, t) {
     const scale = cam.r > 140 ? 2 : 1;
     const blink = Math.floor(t * 2) % 2 ? 'r' : 'w';
-    drawSprite(q.x, q.y, ['..w..', `.wbw.`, 'wwwww', `.g${blink}g.`], { w: 7, b: 12, g: 5, r: 8 }, scale);
+    drawSprite(q.x, q.y, ['..w..', `.wbw.`, 'wwwww', `.g${blink}g.`],
+      { w: C.capsule, b: C.capsuleWindow, g: C.capsuleShield, r: C.capsuleLight }, scale);
     spots.push({ x: q.x, y: q.y, r: 7 * scale, title: 'Your capsule', text: `${crewNames} in ${orbitName}, going about 28,000 km/h. One lap around Earth takes about 90 minutes.` });
   }
 
@@ -436,7 +452,7 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
     const arms = ['a.a', '.a.', 'a..', '..a'][f]; // a four-frame alien dance on the saucer's roof
     drawSprite(q.x, q.y - 1, [
       `..${arms}..`, '...a...', '..ggg..', f % 2 ? '.ywywy.' : '.wywyw.', 'ggggggg', '.l.l.l.',
-    ], { a: 11, g: 6, w: 7, y: 10, l: f % 2 ? 10 : 9 }, cam.r > 140 ? 2 : 1);
+    ], { a: C.alien, g: C.hull, w: C.capsule, y: C.sun, l: f % 2 ? C.sun : C.sunRim }, cam.r > 140 ? 2 : 1);
     spots.push({ x: q.x, y: q.y, r: 9, title: 'Visitors!', text: 'Nobody at Mission Control can explain this. They seem to love your warp coil.' });
   }
 
@@ -445,8 +461,10 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
     const [x, z] = turnY(siteDir[0], siteDir[2], spin);
     const q = project([x, siteDir[1], z]);
     if (q.z < 0.05) return;
-    plot(q.x, q.y, 8);
-    if (Math.floor(t * 2) % 2) { plot(q.x - 1, q.y, 7); plot(q.x + 1, q.y, 7); plot(q.x, q.y - 1, 7); plot(q.x, q.y + 1, 7); }
+    plot(q.x, q.y, C.siteMark);
+    if (Math.floor(t * 2) % 2) {
+      plot(q.x - 1, q.y, C.siteGlow); plot(q.x + 1, q.y, C.siteGlow); plot(q.x, q.y - 1, C.siteGlow); plot(q.x, q.y + 1, C.siteGlow);
+    }
     const day = state.launchDay != null ? ` on day ${state.launchDay}` : '';
     spots.push({ x: q.x, y: q.y, r: 6, title: site.name, text: `Your rocket launched from here${day}. The Earth keeps turning under your crew.` });
   }
@@ -460,13 +478,13 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
       if (age < 0 || age > 1.6) continue;
       const ox = 40 + hash(k * 7 + 1) * 240;
       const oy = 26 + hash(k * 7 + 2) * 60;
-      const color = FIREWORK_COLORS[k % FIREWORK_COLORS.length];
+      const color = C[FIREWORK_ROLES[k % FIREWORK_ROLES.length]];
       for (let i = 0; i < 22; i++) {
         const a = (i / 22) * Math.PI * 2 + hash(k * 50 + i) * 0.3;
         const speed = 30 + hash(k * 90 + i) * 22;
         const x = ox + Math.cos(a) * speed * age;
         const y = oy + Math.sin(a) * speed * age + 22 * age * age; // a little gravity
-        plot(x, y, age > 1.1 ? 5 : color);
+        plot(x, y, age > 1.1 ? C.orbitBack : color); // sparks fade to grey before they vanish
       }
     }
   }
@@ -502,7 +520,7 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
     setCam();
     const spin = spinAt(now);
     spots = [];
-    buf.fill(P[0]);
+    buf.fill(P[C.space]);
     drawSky();
     drawOrbit(false);
     const capsule = project(orbitPoint(theta0 + (now * Math.PI * 2) / ORBIT_SECONDS));
@@ -562,50 +580,13 @@ function shade(tones, light, b) {
   return tones[2];
 }
 
-// Repeatable "noise" for stars, clouds and sparks. Same input, same output, every time.
-function hash(n) {
-  n = Math.imul(n ^ (n >>> 16), 0x45d9f3b);
-  n = Math.imul(n ^ (n >>> 16), 0x45d9f3b);
-  return ((n ^ (n >>> 16)) >>> 0) / 4294967296;
-}
-const hash2 = (x, y) => hash(Math.imul(x, 73856093) ^ Math.imul(y, 19349663));
-const hash3 = (x, y, z) => hash(Math.imul(x, 73856093) ^ Math.imul(y, 19349663) ^ Math.imul(z, 83492791));
-
-// Smooth blobs for clouds: blend the noise values at the 8 corners of the cube around a point.
-function noise3(x, y, z) {
-  const xi = Math.floor(x), yi = Math.floor(y), zi = Math.floor(z);
-  const fx = x - xi, fy = y - yi, fz = z - zi;
-  const u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy), w = fz * fz * (3 - 2 * fz);
-  const lerp = (a, b, k) => a + (b - a) * k;
-  const c = (dx, dy, dz) => hash3(xi + dx, yi + dy, zi + dz);
-  return lerp(
-    lerp(lerp(c(0, 0, 0), c(1, 0, 0), u), lerp(c(0, 1, 0), c(1, 1, 0), u), v),
-    lerp(lerp(c(0, 0, 1), c(1, 0, 1), u), lerp(c(0, 1, 1), c(1, 1, 1), u), v),
-    w);
-}
-
-// ---------- Palette from core/base.css, so a palette swap changes the globe too
-
-// Reads the 16 colors (--c0 to --c15) from the page's CSS, in two forms: [r, g, b] and canvas-ready numbers.
-function readPalette() {
-  const css = getComputedStyle(document.documentElement);
-  const rgb = [];
-  const u32 = [];
-  for (let i = 0; i < 16; i++) {
-    const hex = (css.getPropertyValue(`--c${i}`).trim() || '#000000').replace('#', '');
-    const n = parseInt(hex.length === 3 ? hex.replace(/./g, '$&$&') : hex.slice(0, 6), 16) || 0;
-    const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
-    rgb.push([r, g, b]);
-    u32.push(((255 << 24) | (b << 16) | (g << 8) | r) >>> 0); // ImageData byte order is R, G, B, A
-  }
-  return { rgb, u32 };
-}
+// (hash, noise3 and readPalette moved to pixel.js, so the launch animation can share them.)
 
 // ---------- The Earth map: a hand-drawn PNG if one exists, otherwise rough continent outlines
 
 // Tries to load a hand-drawn art/sprites/earth_map.png and snaps each pixel to the nearest palette color.
 // Returns null if the file doesn't exist yet.
-async function loadSurfaceArt(rgb) {
+async function loadSurfaceArt(pal) {
   const img = new Image();
   img.src = new URL('../../art/sprites/earth_map.png', import.meta.url).href;
   try { await img.decode(); } catch { return null; } // not drawn yet: keep the outline map
@@ -616,31 +597,25 @@ async function loadSurfaceArt(rgb) {
   g.drawImage(img, 0, 0);
   const px = g.getImageData(0, 0, c.width, c.height).data;
   const data = new Uint8Array(c.width * c.height);
-  for (let i = 0; i < data.length; i++) {
-    let best = 0, bestD = Infinity;
-    rgb.forEach(([r, gg, b], k) => {
-      const d = (px[i * 4] - r) ** 2 + (px[i * 4 + 1] - gg) ** 2 + (px[i * 4 + 2] - b) ** 2;
-      if (d < bestD) { bestD = d; best = k; }
-    });
-    data[i] = best;
-  }
+  for (let i = 0; i < data.length; i++) data[i] = nearestColor(pal, [px[i * 4], px[i * 4 + 1], px[i * 4 + 2]]);
   return { w: c.width, h: c.height, data };
 }
 
-// Builds the 128x64 flat world map from the continent outlines below: ocean, land, desert or ice per cell.
-function buildSurface() {
+// Builds the 128x64 flat world map from the continent outlines below. Each cell holds the palette
+// number of its day color (C.ocean, C.land, C.dry or C.ice), so drawEarth can look up its shading.
+function buildSurface(C) {
   const w = 128, h = 64;
   const data = new Uint8Array(w * h);
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
       const lon = -180 + ((x + 0.5) * 360) / w;
       const lat = 90 - ((y + 0.5) * 180) / h;
-      let kind = Math.abs(lat) > 80 ? ICE : OCEAN;
+      let kind = Math.abs(lat) > 80 ? C.ice : C.ocean;
       for (const shape of CONTINENTS) {
         if (!inside(shape.pts, lon, lat)) continue;
-        if (shape.ice) kind = ICE;
-        else if (Math.abs(lat) > 14 && Math.abs(lat) < 32 && hash2(x, y) > 0.35) kind = DRY; // desert belts
-        else kind = LAND;
+        if (shape.ice) kind = C.ice;
+        else if (Math.abs(lat) > 14 && Math.abs(lat) < 32 && hash2(x, y) > 0.35) kind = C.dry; // desert belts
+        else kind = C.land;
         break;
       }
       data[y * w + x] = kind;

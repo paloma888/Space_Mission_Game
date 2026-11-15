@@ -21,6 +21,7 @@ import * as ui from '../../core/ui.js';            // Person 1's screen helpers:
 import { addFlag, loadCheckpoint, random } from '../../core/state.js';
 import { resolveLaunch, noLaunch, computeScore, oddsWords, pickHistoryCard } from './launch-sim.js';
 import { mountOrbitExplorer } from './orbit-explorer.js';
+import { mountLaunchAnim } from './launch-anim.js';
 
 // Tells core/screens.js who this slice is (Rulebook section 4).
 export const meta = { id: 'finale', owner: 'Person 5' };
@@ -139,8 +140,9 @@ function makeSkipper() {
   return s;
 }
 
-// ---------- 1. The launch. Placeholder text version. The canvas animation replaces it later
-// and plays the same `result`, so it can never disagree with the numbers.
+// ---------- 1. The launch. playLaunch() is the DIRECTOR: it reads the dice result and tells the
+// animation (launch-anim.js) what to show, beat by beat. The animation never rolls dice itself,
+// so the pictures always match the numbers.
 
 // Launch timing, slowed down so kids can read every line. Change these to speed it up or slow it down.
 const COUNTDOWN_FROM = 5;   // the countdown starts at T-5
@@ -148,41 +150,50 @@ const TICK_MS = 1000;        // one countdown number per second (1000 millisecon
 const LINE_MS = 3000;        // a new sentence every 3 seconds
 
 /**
- * Job: shows the launch, stage by stage. It only REPLAYS the result and never rolls dice.
- *   Countdown T-5 to T-0, then a new sentence every 3 seconds: each stage shows GO (green) or
- *   FAIL (red) with a caption, then any emergencies. A Skip button appears after 3 seconds.
- *   Stops at the first FAIL. This is the function to change for the real launch animation.
- * @param {Object} state - the shared backpack (only reads state.site for the background).
+ * Job: plays the launch animation, stage by stage, with captions. It only REPLAYS the result.
+ *   Countdown T-5 to T-0, then a new sentence every 3 seconds: each stage shows GO or FAIL with a
+ *   caption while the rocket climbs. Then it ends one of three ways:
+ *     failed stage    -> the engines sputter out and the screen fades: "Launch failure. The crew is safe."
+ *     came home early -> the capsule turns for home, glowing orange, and the screen fades
+ *     orbit           -> the Kirby-style fly-away, a twinkle, then a white flash into the 3D globe
+ *   A Skip button appears after 3 seconds.
+ * @param {Object} state - the shared backpack (the animation reads site, rocket and weather).
  * @param {Object} result - what resolveLaunch returned.
  * @param {Object} text - the captions from launch-text.json.
  * @returns {Promise} - finishes when the launch is done showing.
+ * ⭐
  */
 async function playLaunch(state, result, text) {
-  // Set up the screen: music, the launch site background, and a box with the countdown and the log.
+  // Set up the screen: music, the animation full screen (dashboard hidden), and text on top of it.
   ui.music('launch_theme');
-  const root = ui.screen(`launchweek/${state.site ?? 'canaveral'}`);
+  const root = ui.screen(null, { dashboard: false });
   root.classList.add('fin-launch');
-  const box = ui.panel('Launch');
-  const count = el('div', 'fin-count');   // the big T-5 number
-  const log = el('div', 'fin-log');       // the list of sentences below it
-  box.append(count, log);
-  root.append(box);
+  const sk = makeSkipper();
+  const count = el('div', 'fin-count');   // the big T-5 number, top center
+  const alt = el('div', 'fin-alt');       // the altitude counter, top right
+  const log = el('div', 'fin-log');       // the captions, bottom left (next to the rocket, not on it)
+  const anim = mountLaunchAnim(root, state, { sleep: sk.sleep, altitudeEl: alt });
+  root.append(count, alt, log);
 
   // The Skip button: hidden at first, shows up after 3 seconds.
-  const sk = makeSkipper();
   const skip = ui.button('Skip', () => sk.skip(), { variant: 'quiet' });
   skip.classList.add('fin-skip');
   skip.hidden = true;
   root.append(skip);
   setTimeout(() => { skip.hidden = false; }, 3000); // brief: Skip appears after 3 seconds
 
-  // line(): adds one sentence to the log. kind ('go', 'fail', 'warn') picks its color.
-  const line = (words, kind) => log.append(el('div', kind ? `fin-${kind}` : '', words));
+  // line(): adds one caption. kind ('go', 'fail', 'warn') picks its color. Only the newest 4
+  // stay, so the box never grows over the rocket.
+  const line = (words, kind) => {
+    log.append(el('div', kind ? `fin-${kind}` : '', words));
+    while (log.children.length > 4) log.firstChild.remove();
+  };
 
   // The countdown: T-5, T-4 ... T-1, one per second, then T-0 and ignition.
   line(text.countdown ?? 'Here we go.');
   for (let n = COUNTDOWN_FROM; n >= 1; n--) {
     count.textContent = `T-${n}`;
+    anim.countdown(n);                     // near the end, the crew arm swings back to the tower
     ui.sfx('fin-countdown');
     await sk.sleep(TICK_MS);
   }
@@ -190,48 +201,74 @@ async function playLaunch(state, result, text) {
   ui.sfx('fin-ignite');
 
   // The four stages, one sentence every LINE_MS (3 seconds). Stops at the first FAIL.
+  let failed = false;
   for (const stage of result.stages) {
     const words = text.stages?.[stage.id] ?? { name: stage.id.toUpperCase(), pass: '', fail: '' };
     if (stage.skipped) {             // secret ending: the rest of the stages never happen
       line(text.skipped ?? '...', 'warn');
       break;
     }
-    if (stage.id === 'liftoff') await showEmergencies(result, 'liftoff', text, line, sk, root); // lightning
+    anim.stage(stage.id, stage.passed);  // start this stage's animation (it sputters if it's going to fail)
+    if (stage.id === 'liftoff') await showEmergencies(result, 'liftoff', text, line, sk, anim); // lightning
     await sk.sleep(LINE_MS);
+    count.textContent = '';              // the countdown is over once the first result is in
     if (stage.passed) {
       ui.sfx('fin-go');
       line(`${words.name}: GO. ${words.pass}`, 'go');
     } else {
       ui.sfx('fin-fail');
       line(`${words.name}: FAIL. ${words.fail}`, 'fail');
+      failed = true;
       break;                         // `break` leaves the loop early: no more stages after a fail
     }
   }
 
-  // Problems in orbit (if any), then one last pause so the final sentence can be read.
-  await showEmergencies(result, 'orbit', text, line, sk, root);
-  await sk.sleep(LINE_MS);
-  skip.remove();
+  // How the launch ends.
+  if (failed) {
+    await anim.fail(text.failure ?? 'Launch failure. The crew is safe.');
+  } else {
+    // Problems up in orbit (if any) play out with the capsule alone above the Earth.
+    const troubleInOrbit = result.emergencies.some((e) => e.stage === 'orbit');
+    if (troubleInOrbit) {
+      anim.toSpace();
+      await showEmergencies(result, 'orbit', text, line, sk, anim);
+    }
+    if (result.outcome === 'came_home_early') {
+      await anim.headHome(text.homeEarly ?? 'Heading home early. The crew is safe.');
+    } else {
+      await sk.sleep(troubleInOrbit ? LINE_MS : 1500); // time to read the last line before flying off
+      ui.sfx('fin-whoosh');
+      await anim.zoomOut();          // fly off into space, twinkle, white flash (orbitEnding fades it away)
+    }
+  }
+  anim.destroy();
 }
 
-// Shows each emergency at one stage: the alarm, then LINE_MS later, fixed or "heading home".
-async function showEmergencies(result, stage, text, line, sk, root) {
+// Shows each emergency at one stage: the alarm (with its animation), then a pause, then fixed or not.
+async function showEmergencies(result, stage, text, line, sk, anim) {
   // .filter() keeps only the emergencies that happened at this stage.
   for (const e of result.emergencies.filter((x) => x.stage === stage)) {
     const words = text.emergencies?.[e.type] ?? { alert: e.type, saved: '', unfixed: '' };
-    await sk.sleep(LINE_MS);
-    if (e.type === 'lightning') { ui.sfx('fin-thunder'); flash(root); }
+    await sk.sleep(stage === 'liftoff' ? 1200 : LINE_MS); // lightning hits soon after liftoff
+    if (e.type === 'lightning') {
+      ui.sfx('fin-thunder');
+      anim.lightning();
+    } else {
+      anim.alarm(e.type);            // power: the lights flicker. life support: a red alarm blinks
+    }
     line(words.alert, 'warn');
     await sk.sleep(LINE_MS); // the tense pause before we find out
+    anim.settle(e.type, e.saved);    // fixed: lights back to normal. Not fixed: lights out, or the alarm keeps going
     line(e.saved ? words.saved : words.unfixed, e.saved ? 'go' : 'fail');
   }
 }
 
-// Blinks the screen white for a lightning strike.
-function flash(root) {
-  root.classList.remove('fin-flash');
-  void root.offsetWidth; // restart the animation if it already ran
-  root.classList.add('fin-flash');
+// Starts a new screen covered (white or dark) and fades the cover away: the second half of a
+// transition. The launch fades TO white or dark; the next screen fades back FROM it.
+function unveil(root, kind) {
+  const cover = el('div', `fin-veil fin-veil-${kind} on fin-unveil`);
+  root.append(cover);
+  setTimeout(() => cover.remove(), 1200);
 }
 
 // ---------- 2. Endings
@@ -252,10 +289,11 @@ function orbitEnding(state, ending) {
 
   // "I'll finish later": this screen finishes when resolve() is called by the button below.
   return new Promise((resolve) => {
-    // The 3D globe fills the screen.
+    // The 3D globe fills the screen, fading in from the launch's white flash.
     const root = ui.screen();
     root.classList.add('fin-explore');
     const explorer = mountOrbitExplorer(root, state, { celebrate: true, aliens });
+    unveil(root, 'white');
 
     // Title at the top, controls hint at the bottom.
     root.append(el('div', 'fin-explore-title', ending.title));
@@ -288,6 +326,7 @@ async function plainEnding(state, ending) {
   ui.sfx('fin-fail');
   const root = ui.screen(`finale/${ENDING_ART[state.outcome] ?? 'ending_launch_failure'}`);
   root.classList.add('fin-ending');
+  unveil(root, 'dark');                // fades in from the launch's dark fade
   const box = ui.panel();
   box.append(el('h1', '', ending.title), el('p', '', ending.text));
   root.append(box);
