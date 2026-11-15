@@ -49,8 +49,37 @@ export function planWeek(state, assignments, tasks) {
   }
 
   plan.rest = Math.min(plan.rest, tasks.rest.weekCap);
-  for (const key of [...PROGRESS_IDS, 'funds']) plan[key] = round1(plan[key]);
+  // In a crunch week the same work counts for more (see crunchRules below).
+  const boost = tasks.progressMult ?? 1;
+  for (const key of PROGRESS_IDS) plan[key] = round1(plan[key] * boost);
+  plan.funds = round1(plan.funds);
   return plan;
+}
+
+/**
+ * The rules for a crunch week: the same tasks.json numbers, except the weekly
+ * overhead costs more and progress counts for more. Both multipliers come from
+ * tasks.crunch, so tuning never touches this file.
+ */
+export function crunchRules(tasks) {
+  return {
+    ...tasks,
+    weekly: { ...tasks.weekly, overhead: Math.round(tasks.weekly.overhead * tasks.crunch.costMult) },
+    progressMult: tasks.crunch.progressMult,
+  };
+}
+
+/** A copy of an event where every price is `mult` times higher. Money coming in is left alone. */
+export function withHigherPrices(event, mult) {
+  const pricier = (effects) => (effects?.budget < 0 ? { ...effects, budget: Math.round(effects.budget * mult) } : effects);
+  return {
+    ...event,
+    choices: event.choices.map((choice) => ({
+      ...choice,
+      ...(choice.effects && { effects: pricier(choice.effects) }),
+      ...(choice.outcomes && { outcomes: choice.outcomes.map((o) => ({ ...o, effects: pricier(o.effects) })) }),
+    })),
+  };
 }
 
 /** What budget and morale will be after this plan, for the preview. */

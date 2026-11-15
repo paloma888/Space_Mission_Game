@@ -27,6 +27,34 @@
 .task-btn.task-on { background: var(--accent); outline: 4px solid var(--bg); }
 
 .trail-tip { min-height: 3.2em; margin: 12px 0 0; }
+/* This week's hint, at the top of the right-hand panel. */
+.trail-hint { font-size: var(--small); line-height: 1.6; margin: 0 0 12px; }
+
+/* Title on the left, the Astronauts / Staff switch on the right, on one line to save height. */
+.trail-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.trail-head .panel-title { margin: 0; }
+.tab-btn {
+  font-size: var(--small);
+  padding: 8px 12px;
+  margin: 0 0 0 4px;
+}
+/* The active tab is the bright one, the same look as the hiring screen's tabs. */
+.tab-btn.tab-on { background: var(--accent); }
+
+/* Bar text sits partly on the dark track and partly on the bright fill.
+   A hard dark outline (no blur, to stay pixel-crisp) keeps it readable on both. */
+.trail .bar-label {
+  text-shadow: 2px 0 0 var(--bg), -2px 0 0 var(--bg), 0 2px 0 var(--bg), 0 -2px 0 var(--bg);
+}
+
+/* An astronaut's three skills, stacked beside their name. */
+.trail-stats { display: grid; gap: 4px; }
+.trail-stats .bar { width: 200px; height: 20px; }
 
 /* Right side: progress bars with this week's preview under each. */
 .trail-progress { margin-bottom: 16px; }
