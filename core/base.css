@@ -137,6 +137,15 @@ small, .small { font-size: var(--small); }
   box-shadow: 0 0 0 4px var(--bg); /* chunky double border, no blur */
 }
 .panel { padding: 24px; margin-bottom: 24px; }
+/* A light blur behind the dialogue box and panels only (not cards over portrait art).
+   Browsers without backdrop-filter skip this block and show the plain see-through fill,
+   which is readable on its own, so nothing breaks. */
+@supports ((backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))) {
+  .dialogue, .panel {
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+  }
+}
 
 /* ---------- Dialogue box */
 .dialogue {
