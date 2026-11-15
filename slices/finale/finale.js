@@ -414,10 +414,9 @@ function report(state, result, data, ending) {
   total.style.animationDelay = `${score.lines.length * 0.35}s`;
   left.append(total);
   setTimeout(() => ui.sfx('fin-medal'), score.lines.length * 350 + 300); // medal sound after the rows
+  // No medal: just the reason (e.g. "Launch the rocket to earn a medal."). Short, so the panel fits.
   left.append(el('div', `fin-medal fin-medal-${score.medal ?? 'none'}`,
-    score.medal ? MEDAL_NAMES[score.medal]
-      : launched ? `No medal this time. ${score.medalReason}`
-      : score.medalReason)); // no launch: just "Launch the rocket to earn a medal.", so the panel fits
+    score.medal ? MEDAL_NAMES[score.medal] : score.medalReason));
   // Badges: lit if earned, dim with a hint if not. Labels come from badges.json.
   // No launch: all greyed out with one caption, and no per-badge hints (they'd be confusing here).
   const badges = el('div', launched ? 'fin-badges' : 'fin-badges fin-badges-locked');
@@ -439,7 +438,12 @@ function report(state, result, data, ending) {
   if (card?.todo) console.warn(`finale: history card "${card.id}" is not checked yet. TODO: ${card.todo}`);
   if (card) {
     if (card.tone === 'memorial') middle.classList.add('fin-card-memorial');
-    middle.append(el('p', '', card.story), el('p', 'fin-card-lesson', card.lesson));
+    middle.classList.add('fin-card');
+    // The story and lesson scroll if they're long. The sources sit below them, always on screen,
+    // because judges must see the NASA source without scrolling (Checkpoint 3).
+    const body = el('div', 'fin-card-body');
+    body.append(el('p', '', card.story), el('p', 'fin-card-lesson', card.lesson));
+    const sources = el('div', 'fin-card-sources');
     // Source links open in a new tab.
     for (const s of card.sources ?? []) {
       if (!/^https:\/\//.test(s.url ?? '')) continue; // never show a TODO or broken link
@@ -447,8 +451,9 @@ function report(state, result, data, ending) {
       a.href = s.url;
       a.target = '_blank';
       a.rel = 'noopener';
-      middle.append(a);
+      sources.append(a);
     }
+    middle.append(body, sources);
   } else {
     // No card matched: a short note instead.
     const success = state.outcome === 'orbit' || state.outcome === 'aliens';

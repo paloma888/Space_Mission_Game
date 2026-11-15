@@ -356,7 +356,7 @@ export function computeScore(state, result = {}) {
   if (!medal) {
     if (!launched) medalReason = 'Launch the rocket to earn a medal.';
     else if (finished) medalReason = 'You reached orbit, but scored under 60.';
-    else if (outcome === 'came_home_early') medalReason = 'The crew had to come home before the mission was done.';
+    else if (outcome === 'came_home_early') medalReason = 'The crew came home before the mission was done.';
     else medalReason = 'Medals are only for finishing the mission.';
   }
 

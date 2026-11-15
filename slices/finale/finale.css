@@ -137,14 +137,19 @@
 .fin-medal-silver { background: var(--c6); color: var(--bg); }
 .fin-medal-bronze { background: var(--c4); color: var(--ink); }
 .fin-medal-none { color: var(--muted); border: 4px solid var(--c5); }
-.fin-badges { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.fin-badge { padding: 6px; border: 4px solid var(--good); color: var(--good); line-height: 1.4; }
+.fin-badges { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.fin-badge { padding: 4px 6px; border: 4px solid var(--good); color: var(--good); line-height: 1.4; }
 .fin-badge.off { border-color: var(--c5); color: var(--c5); }
-.fin-badge-hint { margin-top: 4px; color: var(--muted); line-height: 1.4; }
+.fin-badge-hint { margin-top: 2px; color: var(--muted); line-height: 1.4; }
 .fin-card-lesson { color: var(--accent); }
 /* Real NASA history cards about crew losses keep a quiet, respectful look (Rulebook 1, Amendment A2). */
 .fin-card-memorial .panel-title { color: var(--ink); }
 .fin-source { display: block; color: var(--frame-edge); margin-top: 8px; line-height: 1.6; }
+/* History card: title on top, story and lesson in the middle (they scroll if long), sources pinned
+   at the bottom so they're always visible. min-height: 0 is what lets the middle part shrink and scroll. */
+.fin-report .fin-card { display: flex; flex-direction: column; overflow: hidden; }
+.fin-card-body { flex: 1; min-height: 0; overflow: auto; }
+.fin-card-sources { flex: none; border-top: 4px solid var(--frame-edge); padding-top: 4px; }
 .fin-odds { margin-bottom: 14px; line-height: 1.6; }
 .fin-good { color: var(--good); }
 .fin-neutral { color: var(--muted); }
@@ -158,12 +163,12 @@
 
 /* ---------- No-launch report (bankrupt, window_closed): locked score rows and badges */
 .fin-locked { color: var(--muted); }
-.fin-needs { color: var(--c5); white-space: nowrap; } /* "needs a launch", where the points would be */
+.fin-needs { color: var(--border-grey, var(--c3)); white-space: nowrap; } /* "needs a launch", where the points would be */
 .fin-locked > span:first-child { white-space: nowrap; }
 /* Greyed out: the palette's grey for both border and words, so they read as "not available yet". */
 /* Slightly tighter than the normal badges, so the panel still fits when Rosa's box is tall. */
 .fin-badges-locked { gap: 6px; }
-.fin-badges-locked .fin-badge { padding: 4px 6px; border-color: var(--c3); color: var(--c3); }
+.fin-badges-locked .fin-badge { padding: 4px 6px; border-color: var(--border-grey, var(--c3)); color: var(--border-grey, var(--c3)); }
 /* ".fin-report" in front so this beats the general ".fin-report p" margin above. */
 .fin-report .fin-badges-note { margin: 14px 0 0; color: var(--muted); text-align: center; }
 
@@ -174,10 +179,10 @@
 .fin-step { display: flex; gap: 12px; line-height: 1.6; }
 .fin-step-words { padding-bottom: 18px; } /* the space between steps lives here, so the line runs through it */
 .fin-step-mark { flex: none; width: 24px; display: flex; flex-direction: column; align-items: center; }
-.fin-step-line { flex: 1; width: 4px; background: var(--c5); }
+.fin-step-line { flex: 1; width: 4px; background: var(--border-grey, var(--c3)); }
 .fin-step-done .fin-step-line { background: var(--good); } /* the part of the road already travelled */
 .fin-step:last-child .fin-step-line { display: none; }
-.fin-step-box { width: 20px; height: 20px; box-sizing: border-box; border: 4px solid var(--c5); background: var(--frame); }
+.fin-step-box { width: 20px; height: 20px; box-sizing: border-box; border: 4px solid var(--border-grey, var(--c3)); background: none; }
 .fin-step-done .fin-step-box { border-color: var(--good); background: var(--good); }
 /* The placeholder rocket at its real size (1 art pixel = 1 screen pixel) stays sharp. A team PNG
    is capped at the same height. */
@@ -191,4 +196,4 @@
 }
 .fin-step-detail { color: var(--muted); }
 .fin-step-stop { color: var(--c2); } /* terracotta red, the same as FAIL in the launch */
-.fin-step-todo .fin-step-label { color: var(--c5); }
+.fin-step-todo .fin-step-label { color: var(--border-grey, var(--c3)); }
