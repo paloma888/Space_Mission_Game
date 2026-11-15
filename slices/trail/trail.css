@@ -128,3 +128,17 @@
 
 /* ---------- Task icons: 32 x 32 art above each button's label */
 .task-icon { display: block; width: 32px; height: 32px; margin: 0 auto 4px; }
+
+/* Break room chatter on the week summary: a portrait and one line in that person's voice. */
+.trail-chatter {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 16px;
+  align-items: center;
+  margin: 0 0 16px;
+  padding: 12px;
+  border: 4px solid var(--frame-edge);
+  font-size: var(--small);
+  line-height: 1.8;
+}
+.trail-chatter-name { color: var(--accent); }

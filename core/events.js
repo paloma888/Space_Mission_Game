@@ -285,6 +285,24 @@ function resultSound(changes) {
   return 'trail-good';
 }
 
+// A small tag with what the choice changed, sitting on the top-right corner of the
+// dialogue box, so the player reads the result line and its cost together.
+// It lives inside the box, so it goes away when the box does.
+function pinChanges(box, lines) {
+  if (!box) return ui.toast(lines.join('   '), 2000); // no box to pin to: fall back to a toast
+  const tag = document.createElement('div');
+  tag.className = 'change-tag';
+  tag.textContent = lines.join('   ');
+  Object.assign(tag.style, {
+    position: 'absolute', top: '-22px', right: '24px',
+    padding: '8px 16px', whiteSpace: 'nowrap',
+    background: 'var(--bg)', color: 'var(--accent)', border: '4px solid var(--frame-edge)',
+  });
+  box.append(tag);
+  // Gone after 2 seconds, even if the player is still reading the line.
+  setTimeout(() => tag.remove(), 2000);
+}
+
 /**
  * Plays one event: scene, dialogue, choice, effects, result line, toast.
  * Returns { choice, changes, ended }. `ended` is checkEnd(state): if it is not
@@ -311,9 +329,17 @@ export async function runEvent(state, event) {
   const picked = choice.outcomes ? rollOutcome(choice.outcomes) : choice;
   const changes = applyEffects(state, picked.effects);
   ui.sfx(resultSound(changes));
-  if (picked.result) await ui.say(speaker.id, picked.result);
   const lines = describeChanges(changes);
-  if (lines.length) ui.toast(lines.join('   '), 3000);
+  if (picked.result) {
+    // ui.say builds its dialogue box straight away, so the change tag can be pinned to it
+    // and stays up exactly as long as the result line does.
+    const saying = ui.say(speaker.id, picked.result);
+    const boxes = document.querySelectorAll('#game .dialogue');
+    if (lines.length) pinChanges(boxes[boxes.length - 1], lines);
+    await saying;
+  } else if (lines.length) {
+    ui.toast(lines.join('   '), 2000);
+  }
 
   state.events.push(event.id);
   return { choice: index, changes, ended: checkEnd(state) };

@@ -1,6 +1,6 @@
 {
   "note": "x and y are pixels on the 320 x 180 trail_map background. Change them to match where each stop is drawn.",
-  "seconds": 3,
+  "seconds": 2,
   "stops": [
     { "name": "Design",   "x": 40,  "y": 125 },
     { "name": "Parts",    "x": 100, "y": 75 },

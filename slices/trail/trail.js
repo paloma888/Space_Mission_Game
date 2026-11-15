@@ -6,7 +6,7 @@
 // The rival ticker lives in rival.js and the trail map header in map.js.
 
 import * as ui from '../../core/ui.js';
-import { checkEnd } from '../../core/state.js';
+import { checkEnd, pick } from '../../core/state.js';
 import { applyEffects, describeChanges, loadAllEvents, pickEvent, runEvent } from '../../core/events.js';
 import { TASK_IDS, PROGRESS_IDS, planWeek, projectWeek, resolveWeek, sumChanges, crunchRules, withHigherPrices } from './week.js';
 import { loadRival, mountTicker, rivalPercent } from './rival.js';
@@ -217,14 +217,30 @@ async function showResolve(state, before, changes, week, crunch) {
     parts[id].bar.querySelector('.bar-label').textContent = progressLabel(id, state.progress[id]);
   }
   const lines = describeChanges(sumChanges(changes));
-  if (lines.length) ui.toast(lines.join('   '), 2500);
+  if (lines.length) ui.toast(lines.join('   '), 2000);
   // A positive budget change here can only be fundraising money coming in.
   if (changes.some((c) => c.key === 'budget' && c.delta > 0)) ui.sfx('trail-cash');
   await wait(1800);
 }
 
 // Step E: a short list of everything that changed this week.
-function summaryScreen(state, changes, week, isLast) {
+// Break room chatter: one hired person or astronaut says how the week felt, in their own voice.
+// Their mood comes from the week: a crunch week, a tired team (morale under 45), or a good week.
+function chatterLine(state, chatter, crunch) {
+  const people = [...state.staff, ...state.crew].filter((p) => chatter[p.id]);
+  if (!people.length) return null;
+  const person = pick(people);
+  const mood = crunch ? 'crunch' : state.morale < 45 ? 'tired' : 'good';
+  const text = chatter[person.id][mood];
+  if (!text) return null;
+  const row = el('div', 'trail-chatter');
+  const words = el('div');
+  words.append(el('div', 'trail-chatter-name', person.name), el('div', null, `"${text}"`));
+  row.append(ui.portrait(person.portrait || person.id, 64), words);
+  return row;
+}
+
+function summaryScreen(state, changes, week, isLast, chatter, crunch) {
   return new Promise((resolve) => {
     const root = ui.screen('trail/workshop');
     root.classList.add('trail');
@@ -233,17 +249,20 @@ function summaryScreen(state, changes, week, isLast) {
 
     const list = el('ul');
     for (const line of describeChanges(sumChanges(changes))) list.append(el('li', null, line));
-    panel.append(list,
-      el('p', null, `Budget $${state.budget}M. Morale ${state.morale}.`),
-      ui.button(isLast ? 'On to launch week' : 'Next week', resolve));
+    panel.append(list, el('p', null, `Budget $${state.budget}M. Morale ${state.morale}.`));
+    const talk = chatterLine(state, chatter, crunch);
+    if (talk) panel.append(talk);
+    panel.append(ui.button(isLast ? 'On to launch week' : 'Next week', resolve));
     root.append(panel);
   });
 }
 
 export async function show(state, done) {
-  const [tasks, bulletins] = await Promise.all([
+  const [tasks, bulletins, chatter] = await Promise.all([
     fetch(new URL('./tasks.json', import.meta.url)).then((res) => res.json()),
     loadRival(),
+    // Chatter is optional: a missing or broken file just means nobody talks on the summary.
+    fetch(new URL('./chatter.json', import.meta.url)).then((res) => res.json()).catch(() => ({})),
     loadAllEvents(),
   ]);
   ui.music('build_loop');
@@ -310,7 +329,7 @@ export async function show(state, done) {
     // E. Summary, then time moves on
     // Events can add days, so the launch window may open before week 5 is over.
     const isLast = week === LAST_WEEK || state.day + 7 >= state.windowOpens;
-    await summaryScreen(state, weekChanges, week, isLast);
+    await summaryScreen(state, weekChanges, week, isLast, chatter, crunch);
     applyEffects(state, { day: 7 });
     if (checkEnd(state)) return finish('finale');
     if (isLast) break;
