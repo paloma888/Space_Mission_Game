@@ -17,6 +17,30 @@
     .demo-source { font-size: 8px; color: var(--muted); }
     .demo-buttons { margin-top: 12px; }
     .demo-buttons .btn { font-size: var(--small); padding: 8px 12px; }
+
+    /* See-through text boxes over a bright and a busy background (palette colors only). */
+    .demo-stages { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; }
+    .demo-stage { position: relative; height: 440px; overflow: hidden; border: 4px solid var(--frame-edge); }
+    .demo-stage-label {
+      position: absolute; top: 8px; left: 8px; z-index: 40;
+      padding: 4px 8px; font-size: var(--small); color: var(--bg); background: var(--accent);
+    }
+    /* The lightest palette color with soft bright shapes: the worst case for light text. */
+    .demo-stage-bright {
+      background:
+        radial-gradient(circle at 75% 30%, var(--c15) 0 60px, transparent 61px),
+        radial-gradient(circle at 20% 80%, var(--c7) 0 50px, transparent 51px),
+        var(--c1);
+    }
+    /* A hard-edged checker in four contrasting palette colors: the busiest case. */
+    .demo-stage-busy {
+      background:
+        repeating-linear-gradient(45deg, transparent 0 12px, var(--c10) 12px 16px),
+        repeating-conic-gradient(var(--c1) 0 25%, var(--c2) 0 50%, var(--c12) 0 75%, var(--c15) 0 100%) 0 0 / 32px 32px;
+    }
+    .demo-stage .panel { position: absolute; top: 48px; left: 16px; width: 300px; margin: 0; font-size: var(--small); }
+    .demo-stage .toast { top: 56px; left: auto; right: 16px; transform: none; font-size: var(--small); }
+    .demo-stage .dialogue { left: 16px; right: 16px; bottom: 16px; padding: 16px; gap: 16px; font-size: var(--small); }
   </style>
 </head>
 <body>
@@ -49,11 +73,15 @@
       face.append(ui.portrait(characterId, 64, mood), sourceLabel);
 
       // The portrait sets data-source on load, or swaps itself for a placeholder box.
-      const showSource = () => {
+      // Stop watching once the label is written: writing it is itself a change in `face`,
+      // and an observer that keeps reacting to its own edits freezes the page.
+      const sourceWatcher = new MutationObserver(() => {
         const shown = face.querySelector('.portrait');
-        if (shown?.dataset.source) sourceLabel.textContent = `${caption}: ${shown.dataset.source}`;
-      };
-      new MutationObserver(showSource).observe(face, { subtree: true, childList: true, attributes: true });
+        if (!shown?.dataset.source) return;
+        sourceWatcher.disconnect();
+        sourceLabel.textContent = `${caption}: ${shown.dataset.source}`;
+      });
+      sourceWatcher.observe(face, { subtree: true, childList: true, attributes: true });
       return face;
     }
 
@@ -100,6 +128,40 @@
       }, { variant: 'quiet' }),
     );
     root.append(buttonRow);
+
+    // See-through boxes: a panel, a toast and a dialogue box over a bright and a busy background.
+    // Built as plain elements (not ui.say/ui.toast) so they stay on screen to look at.
+    root.insertAdjacentHTML('beforeend', `
+      <h1 style="margin-top: 32px">See-through text boxes</h1>
+      <div class="demo-note">--panel-alpha 0.8, 2px blur on the dialogue box and panel, 1px dark text shadow.</div>
+    `);
+    const stages = document.createElement('div');
+    stages.className = 'demo-stages';
+    for (const [stageClass, stageLabel] of [['demo-stage-bright', 'Bright background'], ['demo-stage-busy', 'Busy background']]) {
+      const stage = document.createElement('div');
+      stage.className = `demo-stage ${stageClass}`;
+      const label = document.createElement('div');
+      label.className = 'demo-stage-label';
+      label.textContent = stageLabel;
+
+      const demoPanel = ui.panel('Panel title');
+      demoPanel.insertAdjacentHTML('beforeend', '<p>Body text in a panel. <a href="#">A link</a>.</p>');
+      demoPanel.append(ui.button('Button', () => {}), ui.bar(3, 5, 'Bar 3'));
+
+      const demoToast = document.createElement('div');
+      demoToast.className = 'toast';
+      demoToast.textContent = 'Toast: Hal hired!';
+
+      const demoDialogue = document.createElement('div');
+      demoDialogue.className = 'dialogue';
+      demoDialogue.innerHTML = '<div class="dialogue-body"><div class="dialogue-name">Rosa Vega</div>'
+        + '<div class="dialogue-text">Measure twice, launch once. Can you read every word of this line?</div></div>';
+      demoDialogue.prepend(ui.portrait('rosa', 64));
+
+      stage.append(label, demoPanel, demoToast, demoDialogue);
+      stages.append(stage);
+    }
+    root.append(stages);
   </script>
 </body>
 </html>
