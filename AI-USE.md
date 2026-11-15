@@ -11,7 +11,16 @@ Example:
 
 ## Person 1: Foundation, Briefing & Hiring
 
+- Sat: Claude Code wrote amendment A10 (happy and sad portraits) and added mood support to `core/ui.js`, `core/base.css` and `core/ui-demo.html`.
+- Sat: Claude Code made 13 targeted fixes to `core/state.js`, `core/ui.js` and `core/screens.js` (A7 preset, lazy dashboard refresh, mute memory, slice fades, lost-contact panel, dev panel buttons) and wrote `core/state-test.html`.
+- Sat: Claude Code built the briefing slice (`briefing.js`, `hiring.js`, `hiring-rules.js`, `briefing.css`, test pages) and the data file layout with TODO placeholders. It later merged the character text I wrote back into the stat lists in `candidates.json` and `staff.json`.
+
 ## Person 2: Build & Launch Setup
+
+- Sat: Claude Code drafted `docs/RULEBOOK-AMENDMENTS.md` from my Slice 2 design decisions (new sites, no crew loss, flight computer, shady parts) and added its import to `CLAUDE.md`. The team reviewed and approved the amendments.
+- Sat: Claude Code wrote `parts.json`, `rockets.json`, `sites.json`, `recompute.js` and a checks page that tests the build math against my test cases. I supplied the numbers and checked the results.
+- Sat: Claude Code wrote `core/dashboard.js` and its test page. I chose the gauge order and tuned the gauge widths.
+- Sat: Claude Code wrote the capsule shop (`shop.js`, `build.css`) and first-draft Hal and Rosa lines in `lines.json`. I tested it and chose the category order (power last), one Why? per category, and no auto-advance.
 
 ## Person 3: The Trail
 

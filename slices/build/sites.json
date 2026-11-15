@@ -1,12 +1,7 @@
 [
-  { "id": "canaveral",   "name": "Cape Canaveral, Florida", "fee": 40, "liftBonus": 0,    "orbits": ["leo"],          "notRockets": [],          "deliveryFactor": 1,
-    "perk": "Every rocket can launch here.", "risk": "Summer storms and lightning.", "blurb": "A famous, busy coast with lots of launch experience." },
-  { "id": "kodiak",      "name": "Kodiak, Alaska",          "fee": 15, "liftBonus": 0,    "orbits": ["leo", "polar"], "notRockets": [],          "deliveryFactor": 1,
-    "perk": "The cheapest launch fees.", "risk": "Freezing cold. Hard on rubber seals.", "blurb": "A chilly island pad far to the north." },
-  { "id": "kourou",      "name": "Kourou, French Guiana",   "fee": 70, "liftBonus": 0.10, "orbits": ["leo"],          "notRockets": [],          "deliveryFactor": 2,
-    "perk": "Near the equator, so rockets lift 10% more.", "risk": "Expensive, and deliveries run late.", "blurb": "A jungle coast where Earth's spin gives you a free push." },
-  { "id": "mahia",       "name": "Mahia, New Zealand",      "fee": 20, "liftBonus": 0,    "orbits": ["leo", "polar"], "notRockets": ["pelican"], "deliveryFactor": 2,
-    "perk": "Low fees, and it can reach polar orbit.", "risk": "Small pads, so no Pelican. Slow deliveries.", "blurb": "A quiet peninsula with small pads and big ocean views." },
-  { "id": "sriharikota", "name": "Sriharikota, India",      "fee": 30, "liftBonus": 0.05, "orbits": ["leo", "polar"], "notRockets": [],          "deliveryFactor": 1,
-    "perk": "Low fees and 5% extra lift.", "risk": "Monsoon rain and strong wind.", "blurb": "An island pad close enough to the equator for a small boost." }
+  {"id": "canaveral", "name": "Cape Canaveral, Florida", "fee": 40, "liftBonus": 0, "orbits": ["leo"], "notRockets": [], "deliveryFactor": 1, "perk": "Every rocket can launch here.", "risk": "Summer storms and lightning.", "blurb": "A famous, busy coast with lots of launch experience.", "lat": 28.5, "lon": -80.6, "map": {"x": 0.242, "y": 0.376}},
+  {"id": "kodiak", "name": "Kodiak, Alaska", "fee": 15, "liftBonus": 0, "orbits": ["leo", "polar"], "notRockets": [], "deliveryFactor": 1, "perk": "The cheapest launch fees.", "risk": "Freezing cold. Hard on rubber seals.", "blurb": "A chilly island pad far to the north.", "lat": 57.4, "lon": -152.3, "map": {"x": 0.044, "y": 0.236}},
+  {"id": "kourou", "name": "Kourou, French Guiana", "fee": 70, "liftBonus": 0.1, "orbits": ["leo"], "notRockets": [], "deliveryFactor": 2, "perk": "Near the equator, so rockets lift 10% more.", "risk": "Expensive, and deliveries run late.", "blurb": "A jungle coast where Earth's spin gives you a free push.", "lat": 5.2, "lon": -52.8, "map": {"x": 0.32, "y": 0.552}},
+  {"id": "mahia", "name": "Mahia, New Zealand", "fee": 20, "liftBonus": 0, "orbits": ["leo", "polar"], "notRockets": ["pelican"], "deliveryFactor": 2, "perk": "Low fees, and it can reach polar orbit.", "risk": "Small pads, so no Pelican. Slow deliveries.", "blurb": "A quiet peninsula with small pads and big ocean views.", "lat": -39.3, "lon": 177.9, "map": {"x": 0.961, "y": 0.818}},
+  {"id": "sriharikota", "name": "Sriharikota, India", "fee": 30, "liftBonus": 0.05, "orbits": ["leo", "polar"], "notRockets": [], "deliveryFactor": 1, "perk": "Low fees and 5% extra lift.", "risk": "Monsoon rain and strong wind.", "blurb": "An island pad close enough to the equator for a small boost.", "lat": 13.7, "lon": 80.2, "map": {"x": 0.692, "y": 0.5}}
 ]

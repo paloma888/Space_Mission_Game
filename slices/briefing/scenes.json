@@ -1,0 +1,151 @@
+{
+  "scenes": [
+    {
+      "number": 0, "id": "title", "background": "briefing/title_screen",
+      "lines": [],
+      "howToPlay": [
+        "You are the Flight Director. Hire a crew, build a capsule and choose a rocket. You have $800M and 42 days, and both run out fast.",
+        "Each week you assign staff and handle surprises. Every choice costs money, time or risk. There is rarely a perfect answer, only trade-offs.",
+        "Before launch, your crew votes Go or No-Go. Listen to them. If a mission fails, you will learn the real NASA story behind it."
+      ],
+      "credits": [
+        "TODO: team names and who built what",
+        "Font: Press Start 2P (TODO: verify author and license on Google Fonts)",
+        "Palette: TODO: palette name, author and Lospec license note",
+        "All pixel art and sound made by hand by the team.",
+        "Every history card shows its NASA source on screen."
+      ]
+    },
+    {
+      "number": 1, "id": "hangar", "background": "briefing/hq_lobby",
+      "lines": [
+        { "speaker": "rosa", "text": "Welcome, Flight Director! You made it. Mind the paint, they're still finishing the hangar." },
+        { "speaker": "rosa", "text": "I'm Rosa Vega. I spent most of my career running launches from Mission Control." },
+        { "speaker": "rosa", "text": "Officially I'm retired. Unofficially, I couldn't stay away from a good rocket." },
+        { "speaker": "rosa", "text": "This agency is tiny, and it needs a leader who isn't afraid of a hard decision. That's you." },
+        { "speaker": "rosa", "text": "You have $800 million and 42 days. Miss the launch window and it's gone, and so is the mission." },
+        { "speaker": "rosa", "text": "Before we start, every agency needs a name. What shall we put on the door?" }
+      ],
+      "agencyNamePrompt": "What should we call our agency?",
+      "afterName": [
+        { "speaker": "rosa", "text": "{agencyName}. I like it. It sounds like a place where good rockets get built." }
+      ]
+    },
+    {
+      "number": 2, "id": "mission", "background": "briefing/rosa_office",
+      "missionCard": {
+        "title": "Mission 1",
+        "facts": [
+          "Crew of three to low Earth orbit",
+          "Budget: $800M",
+          "Time: 42 days",
+          "Win: crew safe, in orbit, score 60 or more"
+        ]
+      },
+      "lines": [
+        { "speaker": "rosa", "text": "Here's your mission card. Get a crew of three to low Earth orbit, safely, with a score of 60 or better." },
+        { "speaker": "rosa", "text": "Think of a launch window like a train that leaves once. If you're late, it doesn't wait for you." },
+        { "speaker": "rosa", "text": "Winning means the crew is alive, the capsule is in orbit, and the books are in good shape. All three." }
+      ]
+    },
+    {
+      "number": 3, "id": "dashboard", "background": "briefing/rosa_office",
+      "dashboard": true,
+      "lines": [
+        { "speaker": "rosa", "text": "See the bar along the top? That's your dashboard. Learn to read it. It's your best friend." },
+        { "speaker": "rosa", "text": "Budget is your money in millions. Run out and the mission is over, so spend like it's real.", "gauge": "budget" },
+        { "speaker": "rosa", "text": "Days shows how long until the launch window closes. Every delay eats into it.", "gauge": "days" },
+        { "speaker": "rosa", "text": "Mass margin is how much extra weight your rocket can lift. Below zero, you're too heavy to fly.", "gauge": "mass" },
+        { "speaker": "rosa", "text": "Power compares what your systems use to what your capsule makes. Use more than you make and things shut down.", "gauge": "power" },
+        { "speaker": "rosa", "text": "Comms is your radio. A weak one can't send science data home.", "gauge": "comms" },
+        { "speaker": "rosa", "text": "Morale is how the team feels. Tired, unhappy people do slower, sloppier work.", "gauge": "morale" },
+        { "speaker": "rosa", "text": "There's one number you can't see, called reliability. It's how likely things are to work when it counts." },
+        { "speaker": "rosa", "text": "Good parts and careful testing raise it. Shortcuts and surprises lower it. Treat it kindly." }
+      ]
+    },
+    {
+      "number": 4, "id": "road", "background": "briefing/rosa_office",
+      "stops": [
+        { "name": "Hire", "text": "Hire a crew of three astronauts and any staff you can afford." },
+        { "name": "Build", "text": "Choose your capsule parts, rocket, launch site and orbit." },
+        { "name": "Trail", "text": "Spend five weeks assigning staff and facing surprises." },
+        { "name": "Launch Week", "text": "Study the forecast, pick your day, and hear your crew vote." },
+        { "name": "Launch", "text": "Press the button and find out what your choices were worth." }
+      ],
+      "lines": [
+        { "speaker": "rosa", "text": "Every choice here costs you something. Money, time or risk. There's no free lunch in space." },
+        { "speaker": "rosa", "text": "That's not a trap. That's the job." }
+      ]
+    },
+    {
+      "number": 5, "id": "hiringTips", "background": "briefing/hiring_hall",
+      "lines": [
+        { "speaker": "rosa", "text": "Astronauts have three skills from one to five. Piloting flies, engineering fixes, and nerves keep a cool head." },
+        { "speaker": "rosa", "text": "Everyone has a flaw too. A great pilot who skips checklists can sink you faster than a rookie can." },
+        { "speaker": "rosa", "text": "Staff do the work behind the scenes. Without an engineer, an inspector or a meteorologist, you'll be guessing." }
+      ]
+    },
+    {
+      "number": 6, "id": "reaction", "background": "briefing/hiring_hall",
+      "variants": {
+        "steady": [
+          { "speaker": "rosa", "text": "This crew keeps calm when it counts. That will matter on launch morning." }
+        ],
+        "lightEngineering": [
+          { "speaker": "rosa", "text": "Your crew is light on engineering. Your staff will have to carry the repairs.." }
+        ],
+        "balanced": [
+          { "speaker": "rosa", "text": "A balanced crew. Good. Nobody's too strong or too weak anywhere." }
+        ]
+      },
+      "lines": [
+        { "speaker": "rosa", "text": "Measure twice, launch once." }
+      ]
+    }
+  ],
+  "hiring": {
+    "why": {
+      "pilot": [
+        { "speaker": "rosa", "text": "Piloting is flying skill. A strong pilot handles a rough launch better." },
+        { "speaker": "rosa", "text": "It can't fix a broken capsule, though. That's engineering's job." }
+      ],
+      "eng": [
+        { "speaker": "rosa", "text": "Engineering is fixing things fast. If a system fails in orbit, this is who saves you." },
+        { "speaker": "rosa", "text": "Think of it as the crew's own toolbox." }
+      ],
+      "nerves": [
+        { "speaker": "rosa", "text": "Nerves is staying calm when alarms go off. High nerves means clear thinking in a crisis." },
+        { "speaker": "rosa", "text": "It also decides how quickly a crewmate votes No-Go." }
+      ],
+      "engineer": [
+        { "speaker": "rosa", "text": "Engineers build the capsule. The better they are, the fewer weeks it takes." },
+        { "speaker": "rosa", "text": "Build slowly and you run out of days. Build carelessly and you run out of luck." }
+      ],
+      "inspector": [
+        { "speaker": "rosa", "text": "Inspectors test and check everything. They catch hidden flaws before the rocket does." },
+        { "speaker": "rosa", "text": "Skip them and reliability quietly drops every week." }
+      ],
+      "meteorologist": [
+        { "speaker": "rosa", "text": "A meteorologist makes the forecast sharper. They can tell storms from showers days ahead." },
+        { "speaker": "rosa", "text": "Without one, you're guessing at the sky." }
+      ],
+      "logistics": [
+        { "speaker": "rosa", "text": "Logistics keeps parts arriving on time, with fewer stolen or late shipments." },
+        { "speaker": "rosa", "text": "Delays cost days, and days are the one thing you can't buy." }
+      ],
+      "pr": [
+        { "speaker": "rosa", "text": "A PR lead turns your good work into donations. A good week of fundraising can pay for a part." },
+        { "speaker": "rosa", "text": "Budget is the thing everybody runs short on." }
+      ]
+    },
+    "missingWarning": {
+      "intro": "TODO: Rosa's warning opener.",
+      "roles": {
+        "engineer": "No engineer: slower building.",
+        "inspector": "No inspector: less testing.",
+        "meteorologist": "No meteorologist: a fuzzy forecast."
+      },
+      "question": "Hire anyway?"
+    }
+  }
+}
