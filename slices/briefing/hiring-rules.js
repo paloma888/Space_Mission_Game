@@ -6,21 +6,19 @@ export const KEY_ROLES = ['engineer', 'inspector', 'meteorologist'];
 export const WHY_CREW_FULL = 'Your capsule only fits three.';
 export const WHY_NO_BUDGET = 'Not enough budget.';
 
-// ---------- Paging: the hiring screen shows three cards at a time.
-export const CARDS_PER_PAGE = 3;
+// ---------- Carousel: three cards at a time around a middle card, looping at both ends.
+export const VISIBLE_CARDS = 3;
 
-export function pageCount(totalPeople) {
-  return Math.max(1, Math.ceil(totalPeople / CARDS_PER_PAGE));
+// Like a clock: one step past the last person is the first, one step before the first is the last.
+export function wrapIndex(index, totalPeople) {
+  return ((index % totalPeople) + totalPeople) % totalPeople;
 }
 
-// Keeps a page number inside 0 .. last page, so arrows and keys can never go past the ends.
-export function clampPage(pageIndex, totalPeople) {
-  return Math.min(Math.max(pageIndex, 0), pageCount(totalPeople) - 1);
-}
-
-export function peopleOnPage(people, pageIndex) {
-  const firstIndex = clampPage(pageIndex, people.length) * CARDS_PER_PAGE;
-  return people.slice(firstIndex, firstIndex + CARDS_PER_PAGE);
+// The person before the middle one, the middle one, and the one after.
+// With three people or fewer everyone shows once, so no card is ever repeated.
+export function peopleAround(people, middleIndex) {
+  if (people.length <= VISIBLE_CARDS) return people.slice();
+  return [-1, 0, 1].map((offset) => people[wrapIndex(middleIndex + offset, people.length)]);
 }
 
 // state.crew and state.staff hold exactly the RULEBOOK 7.1 fields, the same shape fakeState uses.

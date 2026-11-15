@@ -111,9 +111,8 @@
 .hiring-arrow-prev { left: 24px; }
 .hiring-arrow-next { right: 24px; }
 
-.hiring-dots { display: flex; gap: 8px; margin-top: 10px; }
-.hiring-dot { width: 8px; height: 8px; background: var(--frame-edge); }
-.hiring-dot.is-current { background: var(--accent); }
+/* "4 of 8" under the row. A dark shadow keeps it readable over the background. */
+.hiring-counter { margin-top: 10px; color: var(--ink); text-shadow: 2px 2px 0 var(--bg); }
 
 /* A column, so the skill bars can be pushed to the bottom of every card. */
 .hire-card {
