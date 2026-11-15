@@ -21,6 +21,8 @@
   --good: var(--c11);
   --danger: var(--c8);
   --placeholder: var(--c13);
+  /* The most neutral grey in the palette (c14 is the darker, slightly warmer one). */
+  --border-grey: var(--c3);
 
   --font: 'Press Start 2P', monospace;
   --title: 32px;
@@ -105,6 +107,13 @@ small, .small { font-size: var(--small); }
 /* A sad face with no art yet gets a calmer, darker box, so testers can tell the moods apart.
    Kept quiet on purpose: sad faces appear in serious moments (Amendment A10 tone rule). */
 .placeholder-box[data-mood="sad"] { background: var(--c8); color: var(--c1); }
+
+/* Every portrait (art or placeholder box), icon and card image gets the same thin grey edge.
+   border-box keeps the border inside the given size, so a 64px portrait stays 64px and no card shifts. */
+.portrait, .placeholder-box, .icon, .card img {
+  box-sizing: border-box;
+  border: 2px solid var(--border-grey);
+}
 
 /* ---------- Frames */
 .panel, .dialogue, .card, .toast {
