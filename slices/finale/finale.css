@@ -54,6 +54,7 @@
   transition: opacity 1.2s ease;
 }
 .fin-veil-white { background: var(--c1); color: var(--bg); transition-duration: 0.35s; }
+.fin-veil-green { background: var(--c9); color: var(--bg); transition-duration: 0.35s; } /* the saucer's flash */
 .fin-veil.on { opacity: 1; }
 .fin-unveil { animation: fin-unveil 0.9s ease forwards; }
 @keyframes fin-unveil { to { opacity: 0; } }

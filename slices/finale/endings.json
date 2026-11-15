@@ -114,10 +114,10 @@
   },
   "aliens": {
     "title": "Secret ending found!",
-    "text": "Something strange is waiting in orbit. A glowing saucer pulls alongside, and its crew starts to dance. Your warp coil was a hit!",
+    "text": "Something strange is waiting in orbit. A glowing saucer pulls alongside, and its crew starts to dance. That mysterious component was a hit!",
     "rosa": [
       "Well. I flew for thirty years and never saw that.",
-      "I'm not sure that warp coil was in any manual.",
+      "I'm not sure that mysterious component was in any manual.",
       "Measure twice, launch once... and wave back, I suppose."
     ],
     "why": { "default": "TODO", "byStage": {}, "byCause": {} }

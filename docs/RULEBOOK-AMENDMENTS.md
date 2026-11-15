@@ -138,7 +138,7 @@ Status: PROPOSED (proposed by Person 5 on Nov 14, 2026). Affects Persons 1, 2, 3
 | Days to spare | 10 | Unchanged |
 | Morale | 15 | `15 * morale / 100` |
 
-**Badges.** Safety First is replaced by Honest Parts: earned when the `shady_part` flag (A5) is not set.
+**Badges.** Safety First is replaced by Honest Parts: earned when the `shady_part` flag (A5) is not set. New secret badge, Close Encounter: earned in the `aliens` ending (A6). The report shows it only once it is earned, so it does not spoil the secret.
 
 **What each person needs to change**
 

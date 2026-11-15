@@ -296,6 +296,7 @@ export function medalFor(total, outcome) {
   // Under Budget -> $150M or more left
   // Team Player -> never launched through a No-Go
   // Honest Parts -> no shady parts bought
+  // Close Encounter -> 🛸 found the secret ending (a secret badge: the report hides it until earned)
 
 const BADGE_RULES = {
   measure_twice: (s) => (s.skippedTestingWeeks ?? 0) === 0,
@@ -303,6 +304,7 @@ const BADGE_RULES = {
   under_budget: (s) => s.budget >= 150,
   team_player: (s) => !(s.flags ?? []).includes('overruled_nogo'),
   honest_parts: (s) => !(s.flags ?? []).includes('shady_part'), // Amendment A5: the shady dealer
+  close_encounter: (s) => s.outcome === 'aliens',
 };
 
 /**

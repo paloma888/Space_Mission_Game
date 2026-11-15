@@ -19,6 +19,12 @@ The Rulebook and `docs/RULEBOOK-AMENDMENTS.md` still win over anything here.
   - The PR-lead tip swap: `broke_build` and `broke_trail` with no PR lead on staff. `&pr=1` on `test.html` adds one.
   - Small changes from the plan, so everything fits on one screen: locked rows say "needs a launch" in place of the points, with no "-". With no launch, the medal box says only "Launch the rocket to earn a medal."
   - "No-launch endings" part added to Amendment A11.
+- **Built: the secret ending (A6).** Daniel's dealer sells the "mysterious component" (sets the `warp_coil` flag). Launching on the last day (46) with it, after a good liftoff:
+  - A flying saucer swoops in, holds the rocket in a green tractor beam, and zips off with it (`abduct()` in `launch-anim.js`). Then a green flash into the globe.
+  - On the globe, the saucer is twice as big and flies right next to the capsule.
+  - The secret Close Encounter badge shows on the report only when earned. Test: `test.html?outcome=aliens`.
+- **Built: the deep sky on the globe** (`explorer-sky.js`): Andromeda (on screen at the start), the Milky Way band, the black hole Sagittarius A* (on the band, behind the starting view), and the two Magellanic Clouds (below). Click any of them, or the band, for a NASA fact. Facts and sources are in `explorer-facts.json`. Each has a `todo` until Erick checks it. `sky-preview.html` shows all the sky art 4x bigger.
+- **Built: Cape Canaveral and Kodiak** as hand-tuned scenes with parallax (`launch-sites.js`). Still to do: Kourou, Mahia, Sriharikota, then one file per site in a `sites/` folder.
 - **⚠️ Erick still to do:** open each history card's NASA link in a private window, check the story, then delete its `todo` line. Two facts are NOT on the linked pages:
   - Webb launched in December 2021.
   - Artemis I's new dates and its November 2022 launch.

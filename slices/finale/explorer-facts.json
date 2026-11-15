@@ -1,0 +1,43 @@
+{
+  "andromeda": {
+    "todo": "Erick: open both sources in a private window and check the text, then delete this line.",
+    "title": "Andromeda Galaxy",
+    "text": "A giant spiral galaxy about 2.5 million light-years away. It's heading our way: there's about a 50-50 chance it crashes into our Milky Way in the next 10 billion years.",
+    "sources": [
+      { "title": "NASA: Hubble Shows Milky Way is Destined for Head-On Collision", "url": "https://science.nasa.gov/missions/hubble/nasas-hubble-shows-milky-way-is-destined-for-head-on-collision/" },
+      { "title": "NASA: Hubble Casts Doubt on Certainty of Galactic Collision", "url": "https://science.nasa.gov/missions/hubble/apocalypse-when-hubble-casts-doubt-on-certainty-of-galactic-collision/" }
+    ]
+  },
+  "milkyWay": {
+    "todo": "Erick: open the source in a private window and check the text, then delete this line.",
+    "title": "The Milky Way",
+    "text": "Our home galaxy, seen from inside. It's about 100,000 light-years across and holds 100 to 400 billion stars. Our Sun is one of them.",
+    "sources": [
+      { "title": "NASA: How Big is Our Galaxy, the Milky Way?", "url": "https://science.nasa.gov/universe/stories/quick-reads/how-big-is-our-galaxy-the-milky-way/" }
+    ]
+  },
+  "blackHole": {
+    "todo": "Erick: open the source in a private window and check the text, then delete this line.",
+    "title": "Sagittarius A*",
+    "text": "The giant black hole at the center of our galaxy, with about 4 million times the Sun's mass. Nothing, not even light, can escape it. (This is an artist's idea of one.)",
+    "sources": [
+      { "title": "NASA: Black Holes", "url": "https://science.nasa.gov/universe/black-holes/" }
+    ]
+  },
+  "lmc": {
+    "todo": "Erick: open the source in a private window and check the text, then delete this line.",
+    "title": "Large Magellanic Cloud",
+    "text": "The biggest of the small 'satellite' galaxies that orbit our Milky Way. It's about 163,000 light-years away.",
+    "sources": [
+      { "title": "NASA Space Place: What Is a Satellite Galaxy?", "url": "https://spaceplace.nasa.gov/satellite-galaxies/en/" }
+    ]
+  },
+  "smc": {
+    "todo": "Erick: open the source in a private window and check the text, then delete this line.",
+    "title": "Small Magellanic Cloud",
+    "text": "About 200,000 light-years away. It and the Large Cloud orbit each other and our Milky Way. From Earth's Southern Hemisphere, both look like faint glowing patches.",
+    "sources": [
+      { "title": "NASA: Swift's Best-Ever UV View of the Nearest Galaxies", "url": "https://svs.gsfc.nasa.gov/11293" }
+    ]
+  }
+}

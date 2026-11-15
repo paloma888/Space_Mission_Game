@@ -49,14 +49,19 @@
       const r = resolveLaunch(fakeState('launched'), always(0.9999));
       check('3. a failed liftoff is a launch_failure', r.outcome === 'launch_failure' && r.failedStage === 'liftoff');
     }
-    // 4. Warp coil on day 46 plus a good liftoff gives aliens. A bad liftoff is a normal failure.
-    //    (Paused in Mission 1 by Amendment A6, but the logic is kept so it can come back.)
+    // 4. The mysterious component (warp_coil flag) + launching on the last day (46) + a good liftoff
+    //    gives aliens. A bad liftoff is a normal failure, and any other day is a normal launch (A6).
     {
       const s = fakeState('secret');
       const good = resolveLaunch(s, always(0));
       const bad = resolveLaunch(s, always(0.9999));
-      check('4. secret ending only after a good liftoff',
-        good.outcome === 'aliens' && good.stages.filter((x) => x.skipped).length === 3 && bad.outcome === 'launch_failure');
+      const early = resolveLaunch({ ...s, launchDay: s.windowCloses - 1 }, always(0));
+      check('4. secret ending only after a good liftoff on the last day',
+        good.outcome === 'aliens' && good.stages.filter((x) => x.skipped).length === 3 && bad.outcome === 'launch_failure'
+        && early.outcome === 'orbit');
+      // 4b. The secret Close Encounter badge is earned only in the secret ending.
+      const badge = (outcome) => computeScore({ ...s, outcome }, { outcome, emergencies: [] }).badges.find((b) => b.id === 'close_encounter')?.earned;
+      check('4b. Close Encounter badge only for the secret ending', badge('aliens') === true && badge('orbit') === false);
     }
     // 5. Budget life support (0.25): about a quarter of orbit runs have an emergency, nearly all saved.
     {
@@ -190,7 +195,7 @@
       check('17. no-launch score is Morale only, no medal, badges locked',
         near(sc.total, 10.2) && sc.medal === null && sc.medalReason === 'Launch the rocket to earn a medal.'
         && locked.length === 4 && locked.every((l) => l.points === 0) && !locked.some((l) => l.id === 'morale')
-        && sc.badges.length === 5 && sc.badges.every((b) => !b.earned && b.locked),
+        && sc.badges.length === 6 && sc.badges.every((b) => !b.earned && b.locked),
         `total ${sc.total}, ${locked.length} rows locked`);
       const launchedScore = computeScore(fakeState('launched'), { outcome: 'orbit', emergencies: [] });
       check('17b. a launched game locks nothing',

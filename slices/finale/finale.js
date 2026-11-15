@@ -175,6 +175,7 @@ function makeSkipper() {
 const COUNTDOWN_FROM = 5;   // the countdown starts at T-5
 const TICK_MS = 1000;        // one countdown number per second (1000 milliseconds)
 const LINE_MS = 3000;        // a new sentence every 3 seconds
+const SAUCER_DELAY = 1500;   // 🛸 secret ending: how long the rocket keeps climbing before the saucer shows up
 
 /**
  * Job: plays the launch animation, stage by stage, with captions. It only REPLAYS the result.
@@ -231,10 +232,7 @@ async function playLaunch(state, result, text) {
   let failed = false;
   for (const stage of result.stages) {
     const words = text.stages?.[stage.id] ?? { name: stage.id.toUpperCase(), pass: '', fail: '' };
-    if (stage.skipped) {             // secret ending: the rest of the stages never happen
-      line(text.skipped ?? '...', 'warn');
-      break;
-    }
+    if (stage.skipped) break;        // secret ending: the rest of the stages never happen
     anim.stage(stage.id, stage.passed);  // start this stage's animation (it sputters if it's going to fail)
     if (stage.id === 'liftoff') await showEmergencies(result, 'liftoff', text, line, sk, anim); // lightning
     await sk.sleep(LINE_MS);
@@ -262,6 +260,18 @@ async function playLaunch(state, result, text) {
     }
     if (result.outcome === 'came_home_early') {
       await anim.headHome(text.homeEarly ?? 'Heading home early. The crew is safe.');
+    } else if (result.outcome === 'aliens') {
+      // 🛸 Secret ending: let the rocket climb a little longer (SAUCER_DELAY), then the saucer beat
+      // starts, and its captions appear while it plays.
+      await sk.sleep(SAUCER_DELAY);
+      line(text.skipped ?? '...', 'warn');
+      const beat = anim.abduct();
+      const lines = text.alien ?? [];
+      for (const words of lines) {
+        await sk.sleep(1500);
+        line(words, 'warn');
+      }
+      await beat;                    // wait for the saucer to zip off and the green flash
     } else {
       await sk.sleep(troubleInOrbit ? LINE_MS : 1500); // time to read the last line before flying off
       ui.sfx('fin-whoosh');
@@ -320,11 +330,11 @@ function orbitEnding(state, ending) {
     const root = ui.screen();
     root.classList.add('fin-explore');
     const explorer = mountOrbitExplorer(root, state, { celebrate: true, aliens });
-    unveil(root, 'white');
+    unveil(root, aliens ? 'green' : 'white'); // fades in from the launch's flash (green for the saucer)
 
     // Title at the top, controls hint at the bottom.
     root.append(el('div', 'fin-explore-title', ending.title));
-    root.append(el('div', 'fin-explore-hint', 'Drag to spin. Scroll to zoom. Click things. Can you find the Moon?'));
+    root.append(el('div', 'fin-explore-hint', 'Drag to spin, scroll to zoom, click things. Find the black hole!'));
 
     // Rosa's line sits in a small box the player can close, so it never blocks dragging.
     const note = el('div', 'panel fin-rosa-note');
@@ -422,6 +432,7 @@ function report(state, result, data, ending) {
   const badges = el('div', launched ? 'fin-badges' : 'fin-badges fin-badges-locked');
   for (const b of data.badges) {
     const earned = score.badges.find((x) => x.id === b.id)?.earned;
+    if (b.secret && !earned) continue; // a secret badge stays hidden until someone finds it
     const chip = el('div', `fin-badge ${earned ? 'on' : 'off'}`, b.label);
     chip.title = earned ? 'Earned!' : launched ? b.hint : 'Launch your ship to unlock badges'; // hover text
     if (!earned && launched) chip.append(el('div', 'fin-badge-hint', b.hint));
@@ -456,10 +467,10 @@ function report(state, result, data, ending) {
     middle.append(body, sources);
   } else {
     // No card matched: a short note instead.
-    const success = state.outcome === 'orbit' || state.outcome === 'aliens';
-    middle.append(el('p', '', success
-      ? 'No history lesson needed today. Your launch went by the book.'
-      : 'Every mission teaches something. Look at what shaped your odds, then try again.'));
+    let note = 'Every mission teaches something. Look at what shaped your odds, then try again.';
+    if (state.outcome === 'orbit') note = 'No history lesson needed today. Your launch went by the book.';
+    if (state.outcome === 'aliens') note = "You won't find this one in any NASA history book. Some things can't be explained.";
+    middle.append(el('p', '', note));
   }
 
   // Right: what shaped the odds, in words only (never show the probability).

@@ -7,6 +7,10 @@
     "orbit": { "name": "ORBIT", "pass": "Engine cut-off. We are in orbit!", "fail": "Not enough speed to stay in orbit." }
   },
   "skipped": "Something is pulling the capsule up...",
+  "alien": [
+    "Wait. Is that a flying saucer?!",
+    "It's pulling the whole rocket up. Mission Control has no words."
+  ],
   "failure": "Launch failure. The crew is safe.",
   "homeEarly": "Heading home early. The crew is safe.",
   "emergencies": {
