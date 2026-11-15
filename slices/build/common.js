@@ -1,4 +1,4 @@
-// slices/build/common.js: small helpers shared by the rocket, site, orbit and review screens.
+// slices/build/common.js: small helpers shared by the rocket, site and review screens.
 
 import * as ui from '../../core/ui.js';
 import { applyEffects } from '../../core/events.js';
@@ -12,12 +12,26 @@ export function el(tag, className, text) {
   return node;
 }
 
-// After a change, charge (or refund) only the difference in derived.spent,
-// so going back and forth between screens never charges twice.
-export function chargeChange(state, spentBefore) {
-  const diff = state.derived.spent - spentBefore;
+// Money is charged when the player presses Next, not on every click (team decision),
+// so the dashboard budget only moves once a choice is final. ctx.paid is what has been
+// charged so far; anything above it in derived.spent is still "on the counter".
+export const pending = (state, ctx) => state.derived.spent - ctx.paid;
+export const leftOver = (state, ctx) => state.budget - pending(state, ctx);
+
+export function commit(state, ctx) {
+  const diff = pending(state, ctx);
   if (diff) applyEffects(state, { budget: -diff });
+  ctx.paid = state.derived.spent;
   ui.refresh();
+}
+
+// The cheapest legal capsule, so a rocket that leaves less than this is greyed out.
+// Without Back buttons, the player could otherwise get stuck unable to afford parts.
+export function cheapestCapsule(catalog) {
+  const groups = [catalog.parts.shell, catalog.parts.lifeSupport, catalog.parts.comms,
+    catalog.parts.computer, catalog.parts.power?.battery];
+  return groups.reduce((sum, g) => sum + Math.min(...Object.values(g ?? {})
+    .filter((p) => !p.shady).map((p) => p.cost)), 0);
 }
 
 // Someone talks. A see-through cover over `root` blocks clicks until they finish,

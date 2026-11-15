@@ -1,20 +1,23 @@
 // slices/build/review.js: review and Lock In (Slice 2 brief section 11, amendment A5).
-// Resolves 'back' or 'next'. 'next' means the build is locked and the checkpoint is saved.
+// Resolves when the build is locked and the checkpoint is saved. There is no Back button.
 
 import * as ui from '../../core/ui.js';
 import { applyEffects } from '../../core/events.js';
 import { saveCheckpoint, addFlag, removeFlag } from '../../core/state.js';
-import { el, talk } from './common.js';
+import { el, art, talk } from './common.js';
 import { compatPanel } from './compat.js';
 import { findRocket, findSite, installedParts, lockInProblems, hasShadyPart } from './recompute.js';
 
-const ROWS = [
-  ['Shell', (s) => s.parts.shell, 'shell'],
-  ['Life support', (s) => s.parts.lifeSupport, 'lifeSupport'],
-  ['Comms', (s) => s.parts.comms, 'comms'],
-  ['Flight computer', (s) => s.parts.computer, 'computer'],
-  ['Power', (s) => s.parts.power?.tier, 'power'],
+// Listed top to bottom, the same order they stack in the rocket picture.
+const PARTS = [
+  { name: 'Shell', cat: 'shell', tier: (s) => s.parts.shell },
+  { name: 'Life support', cat: 'lifeSupport', tier: (s) => s.parts.lifeSupport },
+  { name: 'Comms', cat: 'comms', tier: (s) => s.parts.comms },
+  { name: 'Flight computer', cat: 'computer', tier: (s) => s.parts.computer },
+  { name: 'Battery', cat: 'power', tier: (s) => s.parts.power?.tier },
 ];
+const partOf = (state, catalog, p) =>
+  (p.cat === 'power' ? catalog.parts.power?.battery : catalog.parts[p.cat])?.[p.tier(state)] ?? null;
 
 export function showReview(state, ctx) {
   return new Promise((resolve) => {
@@ -27,44 +30,48 @@ export function showReview(state, ctx) {
     const foot = el('div', 'v-foot');
     root.append(head, body, foot);
 
-    // Left: what you bought. Right: where and how it flies.
-    const list = el('div', 'v-info');
-    for (const [label, get, cat] of ROWS) {
-      const tier = get(state);
-      const group = cat === 'power' ? catalog.parts.power?.battery : catalog.parts[cat];
-      list.append(row(label, group?.[tier]?.label ?? '--'));
-    }
-    list.append(row('Parts total', `$${installedParts(state.parts, catalog).reduce((n, p) => n + p.cost, 0)}M`));
+    // Left box: each part (and the rocket) on its own row, with a dotted line running
+    // toward its section of the rocket picture in the box on the right.
     const rocket = findRocket(catalog, state.rocket);
     const site = findSite(catalog, state.site);
-    const trip = el('div', 'v-info');
-    trip.append(
-      row('Rocket', rocket ? `${rocket.name} ($${rocket.cost}M)` : '--'),
-      row('Site', site?.name.split(',')[0] ?? '--'),
-      row('Orbit', state.orbit === 'polar' ? 'Polar' : 'Low Earth'),
-      row('Launch fee', site ? `$${site.fee}M, paid in launch week` : '--'),
-      row('Budget left', `$${state.budget}M`));
-    body.append(list, trip);
+    const summary = el('div', 'v-info v-summary');
+    const diagram = el('div', 'v-diagram');
+    PARTS.forEach((p) => {
+      const part = partOf(state, catalog, p);
+      // A shady part shows the tier it pretends to be; the catch stays hidden.
+      const tier = part?.looksLike ?? p.tier(state) ?? 'none';
+      diagram.append(partRow(p.name, part?.label ?? '--', part ? `$${part.cost}M` : '', tier));
+    });
+    diagram.append(partRow('Rocket', rocket?.name ?? '--', rocket ? `$${rocket.cost}M` : '', 'rocket'));
+    // Right box: the rocket at exactly 4x (128 x 384), right above Lock In.
+    const rocketBox = el('div', 'v-info v-rocket-box');
+    rocketBox.append(art(`art/sprites/${rocket?.sprite ?? 'rocket_condor'}.png`, 'v-rocket-sprite', rocket?.name ?? 'rocket'));
+    const partsCost = installedParts(state.parts, catalog).reduce((n, part) => n + part.cost, 0);
+    summary.append(
+      diagram,
+      row('Launch site', site?.name.split(',')[0] ?? '--', ''),
+      row('Launch fee', 'Paid in launch week', site ? `$${site.fee}M` : ''),
+      row('Total', `${state.derived.capsuleMass} t capsule`, `$${partsCost + (rocket?.cost ?? 0)}M`, 'v-total'),
+      row('Budget left', '', `$${state.budget}M`, 'v-total'));
+    body.append(summary, rocketBox);
 
     const problems = lockInProblems(state, catalog);
     const buttons = el('div', 'v-buttons');
     const lock = ui.button('Lock In', () => lockIn());
+    lock.classList.add('big-next');
+    // Earlier screens only allow legal choices (no Back button), so this should stay empty.
+    // It is kept as a safety net and so testers can see why if a rule ever slips.
     if (problems.length) { lock.disabled = true; lock.title = problems[0]; }
-    buttons.append(ui.button('Back', () => resolve('back'), { variant: 'quiet' }), lock);
+    buttons.append(lock);
     for (const p of problems) buttons.append(el('p', 'tier-why', p));
+    buttons.append(el('p', 'final-note', lines.shop?.final ?? ''));
     foot.append(compatPanel(state, ctx), buttons);
 
     let locking = false;
     async function lockIn() {
       if (locking) return;
       locking = true;
-      // Short on power is allowed, but only after a warning (brief section 11).
-      if (!state.derived.powerOk) {
-        await talk(root, 'hal', lines.hal?.lockPowerShort, { mood: 'sad' });
-        const answer = await ui.ask('hal', lines.shop?.lockAnyway ?? 'Lock it in anyway?',
-          [{ label: 'Lock it in' }, { label: 'Go back and fix it' }]);
-        if (answer !== 0) { locking = false; return; }
-      }
+      // (Short power was already confirmed in the shop, the last place it can be fixed.)
       // Saved before the shell's morale change, so a Try Again from this checkpoint
       // doesn't get the morale bonus (or penalty) twice when it locks in again.
       removeFlag(state, 'shady_part');
@@ -80,8 +87,17 @@ export function showReview(state, ctx) {
   });
 }
 
-function row(label, value) {
-  const r = el('div', 'side-row');
-  r.append(el('span', null, label), el('span', null, value));
+// One summary line: label, what you picked, and its price lined up on the right.
+function row(label, value, price = '', extra = '') {
+  const r = el('div', `v-row ${extra}`);
+  r.append(el('span', 'v-row-label', label), el('span', null, value), el('span', 'v-row-price', price));
+  return r;
+}
+
+// One part row: tier color mark, name, pick, price, then a dotted line toward the rocket.
+function partRow(label, value, price, tier) {
+  const r = el('div', `v-part tier-${tier}`);
+  r.append(el('span', 'v-row-label', label), el('span', null, value), el('span', 'v-row-price', price),
+    el('span', 'v-leader'));
   return r;
 }
