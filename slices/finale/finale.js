@@ -19,9 +19,13 @@
 // ---------- Imports: borrow tools from other files
 import * as ui from '../../core/ui.js';            // Person 1's screen helpers: screen, panel, button, say, ask...
 import { addFlag, loadCheckpoint, random } from '../../core/state.js';
-import { resolveLaunch, noLaunch, computeScore, oddsWords, pickHistoryCard } from './launch-sim.js';
+import {
+  resolveLaunch, noLaunch, computeScore, oddsWords, pickHistoryCard, didLaunch, endReason, progressTrack,
+} from './launch-sim.js';
 import { mountOrbitExplorer } from './orbit-explorer.js';
 import { mountLaunchAnim } from './launch-anim.js';
+import { LAUNCH_COLORS, makeCanvas, buildRocket } from './launch-art.js';
+import { readPalette, pickColors } from './pixel.js';
 
 // Tells core/screens.js who this slice is (Rulebook section 4).
 export const meta = { id: 'finale', owner: 'Person 5' };
@@ -65,7 +69,7 @@ export async function show(state, done, opts = {}) {
   }
 
   // Step 3: the ending screen. Find this outcome's texts in endings.json, then pick which screen to show.
-  const ending = data.endings[state.outcome] ?? { title: state.outcome, text: '', rosa: [] };
+  const ending = endingFor(data.endings, state);
   if (opts.reportOnly) { /* skip the ending screen */ }
   else if (state.outcome === 'orbit' || state.outcome === 'aliens') await orbitEnding(state, ending);
   else await plainEnding(state, ending); // launch_failure, came_home_early, bankrupt, window_closed
@@ -103,6 +107,29 @@ async function loadData() {
     loadJson('./history.json', []),
   ]);
   return { endings, badges, text, cards: cardLists.flat() }; // flat() turns 3 lists into 1
+}
+
+// When the money ran out in these places and nobody was hired for PR, Rosa's tip teaches the
+// fundraising rule from Amendment A13 instead of the usual tip.
+const NO_PR_TIP_REASONS = ['broke_build', 'broke_trail'];
+
+/**
+ * Job: this ending's words from endings.json (title, text and Rosa's 3 lines).
+ *   No-launch endings also have a `reasons` list: the reason from endReason() can replace the
+ *   title, text or Rosa's lines. Anything a reason leaves out falls back to the outcome's own words.
+ * @param {Object} endings - everything in endings.json.
+ * @param {Object} state - the shared backpack (outcome, flags, staff...). Only read.
+ * @returns {Object} - { title, text, rosa, reason }. reason is null when the rocket launched.
+ */
+function endingFor(endings, state) {
+  const base = endings[state.outcome] ?? { title: state.outcome, text: '', rosa: [] };
+  const reason = endReason(state);
+  const ending = { ...base, ...(base.reasons?.[reason] ?? {}), reason }; // the reason's words win
+  const hasPR = (state.staff ?? []).some((s) => s.role === 'pr');
+  if (NO_PR_TIP_REASONS.includes(reason) && !hasPR && base.noPrTip && ending.rosa?.length) {
+    ending.rosa = [...ending.rosa.slice(0, -1), base.noPrTip]; // swap the last line (the tip)
+  }
+  return ending;
 }
 
 // Adds finale.css to the page once, so this slice brings its own styles without editing index.html.
@@ -346,12 +373,14 @@ const fmt = (n) => (Math.round(n * 10) / 10).toString();
  *   then draws four areas:
  *     Left   - score rows that pop in one by one, the total, the medal (or why there isn't one), badges
  *     Middle - the NASA history card from pickHistoryCard, with source links (only real https links)
- *     Right  - "What shaped your odds" from oddsWords (words only, never the probability)
+ *     Right  - launched: "What shaped your odds" from oddsWords (words only, never the probability)
+ *              no launch: "How far you got", the progress track from progressTrack
  *     Bottom - Rosa's three debrief lines and a What next? button
+ *   No launch (bankrupt, window_closed): the rows that need a launch show "-", and the badges are greyed out.
  * @param {Object} state - the shared backpack. Sets state.score.
  * @param {Object} result - what resolveLaunch (or noLaunch) returned.
  * @param {Object} data - everything loadData() read: endings, badges, text, cards.
- * @param {Object} ending - this outcome's entry from endings.json (for Rosa's lines).
+ * @param {Object} ending - from endingFor(): Rosa's lines and the reason the game ended.
  * @returns {Promise} - finishes when the player presses What next?
  * ⭐
  */
@@ -360,6 +389,7 @@ function report(state, result, data, ending) {
   ui.music('report_loop');
   const score = computeScore(state, result);
   state.score = score.total;
+  const launched = didLaunch(state.outcome);
 
   // A fresh screen with the report background. finale.css lays it out in columns.
   const root = ui.screen('finale/report_bg');
@@ -368,8 +398,14 @@ function report(state, result, data, ending) {
   // Left: score rows appear one by one, then the total, medal and badges.
   const left = ui.panel('Mission score');
   score.lines.forEach((l, i) => {             // i = row number (0, 1, 2...), used to delay each row
-    const row = el('div', 'fin-row');
-    row.append(el('span', '', l.label), el('span', '', `${fmt(l.points)} / ${l.max}`));
+    const row = el('div', l.locked ? 'fin-row fin-locked' : 'fin-row');
+    if (l.locked) {
+      // A row a grounded rocket can't earn: a grey "needs a launch" where the points would be.
+      // (On the same line, not under it, so the whole panel still fits without scrolling.)
+      row.append(el('span', '', l.label), el('span', 'fin-needs', 'needs a launch'));
+    } else {
+      row.append(el('span', '', l.label), el('span', '', `${fmt(l.points)} / ${l.max}`));
+    }
     row.style.animationDelay = `${i * 0.35}s`; // each row pops in 0.35 seconds after the one above
     left.append(row);
   });
@@ -379,21 +415,28 @@ function report(state, result, data, ending) {
   left.append(total);
   setTimeout(() => ui.sfx('fin-medal'), score.lines.length * 350 + 300); // medal sound after the rows
   left.append(el('div', `fin-medal fin-medal-${score.medal ?? 'none'}`,
-    score.medal ? MEDAL_NAMES[score.medal] : `No medal this time. ${score.medalReason}`));
+    score.medal ? MEDAL_NAMES[score.medal]
+      : launched ? `No medal this time. ${score.medalReason}`
+      : score.medalReason)); // no launch: just "Launch the rocket to earn a medal.", so the panel fits
   // Badges: lit if earned, dim with a hint if not. Labels come from badges.json.
-  const badges = el('div', 'fin-badges');
+  // No launch: all greyed out with one caption, and no per-badge hints (they'd be confusing here).
+  const badges = el('div', launched ? 'fin-badges' : 'fin-badges fin-badges-locked');
   for (const b of data.badges) {
     const earned = score.badges.find((x) => x.id === b.id)?.earned;
     const chip = el('div', `fin-badge ${earned ? 'on' : 'off'}`, b.label);
-    chip.title = earned ? 'Earned!' : b.hint;   // the tooltip when you hover
-    if (!earned) chip.append(el('div', 'fin-badge-hint', b.hint));
+    chip.title = earned ? 'Earned!' : launched ? b.hint : 'Launch your ship to unlock badges'; // hover text
+    if (!earned && launched) chip.append(el('div', 'fin-badge-hint', b.hint));
     badges.append(chip);
   }
   left.append(badges);
+  if (!launched) left.append(el('p', 'fin-badges-note', 'Launch your ship to unlock badges'));
 
   // Middle: the real NASA story that matches what happened.
   const card = pickHistoryCard(data.cards, state, result);
   const middle = ui.panel(card ? card.title : 'From the history books');
+  // Cards with a `todo` aren't checked against their NASA source yet. Warn in the console (F12)
+  // so nobody forgets before the submission. Never invent a link (Rulebook 7.4).
+  if (card?.todo) console.warn(`finale: history card "${card.id}" is not checked yet. TODO: ${card.todo}`);
   if (card) {
     if (card.tone === 'memorial') middle.classList.add('fin-card-memorial');
     middle.append(el('p', '', card.story), el('p', 'fin-card-lesson', card.lesson));
@@ -415,11 +458,14 @@ function report(state, result, data, ending) {
   }
 
   // Right: what shaped the odds, in words only (never show the probability).
-  const right = ui.panel('What shaped your odds');
-  for (const o of oddsWords(state)) {
-    const row = el('div', 'fin-odds');
-    row.append(el('div', '', o.label), el('div', `fin-${o.tone}`, o.words)); // tone picks the color
-    right.append(row);
+  // With no launch there were no odds, so it shows how far the player got instead.
+  const right = launched ? ui.panel('What shaped your odds') : trackPanel(state, ending.reason);
+  if (launched) {
+    for (const o of oddsWords(state)) {
+      const row = el('div', 'fin-odds');
+      row.append(el('div', '', o.label), el('div', `fin-${o.tone}`, o.words)); // tone picks the color
+      right.append(row);
+    }
   }
 
   // Bottom: Rosa's debrief.
@@ -432,6 +478,74 @@ function report(state, result, data, ending) {
   // Put all four areas on the page, then wait for the What next? button.
   root.append(left, middle, right, debrief);
   return new Promise((resolve) => debrief.append(ui.button('What next?', resolve)));
+}
+
+/**
+ * Job: the "How far you got" panel for endings with no launch. One row per step, joined by a
+ *   thin line (finale.css): a filled square when done, the player's rocket where the game
+ *   stopped (with a red label), and an empty square for steps never reached.
+ *   Squares are drawn with CSS because Press Start 2P has no check mark or emoji.
+ * @param {Object} state - the shared backpack. Only read.
+ * @param {string} reason - from endReason(), picks the red label.
+ * @returns {HTMLElement} - the finished panel.
+ */
+function trackPanel(state, reason) {
+  const box = ui.panel('How far you got');
+  const list = el('ol', 'fin-track');
+  for (const step of progressTrack(state, reason)) {
+    const row = el('li', `fin-step fin-step-${step.status}`);  // fin-step-done, -stopped or -todo
+    const mark = el('div', 'fin-step-mark');
+    mark.append(
+      step.status === 'stopped' ? rocketMarker(state) : el('span', 'fin-step-box'),
+      el('span', 'fin-step-line'), // stretches down to the next step, whatever the marker's size
+    );
+    const words = el('div', 'fin-step-words');
+    words.append(el('div', 'fin-step-label', step.label));
+    if (step.detail) words.append(el('div', 'fin-step-detail', step.detail));
+    if (step.stopLabel) words.append(el('div', 'fin-step-stop', step.stopLabel));
+    row.append(mark, words);
+    list.append(row);
+  }
+  box.append(list);
+  return box;
+}
+
+/**
+ * Job: a small picture of the player's own rocket for the track. Starts as the code-drawn
+ *   placeholder (launch-art.js), then swaps in the team's art/sprites/rocket_<id>.png if it exists.
+ * @param {Object} state - reads state.rocket.
+ * @returns {HTMLElement} - a canvas (or an <img> once the team's picture loads).
+ */
+function rocketMarker(state) {
+  // The same colors the launch uses, picked from the team's palette.
+  const pal = readPalette();
+  const C = pickColors(pal, LAUNCH_COLORS);
+  const ink = Object.fromEntries(Object.entries(C).map(([role, i]) => [role, pal.hex[i]]));
+  const parts = buildRocket(ink, state.rocket);
+
+  // Stack the pieces into one picture: upper stage on top of the first stage, boosters at its sides.
+  // The first stage can be wider than the top (its fins stick out), so the canvas fits the widest
+  // piece and each piece is centered. Otherwise the fins and half the body get cut off.
+  const { upper, lower, boosters } = parts;
+  const side = boosters?.[0]?.width ?? 0;
+  const middle = Math.max(upper.width, lower.width);
+  const { canvas, g } = makeCanvas(middle + side * 2, upper.height + lower.height);
+  g.drawImage(upper, side + Math.floor((middle - upper.width) / 2), 0);
+  g.drawImage(lower, side + Math.floor((middle - lower.width) / 2), upper.height);
+  if (boosters) {
+    const [l, r] = boosters;
+    g.drawImage(l, 0, canvas.height - l.height);
+    g.drawImage(r, side + middle, canvas.height - r.height);
+  }
+  canvas.className = 'fin-step-rocket';
+
+  // The team's picture, if it's been drawn. A missing file just keeps the placeholder.
+  const img = new Image();
+  img.className = 'fin-step-rocket';
+  img.alt = '';
+  img.onload = () => canvas.replaceWith(img);
+  img.src = new URL(`../../art/sprites/rocket_${state.rocket ?? 'condor'}.png`, import.meta.url).href;
+  return canvas;
 }
 
 // ---------- 4. Try Again (Slice 5 brief section 11)

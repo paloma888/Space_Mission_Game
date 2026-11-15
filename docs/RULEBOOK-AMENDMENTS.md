@@ -145,6 +145,32 @@ Status: PROPOSED (proposed by Person 5 on Nov 14, 2026). Affects Persons 1, 2, 3
 - **Person 2:** the life support `emergencyChance` and `powerOk: false` now risk `came_home_early`, not a crew loss. For the A8 power question, Slice 5 currently treats power over supply as a certain emergency in orbit with a lower fix chance. Tell Person 5 if Lock In should block it instead.
 - **Person 1:** update the `outcome` comment in section 5. A10's tone rule about the `lost` ending no longer applies, since that ending is gone.
 
+**No-launch endings (`bankrupt`, `window_closed`).** Added by Erick (Person 5) on Sun Nov 15, 2026.
+
+- **Score.** Every part except Morale needs a launch, so those parts show "needs a launch" and score 0. The total is Morale only (at most 15). No medal, and every badge is locked ("Launch your ship to unlock badges").
+- **Why it ended.** `endReason(state)` in `slices/finale/launch-sim.js` gives one of 8 reasons:
+
+  | Reason | When |
+  | --- | --- |
+  | `gave_up` | Give up in launch week |
+  | `broke_overrun` | The `cost_overrun` flag is set |
+  | `broke_after_fundraise` | The `fundraised` flag is set (A13) |
+  | `broke_build` | No Lock In, or locked in with under $40M |
+  | `broke_trail` | Money ran out on the trail |
+  | `broke_launchweek` | Money ran out in launch week |
+  | `late_trail` | Out of days on the trail |
+  | `late_launchweek` | Out of days in launch week |
+
+  Rosa's debrief and the history card both follow the reason.
+- **How far you got.** In place of "What shaped your odds", the report shows a track: Hiring, Build, Trail, Launch week, Launch, with the player's rocket on the step where the game stopped.
+- **New card condition (section 7.4).** A history card's `when` may hold `reason`, either one reason or a list, for example `"reason": ["late_trail", "gave_up"]`.
+- **What other slices rely on.**
+  - The build slice saves the `afterBuild` checkpoint at Lock In.
+  - Launch week creates `state.weather` on its first day.
+  - Give up sets `outcome` to `bankrupt` with money left.
+
+  Tell Erick if any of these change.
+
 
 ## A12. Mission Control AI is out of scope for now (changes section 4)
 

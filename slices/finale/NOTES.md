@@ -11,11 +11,20 @@ The Rulebook and `docs/RULEBOOK-AMENDMENTS.md` still win over anything here.
 | Paloma (Person 4) | Weather & Go/No-Go | `slices/launchweek/` |
 | Erick (Person 5) | Launch & Report | `slices/finale/` |
 
-## 1. Where things stand (Sat Nov 14, 2026, evening)
+## 1. Where things stand (Sun Nov 15, 2026, early morning)
 
 - Committed and pushed: the launch animation, `pixel.js`, the globe palette fix (commit `0f71226`, merged with main in `88984e8`).
-- **Next task: the no-launch report (section 3).** Fully planned and approved by Erick. Not built yet.
-- Then: the small altitude fix (section 4), then the rest of this push (section 5).
+- **Built: the no-launch report (section 3) and the bigger ≈ (section 4).** `sim-tests.html` all passing, and every `test.html` URL in section 6 checked in Chrome.
+  - All 8 reasons, including `gave_up` and `broke_after_fundraise`, with Erick's lines and Claude's approved drafts.
+  - The PR-lead tip swap: `broke_build` and `broke_trail` with no PR lead on staff. `&pr=1` on `test.html` adds one.
+  - Small changes from the plan, so everything fits on one screen: locked rows say "needs a launch" in place of the points, with no "-". With no launch, the medal box says only "Launch the rocket to earn a medal."
+  - "No-launch endings" part added to Amendment A11.
+- **⚠️ Erick still to do:** open each history card's NASA link in a private window, check the story, then delete its `todo` line. Two facts are NOT on the linked pages:
+  - Webb launched in December 2021.
+  - Artemis I's new dates and its November 2022 launch.
+  Add a second NASA source for each one, or cut it.
+- **Known issue:** in the middle panel, the story pushes the source link below the fold, so the player has to scroll to see it. Checkpoint 3 wants every source link visible. A fix could be a smaller card layout or the link above the story.
+- Next: the rest of this push (section 5).
 
 ### What each file does
 

@@ -1,1 +1,43 @@
-[]
+[
+  {
+    "id": "webb_overrun",
+    "todo": "Erick: open the source in a private window and check the story. The December 2021 launch is NOT on this page: add a second NASA source for it, or cut that sentence. Then delete this todo line.",
+    "title": "James Webb Space Telescope, 2018",
+    "tone": "hopeful",
+    "story": "The James Webb Space Telescope is a giant telescope built to look deep into space. Building it was much harder than planned. In 2018, a team of outside experts reviewed the project. They found that technical problems, including human errors, had badly slowed the work. NASA moved the launch to March 2021 and raised the cost to build it to 8.8 billion dollars. The experts said the telescope was worth finishing, so NASA kept going. Webb finally launched in December 2021, years late and far over budget.",
+    "lesson": "Big projects almost always cost more than planned, so build a money cushion before you start.",
+    "sources": [
+      { "title": "NASA: NASA Completes Webb Telescope Review, Commits to Launch in Early 2021", "url": "https://www.nasa.gov/news-release/nasa-completes-webb-telescope-review-commits-to-launch-in-early-2021/" }
+    ],
+    "when": {
+      "outcome": ["bankrupt"],
+      "reason": ["broke_overrun", "broke_after_fundraise", "broke_build", "broke_trail", "broke_launchweek"],
+      "priority": 1
+    }
+  },
+  {
+    "id": "insight_delay",
+    "todo": "Erick: open both sources in a private window and check the story against them. Then delete this todo line.",
+    "title": "InSight Mars lander, 2016",
+    "tone": "hopeful",
+    "story": "InSight is a NASA lander built to learn what Mars is like deep inside. Its main tool was a seismometer from France's space agency, CNES. It could feel ground movements as small as an atom, but only inside a perfect vacuum seal. Before launch, the team found a leak. They tried to fix it, but in a freezing cold test it leaked again. So NASA called off the March 2016 launch. Earth and Mars line up well for only a few weeks every 26 months. InSight had to wait for its next window, which opened in May 2018.",
+    "lesson": "When the deadline can't move, a problem found late can cost you years.",
+    "sources": [
+      { "title": "NASA: NASA Suspends 2016 Launch of InSight Mission to Mars", "url": "https://www.nasa.gov/news-release/nasa-suspends-2016-launch-of-insight-mission-to-mars/" },
+      { "title": "NASA: NASA Targets May 2018 Launch of Mars InSight Mission", "url": "https://www.nasa.gov/news-release/nasa-targets-may-2018-launch-of-mars-insight-mission/" }
+    ],
+    "when": { "reason": ["late_trail", "gave_up"], "priority": 2 }
+  },
+  {
+    "id": "artemis1_scrub",
+    "todo": "Erick: open the source in a private window and check the story. The new dates and the November 2022 launch are NOT on this page: add a second NASA source for them, or cut that part. Then delete this todo line.",
+    "title": "Artemis I, 2022",
+    "tone": "hopeful",
+    "story": "Artemis I was the first test flight of NASA's new Moon rocket, the Space Launch System. On September 3, 2022, the team was filling the rocket's core stage with super-cold liquid hydrogen fuel. A leak showed up right where the fuel flows into the rocket. Engineers tried to stop it by reseating a seal, but the leak kept coming back. That morning, the launch director called off the attempt. Everyone wanted to fly, but a leaking rocket is not ready. The team fixed the problem, picked new dates, and Artemis I finally launched in November 2022.",
+    "lesson": "Waiting for a safe day is smart, but every day you wait has a cost.",
+    "sources": [
+      { "title": "NASA: Artemis I Launch Attempt Scrubbed", "url": "https://www.nasa.gov/blogs/missions/2022/09/03/artemis-i-launch-attempt-scrubbed/" }
+    ],
+    "when": { "reason": ["late_launchweek"], "priority": 2 }
+  }
+]

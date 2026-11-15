@@ -154,6 +154,122 @@ export function noLaunch(outcome) {
 // Endings where the mission didn't get done. They get the "every launch has risk" history card.
 export const FAILED_OUTCOMES = ['launch_failure', 'came_home_early'];
 
+// ---------- 🛑 No-launch endings: bankrupt and window_closed (NOTES.md section 3)
+
+// The two endings where the rocket never left the ground.
+export const NO_LAUNCH_OUTCOMES = ['bankrupt', 'window_closed'];
+
+/**
+ * Job: did the rocket leave the pad? True for orbit, launch_failure, came_home_early and aliens.
+ * Written as "not a no-launch ending" so a missing outcome counts as launched, like before.
+ * @param {string} outcome - how the game ended.
+ * @returns {boolean}
+ */
+export function didLaunch(outcome) {
+  return !NO_LAUNCH_OUTCOMES.includes(outcome);
+}
+
+// Locking in the build with less than this much money ($M) left is the real mistake.
+// Why 40: the trail alone costs at least $25M (5 weeks x $5M), and surprises cost more.
+// Early debt (Amendment A13) only buys time, so this still holds. Tune it here.
+export const LEAN_BUILD = 40;
+
+/**
+ * Job: works out WHY a no-launch game ended, as one short code. Rosa's lines, the progress
+ *   track and the history card are all picked from this one answer, so the logic lives here only.
+ *   Rules are checked top to bottom, and the first match wins:
+ *     1. gave_up               bankrupt, but money was left (only Give up in launch week does that)
+ *     2. broke_overrun         bankrupt, and the player ignored the cost review (cost_overrun flag)
+ *     3. broke_after_fundraise bankrupt, even after Tasha's fundraiser (fundraised flag, A13)
+ *     4. broke_build           bankrupt, and the build never locked in, or locked in with under $40M
+ *     5. broke_trail           bankrupt before launch week
+ *     6. broke_launchweek      bankrupt during launch week
+ *     7. late_trail            out of days before launch week
+ *     8. late_launchweek       out of days during launch week
+ *   How we know where the player got to:
+ *     - The build slice saves the 'afterBuild' checkpoint at Lock In. Its budget is the money left then.
+ *     - launchweek.js makes the forecast (state.weather) the moment launch week starts.
+ *   Giving up with exactly $0 counts as rule 6: until Paloma's A13 change lands, $0 really ends the game.
+ * @param {Object} state - the shared backpack. Only read, never changed. Safe on a nearly empty state.
+ * @param {string} outcome - optional. Defaults to state.outcome (pickHistoryCard passes the result's).
+ * @returns {string|null} - one of the 8 codes above, or null for an ending where the rocket launched.
+ * ⭐
+ */
+export function endReason(state, outcome = state.outcome) {
+  const flags = state.flags ?? [];
+  const budget = state.budget ?? 0;
+  const reachedLaunchWeek = state.weather != null; // the forecast only exists once launch week starts
+
+  if (outcome === 'bankrupt') {
+    if (budget > 0) return 'gave_up';
+    if (flags.includes('cost_overrun')) return 'broke_overrun';
+    if (flags.includes('fundraised')) return 'broke_after_fundraise';
+    const leftAtLockIn = state.checkpoints?.afterBuild?.budget; // undefined if the build never locked in
+    if (leftAtLockIn == null || leftAtLockIn < LEAN_BUILD) return 'broke_build';
+    return reachedLaunchWeek ? 'broke_launchweek' : 'broke_trail';
+  }
+  if (outcome === 'window_closed') return reachedLaunchWeek ? 'late_launchweek' : 'late_trail';
+  return null;
+}
+
+// Short names for the track. Same names the globe uses for sites, and the build slice's rocket names.
+const SITE_NAMES = {
+  canaveral: 'Cape Canaveral', kodiak: 'Kodiak', kourou: 'Kourou', mahia: 'Mahia', sriharikota: 'Sriharikota',
+};
+const ROCKET_NAMES = {
+  sparrow: 'Sparrow Light', condor: 'Condor', condor_reflown: 'Condor Reflown', pelican: 'Pelican Heavy',
+};
+// The red label under the step where the game stopped. Any other reason means the money ran out.
+const STOP_LABELS = {
+  gave_up: 'Called off here', late_trail: 'Out of days here', late_launchweek: 'Out of days here',
+};
+
+/**
+ * Job: the "How far you got" panel for no-launch endings: 5 steps from Hiring to Launch.
+ *   Each step is 'done', 'stopped' (the first unfinished one, where the rocket marker sits) or 'todo'.
+ *   Everything after the stopped step is 'todo', even if a test state says otherwise.
+ * @param {Object} state - the shared backpack. Only read.
+ * @param {string} reason - optional, from endReason(). Picks the stopped step's label.
+ * @returns {Array} - 5 rows { id, label, status, detail, stopLabel },
+ *   e.g. { id: 'trail', label: 'Trail', status: 'stopped', detail: 'Week 4 of 5', stopLabel: 'Money ran out here' }.
+ *   detail and stopLabel are null when there's nothing to show.
+ * ⭐
+ */
+export function progressTrack(state, reason = endReason(state)) {
+  const crew = state.crew?.length ?? 0;
+  const staff = state.staff?.length ?? 0;
+  const scrubs = state.scrubs ?? 0;
+  const rocket = ROCKET_NAMES[state.rocket] ?? state.rocket;
+  const site = SITE_NAMES[state.site] ?? state.site;
+  const week = clamp(state.week ?? 1, 1, 5);
+  const trailDone = state.weather != null;
+  // Out of days means day went past the last day. Show the last real day instead, e.g. 46, not 47.
+  const lastDay = Math.min(state.day ?? 1, state.windowCloses ?? Infinity);
+
+  const steps = [
+    { id: 'hiring', label: 'Hiring', done: crew >= 3, detail: `${crew} crew, ${staff} staff` },
+    { id: 'build', label: 'Build', done: !!state.checkpoints?.afterBuild,
+      detail: rocket && site ? `${rocket} at ${site}` : rocket ?? null },
+    { id: 'trail', label: 'Trail', done: trailDone, detail: trailDone ? 'All 5 weeks' : `Week ${week} of 5` },
+    { id: 'launchweek', label: 'Launch week', done: false,
+      detail: `Day ${lastDay}${scrubs ? `, ${scrubs} scrub${scrubs > 1 ? 's' : ''}` : ''}` },
+    { id: 'launch', label: 'Launch', done: false, detail: null },
+  ];
+
+  let stoppedYet = false;
+  return steps.map(({ id, label, done, detail }) => {
+    let status;
+    if (stoppedYet) status = 'todo';
+    else if (done) status = 'done';
+    else { status = 'stopped'; stoppedYet = true; }
+    return {
+      id, label, status,
+      detail: status === 'todo' ? null : detail, // future steps haven't happened, so no detail
+      stopLabel: status === 'stopped' ? (STOP_LABELS[reason] ?? 'Money ran out here') : null,
+    };
+  });
+}
+
 // ---------- Score, medals and badges (Rulebook 6.8)
 
 const MEDALS = [
@@ -196,15 +312,18 @@ const BADGE_RULES = {
  * @param {Object} state - the shared backpack. Reads budget, launchDay, windowCloses, morale, flags.
  * @param {Object} result - what resolveLaunch (or noLaunch) returned. Reads outcome and emergencies.
  * @returns {Object}:
- *   lines       - 5 score rows { id, label, max, points }, e.g. { label: 'Morale', max: 15, points: 10.2 }
+ *   lines       - 5 score rows { id, label, max, points, locked }, e.g. { label: 'Morale', max: 15, points: 10.2 }
  *   total       - all points added up, out of 100
  *   medal       - 'gold', 'silver', 'bronze' or null
  *   medalReason - a short sentence explaining why there's no medal (null if there is one)
- *   badges      - 5 rows { id, earned }, e.g. { id: 'honest_parts', earned: true }
+ *   badges      - 5 rows { id, earned, locked }, e.g. { id: 'honest_parts', earned: true, locked: false }
+ * No launch (bankrupt, window_closed): every row but Morale is locked at 0, so the total is Morale
+ *   only (max 15), there's no medal, and every badge is locked. A rocket on the ground can't earn them.
  * ⭐
  */
 export function computeScore(state, result = {}) {
   const outcome = result.outcome ?? state.outcome;
+  const launched = didLaunch(outcome);
   const emergencies = result.emergencies ?? state.emergencies ?? [];
   const fixed = emergencies.filter((e) => e.saved).length;
   const finished = outcome === 'orbit' || outcome === 'aliens';
@@ -225,17 +344,25 @@ export function computeScore(state, result = {}) {
     },
     { id: 'morale', label: 'Morale', max: 15, points: (15 * clamp(state.morale, 0, 100)) / 100 },
   ];
+  // No launch: lock every row except Morale. The team's mood still counts, nothing else can.
+  for (const l of lines) {
+    l.locked = !launched && l.id !== 'morale';
+    if (l.locked) l.points = 0;
+  }
   // Round away tiny floating-point noise so 75 never shows up as 74.9999999.
   const total = Math.round(lines.reduce((sum, l) => sum + l.points, 0) * 1e6) / 1e6;
   const medal = medalFor(total, outcome);
   let medalReason = null;
   if (!medal) {
-    if (finished) medalReason = 'You reached orbit, but scored under 60.';
+    if (!launched) medalReason = 'Launch the rocket to earn a medal.';
+    else if (finished) medalReason = 'You reached orbit, but scored under 60.';
     else if (outcome === 'came_home_early') medalReason = 'The crew had to come home before the mission was done.';
     else medalReason = 'Medals are only for finishing the mission.';
   }
 
-  const badges = Object.entries(BADGE_RULES).map(([id, rule]) => ({ id, earned: rule(state) }));
+  const badges = Object.entries(BADGE_RULES).map(([id, rule]) => (
+    launched ? { id, earned: rule(state), locked: false } : { id, earned: false, locked: true }
+  ));
   return { lines, total, medal, medalReason, badges };
 }
 
@@ -273,16 +400,20 @@ export function oddsWords(state) {
  *   flagsAny  - at least one of its flags happened (for example cold_launch)
  *   stage     - it failed at that stage
  *   emergency - a problem was fixed in space (that's the Apollo 13 card)
+ *   reason    - why a no-launch game ended, from endReason(). One code or a list, e.g. ["late_trail", "gave_up"].
+ *               New in Slice 5, so it goes in our amendment (A11) as an addition to Rulebook 7.4.
  * @param {Object} card - one history card from a history.json file.
  * @param {Object} state - the shared backpack (for its flags).
  * @param {Object} result - what resolveLaunch returned.
+ * @param {string} reason - optional, from endReason(). null when the rocket launched.
  * @returns {boolean} - true if the card fits.
  */
-export function cardMatches(card, state, result = {}) {
+export function cardMatches(card, state, result = {}, reason = null) {
   const w = card.when ?? {};
   const outcome = result.outcome ?? state.outcome;
   const flags = new Set([...(state.flags ?? []), ...(result.flagsToAdd ?? [])]);
   if (w.outcome && !w.outcome.includes(outcome)) return false;
+  if (w.reason && ![].concat(w.reason).includes(reason)) return false; // [].concat turns "a" or ["a"] into a list
   if (w.flagsAny && !w.flagsAny.some((f) => flags.has(f))) return false;
   if (w.stage && w.stage !== result.failedStage) return false;
   if (w.emergency && !(result.emergencies ?? []).some((e) => e.saved && e.type !== 'lightning')) return false;
@@ -299,13 +430,14 @@ export function cardMatches(card, state, result = {}) {
  * @returns {Object|null} - one card, or null when there's no card to show.
  */
 export function pickHistoryCard(cards, state, result = {}) {
+  const outcome = result.outcome ?? state.outcome;
+  const reason = endReason(state, outcome); // null unless the rocket never launched
   let best = null;
   for (const card of cards) {
     // Strictly greater, so in a tie the first card loaded wins.
-    if (cardMatches(card, state, result) && (!best || (card.when?.priority ?? 0) > (best.when?.priority ?? 0))) best = card;
+    if (cardMatches(card, state, result, reason) && (!best || (card.when?.priority ?? 0) > (best.when?.priority ?? 0))) best = card;
   }
   if (best) return best;
-  const outcome = result.outcome ?? state.outcome;
   if (FAILED_OUTCOMES.includes(outcome)) return cards.find((c) => c.id === 'generic_failure') ?? null;
   return null;
 }

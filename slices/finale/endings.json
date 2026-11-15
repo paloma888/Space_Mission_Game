@@ -37,6 +37,53 @@
       "Big projects need a cushion of money for surprises.",
       "Next time, keep some money in reserve. Measure twice, launch once."
     ],
+    "noPrTip": "Next time, a PR lead can run a fundraiser when money gets tight.",
+    "reasons": {
+      "gave_up": {
+        "title": "Mission called off",
+        "text": "You called off the launch. The crew is safe, and the rocket waits for another day.",
+        "rosa": [
+          "Calling it off is a real Flight Director move. It takes guts.",
+          "The capsule wasn't ready, and there wasn't enough time or money to finish it.",
+          "Next time, keep the build moving on the trail so launch week starts with a full capsule."
+        ]
+      },
+      "broke_overrun": {
+        "rosa": [
+          "Remember that cost review? The flag is not getting any redder.",
+          "That review was a warning light on the dashboard, and we drove right past it.",
+          "When someone checks your spending, listen. Fixing it early is cheaper."
+        ]
+      },
+      "broke_after_fundraise": {
+        "rosa": [
+          "Tasha passed the hat, and we spent the hat too.",
+          "The fundraiser bought us time, but the spending kept going.",
+          "Extra money is a second chance. Spend it like it's the last one."
+        ]
+      },
+      "broke_build": {
+        "rosa": [
+          "We're not that rich... Leave money for the road ahead.",
+          "The build used up almost all our money before the trail even started.",
+          "Next time, pick cheaper parts where it's safe and keep a cushion for the trip."
+        ]
+      },
+      "broke_trail": {
+        "rosa": [
+          "Money doesn't grow on trees now. Save a cushion.",
+          "Every week on the trail costs money, and surprises cost even more.",
+          "Like gas money on a road trip, keep some extra for the bumps."
+        ]
+      },
+      "broke_launchweek": {
+        "rosa": [
+          "Congratulations, you successfully funded the launchpad's parking fees. The rocket stays on the ground.",
+          "Every day we wait costs money, and holds and scrubs cost even more.",
+          "Sometimes the first good day is the best day. Pick it and go."
+        ]
+      }
+    },
     "why": { "default": "TODO", "byStage": {}, "byCause": {} }
   },
   "window_closed": {
@@ -47,6 +94,22 @@
       "Delays and scrubs ate up our days.",
       "Next time, leave a few spare days for bad weather."
     ],
+    "reasons": {
+      "late_trail": {
+        "rosa": [
+          "You took the scenic route, and the launch window left without you.",
+          "Some trail choices cost days. Those days added up fast.",
+          "When a choice costs time, ask yourself if the time is worth it."
+        ]
+      },
+      "late_launchweek": {
+        "rosa": [
+          "The forecast for tomorrow looks phenomenal. Shame the mission ended today.",
+          "We waited for perfect weather, and the window closed while we waited.",
+          "A launch window is like catching a train. A good-enough day beats a missed train."
+        ]
+      }
+    },
     "why": { "default": "TODO", "byStage": {}, "byCause": {} }
   },
   "aliens": {

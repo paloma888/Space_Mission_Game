@@ -17,6 +17,7 @@
     import { fakeState, launchProbability, loadCheckpoint } from '../../core/state.js';
     import {
       resolveLaunch, computeScore, medalFor, pickHistoryCard, oddsWords, saveChance, emergencySaveChance,
+      endReason, progressTrack,
     } from './launch-sim.js';
 
     const out = document.getElementById('out');
@@ -78,7 +79,7 @@
         lower && r.emergencies.some((e) => e.type === 'power') && r.outcome === 'came_home_early' && r.cause === 'power',
         `save ${saveChance(s).toFixed(2)}, power save ${emergencySaveChance(s, 'power').toFixed(2)}`);
     }
-    // 7. Sample score (budget 45, day 37, morale 68): 30 + 30 + 3.4 + 8.3 + 10.2 = 81.9, silver.
+    // 7. Sample score (budget 45, launch day 41 of 46, morale 68): 30 + 30 + 3.4 + 8.3 + 10.2 = 81.9, silver.
     //    Science is gone (A3) and its 5 points moved to Morale, which is now worth 15.
     {
       const s = fakeState('launched');
@@ -149,6 +150,90 @@
     } catch (err) {
       check('14. askRosa missing is handled', true, 'file missing, report uses scripted text');
     }
+    // ---------- No-launch endings (NOTES.md section 3)
+    // noLaunchState(): midTrail (week 3, afterBuild saved with $190M left), ended as `outcome`.
+    // tweak() changes whatever the test needs, e.g. the budget or the flags.
+    const noLaunchState = (outcome, tweak) => {
+      const s = fakeState('midTrail');
+      s.outcome = outcome;
+      tweak?.(s);
+      return s;
+    };
+    const broke = (s) => { s.budget = -5; };       // money ran out
+    const inLaunchWeek = (s) => { s.weather = {}; }; // launchweek.js makes the forecast on day one
+    // 16. Every one of the 8 reasons, plus the edge cases between them.
+    {
+      const cases = [
+        ['gave_up', noLaunchState('bankrupt', (s) => { s.budget = 30; inLaunchWeek(s); })],
+        ['broke_overrun', noLaunchState('bankrupt', (s) => { broke(s); s.flags.push('cost_overrun', 'fundraised'); })],
+        ['broke_after_fundraise', noLaunchState('bankrupt', (s) => { broke(s); s.flags.push('fundraised'); })],
+        ['broke_build', noLaunchState('bankrupt', (s) => { broke(s); delete s.checkpoints.afterBuild; })],
+        ['broke_build', noLaunchState('bankrupt', (s) => { broke(s); s.checkpoints.afterBuild.budget = 20; inLaunchWeek(s); })],
+        ['broke_trail', noLaunchState('bankrupt', broke)],
+        ['broke_trail', noLaunchState('bankrupt', (s) => { s.budget = 0; s.checkpoints.afterBuild.budget = 40; })],
+        ['broke_launchweek', noLaunchState('bankrupt', (s) => { broke(s); inLaunchWeek(s); })],
+        ['broke_launchweek', noLaunchState('bankrupt', (s) => { s.budget = 0; inLaunchWeek(s); })], // exactly $0
+        ['late_trail', noLaunchState('window_closed')],
+        ['late_launchweek', noLaunchState('window_closed', inLaunchWeek)],
+        [null, fakeState('launched')], // launched: no reason
+      ];
+      const wrong = cases.filter(([want, s]) => endReason(s) !== want).map(([want, s]) => `${want} got ${endReason(s)}`);
+      check('16. endReason picks all 8 reasons, first rule wins', wrong.length === 0, wrong.join('; ') || `${cases.length} cases`);
+      let thin = 'ok';
+      try { endReason({ outcome: 'bankrupt' }); endReason({ outcome: 'window_closed' }); progressTrack({}); } catch (err) { thin = err.message; }
+      check('16b. a nearly empty state never crashes endReason or progressTrack', thin === 'ok', thin);
+    }
+    // 17. No launch: Morale only (68 -> 10.2 of 15), no medal, every other row and every badge locked.
+    {
+      const sc = computeScore(noLaunchState('bankrupt', (s) => { s.morale = 68; broke(s); }), {});
+      const locked = sc.lines.filter((l) => l.locked);
+      check('17. no-launch score is Morale only, no medal, badges locked',
+        near(sc.total, 10.2) && sc.medal === null && sc.medalReason === 'Launch the rocket to earn a medal.'
+        && locked.length === 4 && locked.every((l) => l.points === 0) && !locked.some((l) => l.id === 'morale')
+        && sc.badges.length === 5 && sc.badges.every((b) => !b.earned && b.locked),
+        `total ${sc.total}, ${locked.length} rows locked`);
+      const launchedScore = computeScore(fakeState('launched'), { outcome: 'orbit', emergencies: [] });
+      check('17b. a launched game locks nothing',
+        launchedScore.lines.every((l) => !l.locked) && launchedScore.badges.every((b) => !b.locked));
+    }
+    // 18. The track stops at the right step, with the right label.
+    {
+      const shape = (s) => progressTrack(s).map((x) => x.status[0]).join(''); // d = done, s = stopped, t = todo
+      const stop = (s) => progressTrack(s).find((x) => x.status === 'stopped');
+      const trail = noLaunchState('bankrupt', broke);
+      const noBuild = noLaunchState('bankrupt', (s) => { broke(s); delete s.checkpoints.afterBuild; });
+      const late = noLaunchState('window_closed', (s) => { inLaunchWeek(s); s.day = 47; s.scrubs = 2; });
+      const gaveUp = noLaunchState('bankrupt', (s) => { s.budget = 30; inLaunchWeek(s); });
+      const t = progressTrack(trail);
+      check('18. track: broke on the trail stops at Trail',
+        shape(trail) === 'ddstt' && stop(trail).stopLabel === 'Money ran out here' && stop(trail).detail === 'Week 3 of 5'
+        && t[0].detail === '3 crew, 3 staff' && t[1].detail === 'Condor at Cape Canaveral' && t[3].detail === null,
+        progressTrack(trail).map((x) => `${x.id}:${x.status}`).join(' '));
+      check('18b. track: no Lock In stops at Build; out of days in launch week stops there',
+        shape(noBuild) === 'dsttt' && shape(late) === 'dddst'
+        && stop(late).stopLabel === 'Out of days here' && stop(late).detail === 'Day 46, 2 scrubs',
+        `${shape(noBuild)}, ${shape(late)}, "${stop(late).detail}"`);
+      check('18c. track: giving up says "Called off here"', stop(gaveUp).stopLabel === 'Called off here');
+    }
+    // 19. History cards can match on the reason (a list or a single code).
+    {
+      const cards = [
+        { id: 'webb', when: { outcome: ['bankrupt'], reason: ['broke_overrun', 'broke_trail'], priority: 1 } },
+        { id: 'insight', when: { reason: ['late_trail', 'gave_up'], priority: 2 } },
+        { id: 'artemis', when: { reason: 'late_launchweek', priority: 2 } },
+      ];
+      const pick = (s) => pickHistoryCard(cards, s, {})?.id ?? 'none';
+      const got = [
+        pick(noLaunchState('window_closed')),
+        pick(noLaunchState('window_closed', inLaunchWeek)),
+        pick(noLaunchState('bankrupt', (s) => { s.budget = 30; inLaunchWeek(s); })),
+        pick(noLaunchState('bankrupt', broke)),
+        pick(noLaunchState('bankrupt', (s) => { broke(s); inLaunchWeek(s); })),
+        pickHistoryCard(cards, fakeState('launched'), { outcome: 'orbit', emergencies: [] })?.id ?? 'none',
+      ];
+      check('19. cards match on reason', got.join(',') === 'insight,artemis,insight,webb,none,none', got.join(', '));
+    }
+
     // Extra: odds words never show numbers.
     {
       const words = oddsWords(fakeState('launchedCold'));

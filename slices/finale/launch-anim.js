@@ -728,7 +728,16 @@ export function mountLaunchAnim(parent, state, opts = {}) {
     let label = `ALTITUDE ≈ ${altitudeKm(w.climbed)} KM`;
     if (w.scene === 'space') label = w.homeT >= 0 ? 'HEADING HOME' : 'IN ORBIT';
     if (label !== lastLabel) {
-      opts.altitudeEl.textContent = label;
+      // The ≈ gets its own <span>, so finale.css can make it bigger (Press Start 2P has no ≈ of its own).
+      const [before, after] = label.split('≈');
+      if (after === undefined) {
+        opts.altitudeEl.textContent = label;
+      } else {
+        const approx = document.createElement('span');
+        approx.className = 'fin-approx';
+        approx.textContent = '≈';
+        opts.altitudeEl.replaceChildren(before, approx, after);
+      }
       lastLabel = label;
     }
   }

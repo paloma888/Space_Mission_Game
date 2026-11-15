@@ -23,6 +23,10 @@
   box-shadow: 0 0 0 4px var(--bg);
 }
 .fin-alt { top: 32px; right: 24px; padding: 8px 12px; }
+/* Press Start 2P has no ≈, so the browser borrows a small one from another font. Make it
+   twice as big, nudge it to the middle of the capital letters, and keep the box from growing
+   taller (line-height 0). */
+.fin-approx { font-size: 2em; line-height: 0; vertical-align: -0.12em; }
 .fin-log { left: 24px; bottom: 24px; width: 470px; padding: 8px 16px; line-height: 1.7; }
 .fin-log:empty, .fin-alt:empty { display: none; }
 .fin-log > div { margin: 6px 0; }
@@ -105,11 +109,11 @@
 
 /* ---------- Mission report (1280x720, top 56px kept for the dashboard) */
 .fin-report {
-  padding: 72px 24px 24px;
+  padding: 72px 24px 16px;
   display: grid;
   grid-template-columns: 380px 1fr 340px;
   grid-template-rows: 1fr auto;
-  gap: 16px;
+  gap: 12px;
   font-size: var(--small);
 }
 .fin-report .panel { margin: 0; padding: 16px; overflow: auto; }
@@ -123,7 +127,7 @@
 @keyframes fin-pop { from { transform: translateX(-16px); visibility: hidden; } }
 .fin-total { border-top: 4px solid var(--frame-edge); padding-top: 8px; color: var(--accent); }
 .fin-medal {
-  margin: 12px 0; padding: 8px;
+  margin: 8px 0; padding: 8px;
   text-align: center;
   line-height: 1.6;
   animation: fin-drop 0.5s steps(5) 2.4s both;
@@ -151,3 +155,40 @@
 }
 .fin-debrief-lines { flex: 1; }
 .fin-debrief-lines p { margin: 0 0 6px; }
+
+/* ---------- No-launch report (bankrupt, window_closed): locked score rows and badges */
+.fin-locked { color: var(--muted); }
+.fin-needs { color: var(--c5); white-space: nowrap; } /* "needs a launch", where the points would be */
+.fin-locked > span:first-child { white-space: nowrap; }
+/* Greyed out: the palette's grey for both border and words, so they read as "not available yet". */
+/* Slightly tighter than the normal badges, so the panel still fits when Rosa's box is tall. */
+.fin-badges-locked { gap: 6px; }
+.fin-badges-locked .fin-badge { padding: 4px 6px; border-color: var(--c3); color: var(--c3); }
+/* ".fin-report" in front so this beats the general ".fin-report p" margin above. */
+.fin-report .fin-badges-note { margin: 14px 0 0; color: var(--muted); text-align: center; }
+
+/* ---------- "How far you got" track. Each step is a row: a marker column on the left, words on the right.
+   The marker column holds the marker, then a line piece that stretches to the bottom of the row,
+   so the line always starts right under the marker (square or rocket, any size) and meets the next one. */
+.fin-track { list-style: none; margin: 0; padding: 0; }
+.fin-step { display: flex; gap: 12px; line-height: 1.6; }
+.fin-step-words { padding-bottom: 18px; } /* the space between steps lives here, so the line runs through it */
+.fin-step-mark { flex: none; width: 24px; display: flex; flex-direction: column; align-items: center; }
+.fin-step-line { flex: 1; width: 4px; background: var(--c5); }
+.fin-step-done .fin-step-line { background: var(--good); } /* the part of the road already travelled */
+.fin-step:last-child .fin-step-line { display: none; }
+.fin-step-box { width: 20px; height: 20px; box-sizing: border-box; border: 4px solid var(--c5); background: var(--frame); }
+.fin-step-done .fin-step-box { border-color: var(--good); background: var(--good); }
+/* The placeholder rocket at its real size (1 art pixel = 1 screen pixel) stays sharp. A team PNG
+   is capped at the same height. */
+/* The rocket's body is the same light color as the panel, so on its own it vanishes into a thin
+   string. A small dark tile behind it (a patch of night sky) makes the whole rocket show. */
+.fin-step-rocket {
+  max-height: 64px;
+  padding: 4px;
+  background: var(--c4);
+  image-rendering: pixelated;
+}
+.fin-step-detail { color: var(--muted); }
+.fin-step-stop { color: var(--c2); } /* terracotta red, the same as FAIL in the launch */
+.fin-step-todo .fin-step-label { color: var(--c5); }
