@@ -127,6 +127,11 @@
   gap: 12px;
   font-size: var(--small);
 }
+/* In the real game the dashboard strip (56px tall, with the SOUND button) sits over the top of the
+   screen and covered the panels' top edges. When it's showing, move the panels below it and take
+   the same amount off the bottom, so they keep their size. test.html has no dashboard, so it
+   keeps the even 44px spacing. */
+#app:has(#dashboard:not([hidden]):not(:empty)) .fin-report { padding-top: 72px; padding-bottom: 16px; }
 .fin-report .panel { margin: 0; padding: 16px; overflow: auto; }
 .fin-report .panel-title { font-size: var(--small); color: var(--accent); margin-bottom: 12px; }
 .fin-report p { line-height: 1.8; margin: 0 0 12px; }
