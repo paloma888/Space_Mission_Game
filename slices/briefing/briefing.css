@@ -69,7 +69,8 @@
 .screen.hiring { padding: 64px 24px 16px; }
 .hiring-layout {
   display: grid;
-  grid-template-columns: 1fr 400px;
+  /* 320px still fits the 128px portrait and the Hire button, and gives the cards more room. */
+  grid-template-columns: 1fr 320px;
   grid-template-rows: auto 1fr auto;
   gap: 12px;
   height: 100%;
