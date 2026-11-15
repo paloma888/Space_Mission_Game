@@ -194,12 +194,13 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
     clearTimeout(infoTimer);
     infoTimer = setTimeout(() => { info.hidden = true; }, links.length ? 15000 : 8000);
   };
-  // Shows one deep-sky fact from explorer-facts.json. Facts nobody has checked yet still have a
-  // `todo`, so they print a yellow warning in the console (F12), like the history cards.
-  const showFact = (id, fallbackTitle) => {
+  // Shows one fact from explorer-facts.json, with its NASA source links. `text` (optional) replaces
+  // the file's text, for facts that change with the game (the capsule names your crew). Facts nobody
+  // has checked yet still have a `todo`, so they print a yellow warning in the console (F12).
+  const showFact = (id, fallbackTitle, text) => {
     const f = facts[id] ?? {};
     if (f.todo) console.warn(`finale: sky fact "${id}" is not checked yet. TODO: ${f.todo}`);
-    showInfo(f.title ?? fallbackTitle, f.text ?? '', f.sources ?? []);
+    showInfo(f.title ?? fallbackTitle, text ?? f.text ?? '', f.sources ?? []);
   };
   const zoom = document.createElement('div');
   zoom.className = 'fin-zoom';
@@ -303,7 +304,7 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
   function inspect(x, y) {
     for (const s of spots) {
       if (Math.hypot(x - s.x, y - s.y) > s.r) continue;
-      if (s.fact) showFact(s.fact, s.title); // deep-sky things use explorer-facts.json
+      if (s.fact) showFact(s.fact, s.title, s.text); // facts with NASA sources (explorer-facts.json)
       else showInfo(s.title, s.text);
       return;
     }
@@ -360,7 +361,7 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
       sunGlow(sunAt.x, sunAt.y, calm ? 0 : now); // the halo and rays go behind the Sun's disc
       disc(sunAt.x, sunAt.y, 7, () => C.sunRim);
       disc(sunAt.x, sunAt.y, 5, () => C.sun);
-      if (!behindEarth(sunAt)) spots.push({ x: sunAt.x, y: sunAt.y, r: 9, title: 'The Sun', text: 'Sunlight takes about 8 minutes to reach Earth. Never look straight at the real one!' });
+      if (!behindEarth(sunAt)) spots.push({ x: sunAt.x, y: sunAt.y, r: 9, fact: 'sun', title: 'The Sun' });
     }
     const moonAt = skyPoint(moon);
     if (moonAt) {
@@ -370,7 +371,7 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
         if (light < -0.05) return C.night;
         return (px * 7 + py * 3) % 11 === 0 ? C.moonDark : C.moon; // a few crater pixels
       });
-      if (!behindEarth(moonAt)) spots.push({ x: moonAt.x, y: moonAt.y, r: 8, title: 'The Moon', text: 'About 384,000 km away. Getting there is a mission for another day.' });
+      if (!behindEarth(moonAt)) spots.push({ x: moonAt.x, y: moonAt.y, r: 8, fact: 'moon', title: 'The Moon' });
     }
   }
 
@@ -562,7 +563,7 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
     const blink = Math.floor(t * 2) % 2 ? 'r' : 'w';
     drawSprite(q.x, q.y, ['..w..', `.wbw.`, 'wwwww', `.g${blink}g.`],
       { w: C.capsule, b: C.capsuleWindow, g: C.capsuleShield, r: C.capsuleLight }, scale);
-    spots.push({ x: q.x, y: q.y, r: 7 * scale, title: 'Your capsule', text: `${crewNames} in ${orbitName}, going about 28,000 km/h. One lap around Earth takes about 90 minutes.` });
+    spots.push({ x: q.x, y: q.y, r: 7 * scale, fact: 'capsule', title: 'Your capsule', text: `${crewNames} in ${orbitName}, going about 28,000 km/h, as fast as the International Space Station. One lap around Earth takes about 90 minutes.` });
   }
 
   // 🛸 The secret ending's saucer, with an alien dancing on its roof (Amendment A6). Always drawn
