@@ -179,7 +179,9 @@ const SAUCER_DELAY = 1500;   // 🛸 secret ending: how long the rocket keeps cl
 
 // 🔊 Sounds. All of Slice 5's are in two folders: audio/sfx/finale/ and audio/music/finale/, so the
 // names below start with "finale/". Most are made in code by sound/sound-maker.mjs. Erick added
-// alien-creepy.wav (the saucer) and rocketrumble.wav (the launch). The boom is Sharon's trail-bad.wav.
+// alien-creepy.wav (the saucer) and rocketrumble.wav (the launch). boom.wav is a copy of Sharon's
+// trail-bad.wav. The boom and the rumble were run through sound/speaker-boost.mjs, because they were
+// almost all deep bass, which laptop and phone speakers can't play.
 // ui.sfx and ui.music (core/ui.js) handle the mute button and stay silent until the first click.
 // The launch sound: Erick's rumble. 'finale/ignite' is a backup roar made in code, if we ever need it.
 const LAUNCH_SOUND = 'finale/rocketrumble';
@@ -189,7 +191,7 @@ const BOOM_GAP_MS = 450;     // time between booms
 // The launch failed: the music stops, then the boom, BOOMS times. Goofy, never scary: the crew is safe.
 function boomBoomBoom() {
   ui.music(null);
-  for (let i = 0; i < BOOMS; i++) setTimeout(() => ui.sfx('trail-bad'), i * BOOM_GAP_MS);
+  for (let i = 0; i < BOOMS; i++) setTimeout(() => ui.sfx('finale/boom'), i * BOOM_GAP_MS);
 }
 
 /**
@@ -387,7 +389,8 @@ const ENDING_ART = {
 // background, title, text and a Mission report button.
 async function plainEnding(state, ending) {
   ui.music(null);
-  ui.sfx('finale/womp');           // womp womp womp wommmp
+  // womp womp womp wommmp... but not for "Home early": the crew made it to space, so that's no womp moment.
+  if (state.outcome !== 'came_home_early') ui.sfx('finale/womp');
   const root = ui.screen(`finale/${ENDING_ART[state.outcome] ?? 'ending_launch_failure'}`);
   root.classList.add('fin-ending');
   unveil(root, 'dark');                // fades in from the launch's dark fade

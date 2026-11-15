@@ -29,11 +29,13 @@ The Rulebook and `docs/RULEBOOK-AMENDMENTS.md` still win over anything here.
 - **Built: sound.** All Slice 5 audio lives in `audio/sfx/finale/` and `audio/music/finale/` (so the names in code start with `finale/`). The audio tools are in `slices/finale/sound/`:
   - `sound-maker.mjs` makes the sound effects and 4 original songs in code. To remake the music too: `LAMEJS=path/to/lame.all.js node slices/finale/sound/sound-maker.mjs`.
   - `shrink-wav.mjs` shrinks any 16-bit WAV under the 500 KB limit, and can cut it shorter: `node slices/finale/sound/shrink-wav.mjs file.wav 6`.
-  - Erick added `alien-creepy.wav` (the saucer) and `rocketrumble.wav` (the launch, trimmed to 6 s; `LAUNCH_SOUND` in `finale.js`). A failed launch plays Sharon's `trail-bad.wav` boom 3 times (`BOOMS`).
+  - Erick added `alien-creepy.wav` (the saucer) and `rocketrumble.wav` (the launch: Erick's full recording, stretched to 12.5 s so it lasts until "Engine cut-off", then fading out; saved at 16,000 samples a second to stay under 500 KB; `LAUNCH_SOUND` in `finale.js`). A failed launch plays Sharon's `trail-bad.wav` boom 3 times (`BOOMS`).
   - ⚠️ Check where the rumble and the boom came from (the rumble is from YouTube). Keep them only if they're free to use, and credit them. Otherwise set `LAUNCH_SOUND` to `finale/ignite`, our code-made roar.
+  - `speaker-boost.mjs` makes deep sounds audible on laptop and phone speakers. The boom (`finale/boom.wav`, a boosted copy of Sharon's `trail-bad.wav`) and the rumble were 93% and 53% deep bass, so they were nearly silent on laptops. To redo them: `node slices/finale/sound/speaker-boost.mjs audio/sfx/trail-bad.wav audio/sfx/finale/boom.wav --click --strong`.
   - The Minecraft totem sound was removed (it belongs to Mojang). `finale/fixed` plays when the crew fixes an emergency.
   - Heads-up for the team: these folders differ from the Rulebook's `audio/sfx/<slice>-<name>.wav` naming.
-- Next: the emergency-moment polish (section 5).
+- **Built: a smooth arrival in space.** When there's an emergency in orbit, the climb dissolves dot by dot into the space view, and Earth's edge and the capsule glide up into place (`drawDissolve`, `riseOffset` in `launch-anim.js`).
+- Next: the rest of the emergency polish in section 5 (a "dying flashlight" power-down, and maybe a splashdown).
 
 ### What each file does
 

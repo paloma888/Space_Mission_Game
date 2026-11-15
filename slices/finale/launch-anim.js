@@ -147,6 +147,7 @@ export function mountLaunchAnim(parent, state, opts = {}) {
     lights: 'calm',     // capsule lights in space: 'calm', 'power', 'life_support', 'dark' or 'ok'
     lightsT: 0,         // seconds since the lights last changed
     homeT: -1,          // seconds since the capsule turned for home (-1 = it hasn't)
+    spaceT: -1,         // seconds since we started moving into space (-1 = not yet): the dissolve and Earth rising
   };
   const puffs = [];       // smoke puffs: { x, h, vx, vh, r0, r1, life, age, tone }
   const debris = [];      // pieces that fell off at separation
@@ -187,8 +188,11 @@ export function mountLaunchAnim(parent, state, opts = {}) {
   }
 
   // Cut to the capsule alone in orbit, above the curve of the Earth.
+  // It's not a sudden cut: drawDissolve() breaks the climbing view up into the space view, and Earth's
+  // edge rises into view from below while the capsule glides up into place.
   function toSpace() {
     w.scene = 'space';
+    w.spaceT = 0;
     art.limb ??= buildEarthLimb(ink);
     setLights('calm');
   }
@@ -264,6 +268,7 @@ export function mountLaunchAnim(parent, state, opts = {}) {
     w.lightsT += dt;
     if (w.failing) w.failT += dt;
     if (w.homeT >= 0) w.homeT += dt;
+    if (w.spaceT >= 0) w.spaceT += dt;
     if (w.flashLeft > 0) w.flashLeft -= dt;
     if (w.zoom) w.zoom.t += dt;
     if (w.abduct) w.abduct.t += dt;
@@ -599,20 +604,54 @@ export function mountLaunchAnim(parent, state, opts = {}) {
     g.fillStyle = ink.space;
     g.fillRect(0, 0, W, H);
     drawStars(1, 0);
-    g.drawImage(art.limb, 0, 0);
+    g.drawImage(art.limb, 0, Math.round(riseOffset() * 60)); // Earth's edge, rising into view at first
     if (w.zoom) return;                              // the fly-away draws the capsule itself
     const { x, y } = capsulePos();
     drawCapsule(x, y);
     if (w.homeT >= 0.6) drawReentry(x, y);
   }
 
+  // 🌍 Arriving in space. SPACE_FADE = how long the climbing view takes to dissolve into the space view;
+  // EARTH_RISE = how long Earth's edge and the capsule take to glide up into place.
+  const SPACE_FADE = 1.6;
+  const EARTH_RISE = 2.6;
+
+  // How far Earth and the capsule still have to rise: 1 = just started, 0 = in place. It eases out
+  // (fast at first, then gently settling). With reduced motion, they're simply in place.
+  function riseOffset() {
+    if (calm || w.spaceT < 0) return 0;
+    return (1 - clampN(w.spaceT / EARTH_RISE, 0, 1)) ** 3;
+  }
+
+  // The climbing view breaks up, dot by dot, into the space view. A see-through fade would mix in
+  // colors outside the team's 16, so this uses the same 4x4 dot pattern as our dithering instead:
+  // each dot switches over at its own moment.
+  function drawDissolve() {
+    drawWorld();
+    const before = g.getImageData(0, 0, W, H).data;
+    drawSpace();
+    const after = g.getImageData(0, 0, W, H);
+    const p = w.spaceT / SPACE_FADE;                 // 0 = all climb, 1 = all space
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        if (BAYER[(y & 3) * 4 + (x & 3)] < p) continue; // this dot already shows space
+        const i = (y * W + x) * 4;
+        after.data[i] = before[i];
+        after.data[i + 1] = before[i + 1];
+        after.data[i + 2] = before[i + 2];
+      }
+    }
+    g.putImageData(after, 0, 0);
+  }
+
   // Floating in the middle (bobbing gently), or curving down toward Earth when heading home.
+  // When it first arrives, it glides up from lower down (riseOffset).
   function capsulePos() {
     if (w.homeT >= 0) {
       const p = clampN(w.homeT / 3, 0, 1) ** 2;     // starts slow, then speeds up
       return { x: Math.round(160 - 46 * p), y: Math.round(64 + 66 * p) };
     }
-    return { x: 160, y: 64 + (calm ? 0 : Math.round(Math.sin(w.t * 1.2))) };
+    return { x: 160, y: 64 + Math.round(riseOffset() * 40) + (calm ? 0 : Math.round(Math.sin(w.t * 1.2))) };
   }
 
   // The capsule with its lights: the window (lit, flickering or dark) and the top light (red alarm or green).
@@ -799,7 +838,8 @@ export function mountLaunchAnim(parent, state, opts = {}) {
   }
 
   function render() {
-    if (w.scene === 'space') drawSpace();
+    if (w.scene === 'space' && w.spaceT < SPACE_FADE) drawDissolve(); // just arriving in space
+    else if (w.scene === 'space') drawSpace();
     else drawWorld();
     if (w.zoom) drawZoom();
     if (w.abduct) drawAbduct();
