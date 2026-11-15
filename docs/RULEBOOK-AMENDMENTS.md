@@ -144,5 +144,3 @@ Status: PROPOSED (proposed by Person 5 on Nov 14, 2026). Affects Persons 1, 2, 3
 - **Persons 2, 3 and 4 (game text):** no line should mention an abort or escape system, or put the crew in danger.
 - **Person 2:** the life support `emergencyChance` and `powerOk: false` now risk `came_home_early`, not a crew loss. For the A8 power question, Slice 5 currently treats power over supply as a certain emergency in orbit with a lower fix chance. Tell Person 5 if Lock In should block it instead.
 - **Person 1:** update the `outcome` comment in section 5. A10's tone rule about the `lost` ending no longer applies, since that ending is gone.
-
-**Related bug, not a rule change (Person 1):** `core/screens.js` ignores `done('trail')` when it comes from the finale, so Try Again's "Same plan, new luck" starts a fresh game. The finale branch needs the same `next` check the other slices get.

@@ -143,13 +143,13 @@ function makeSkipper() {
 // and plays the same `result`, so it can never disagree with the numbers.
 
 // Launch timing, slowed down so kids can read every line. Change these to speed it up or slow it down.
-const COUNTDOWN_FROM = 20;   // the countdown starts at T-20
+const COUNTDOWN_FROM = 5;   // the countdown starts at T-5
 const TICK_MS = 1000;        // one countdown number per second (1000 milliseconds)
-const LINE_MS = 4000;        // a new sentence every 4 seconds
+const LINE_MS = 3000;        // a new sentence every 3 seconds
 
 /**
  * Job: shows the launch, stage by stage. It only REPLAYS the result and never rolls dice.
- *   Countdown T-20 to T-0, then a new sentence every 4 seconds: each stage shows GO (green) or
+ *   Countdown T-5 to T-0, then a new sentence every 3 seconds: each stage shows GO (green) or
  *   FAIL (red) with a caption, then any emergencies. A Skip button appears after 3 seconds.
  *   Stops at the first FAIL. This is the function to change for the real launch animation.
  * @param {Object} state - the shared backpack (only reads state.site for the background).
@@ -163,7 +163,7 @@ async function playLaunch(state, result, text) {
   const root = ui.screen(`launchweek/${state.site ?? 'canaveral'}`);
   root.classList.add('fin-launch');
   const box = ui.panel('Launch');
-  const count = el('div', 'fin-count');   // the big T-20 number
+  const count = el('div', 'fin-count');   // the big T-5 number
   const log = el('div', 'fin-log');       // the list of sentences below it
   box.append(count, log);
   root.append(box);
@@ -179,7 +179,7 @@ async function playLaunch(state, result, text) {
   // line(): adds one sentence to the log. kind ('go', 'fail', 'warn') picks its color.
   const line = (words, kind) => log.append(el('div', kind ? `fin-${kind}` : '', words));
 
-  // The countdown: T-20, T-19 ... T-1, one per second, then T-0 and ignition.
+  // The countdown: T-5, T-4 ... T-1, one per second, then T-0 and ignition.
   line(text.countdown ?? 'Here we go.');
   for (let n = COUNTDOWN_FROM; n >= 1; n--) {
     count.textContent = `T-${n}`;
@@ -189,7 +189,7 @@ async function playLaunch(state, result, text) {
   count.textContent = 'T-0';
   ui.sfx('fin-ignite');
 
-  // The four stages, one sentence every 4 seconds. Stops at the first FAIL.
+  // The four stages, one sentence every LINE_MS (3 seconds). Stops at the first FAIL.
   for (const stage of result.stages) {
     const words = text.stages?.[stage.id] ?? { name: stage.id.toUpperCase(), pass: '', fail: '' };
     if (stage.skipped) {             // secret ending: the rest of the stages never happen
@@ -214,7 +214,7 @@ async function playLaunch(state, result, text) {
   skip.remove();
 }
 
-// Shows each emergency at one stage: the alarm, then 4 seconds later, fixed or "heading home".
+// Shows each emergency at one stage: the alarm, then LINE_MS later, fixed or "heading home".
 async function showEmergencies(result, stage, text, line, sk, root) {
   // .filter() keeps only the emergencies that happened at this stage.
   for (const e of result.emergencies.filter((x) => x.stage === stage)) {
@@ -402,7 +402,6 @@ function report(state, result, data, ending) {
  *   Change my crew or staff -> load the 'afterHiring' save, back to Slice 1
  *   Change my build         -> load the 'afterBuild' save, back to Slice 2
  *   Same plan, new luck     -> load the 'afterBuild' save, back to the trail
- *                              (doesn't work in the full game until Person 1 fixes screens.js, see A11)
  *   Start over              -> a brand new game
  *   A choice is greyed out if its save is missing (for example after using the dev panel).
  * @param {Object} state - the shared backpack. Loading a save replaces everything in it.

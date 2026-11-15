@@ -136,7 +136,10 @@
       const s = fakeState('launched');
       s.outcome = 'orbit';
       loadCheckpoint(s, 'afterBuild');
-      check('12. Change my build restores budget 135 and clears outcome', s.budget === 135 && s.outcome === null);
+      // Compare with the save itself, so this keeps passing when the preset's numbers change (e.g. A7).
+      const saved = s.checkpoints.afterBuild.budget;
+      check('12. Change my build restores the afterBuild budget and clears outcome',
+        s.budget === saved && s.outcome === null, `budget ${s.budget}, saved ${saved}`);
     }
     // 14. askRosa missing or null never breaks anything.
     try {
