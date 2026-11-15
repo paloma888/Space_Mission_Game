@@ -1,6 +1,7 @@
-// slices/build/catalog.js: loads parts.json, rockets.json and sites.json once.
-// Numbers live in JSON so tuning never touches code (Slice 2 brief section 12).
-// Other slices can import CATALOG to look up a site's fee or deliveryFactor.
+// slices/build/catalog.js: loads the build data once (Slice 2 brief section 12).
+// Numbers live in parts.json, rockets.json and sites.json, words in lines.json,
+// so tuning and rewriting never touch code. Other slices can import CATALOG
+// to look up a site's fee or deliveryFactor.
 
 const load = async (file) => (await fetch(new URL(`./${file}`, import.meta.url))).json();
 
@@ -15,4 +16,14 @@ try {
   catalog = { parts: {}, rockets: [], sites: [] };
 }
 
+// Missing lines just mean nobody speaks. The shop still works.
+let lines;
+try {
+  lines = await load('lines.json');
+} catch (err) {
+  console.error('Could not load slices/build/lines.json. Is it broken?', err);
+  lines = { rosa: {}, hal: {}, shop: {} };
+}
+
 export const CATALOG = catalog;
+export const LINES = lines;
