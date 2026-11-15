@@ -6,10 +6,10 @@
 // The rival ticker lives in rival.js and the trail map header in map.js.
 
 import * as ui from '../../core/ui.js';
-import { checkEnd, pick } from '../../core/state.js';
+import { checkEnd, pick, clamp } from '../../core/state.js';
 import { applyEffects, describeChanges, loadAllEvents, pickEvent, runEvent } from '../../core/events.js';
 import { TASK_IDS, PROGRESS_IDS, planWeek, projectWeek, resolveWeek, sumChanges, crunchRules, withHigherPrices } from './week.js';
-import { loadRival, mountTicker, rivalPercent } from './rival.js';
+import { loadRival, mountTicker } from './rival.js';
 import { showMap } from './map.js';
 
 export const meta = { id: 'trail', owner: 'Person 3' };
@@ -31,9 +31,6 @@ document.head.append(css);
 
 // Rosa explains skipped testing once per game, not every week.
 let warnedAboutTesting = false;
-
-// Zenith's progress this week (0 to 100), or null when rival.json is missing.
-let zenithPercent = null;
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -58,12 +55,6 @@ function progressBars(state) {
     wrap.append(bar, note);
     box.append(wrap);
     parts[id] = { bar, note };
-    // The rival's bar goes right under Build so the player can compare the two at a glance.
-    if (id === 'build' && zenithPercent !== null) {
-      const rival = el('div', 'trail-rival');
-      rival.append(ui.bar(zenithPercent, 100, `Zenith ${zenithPercent} / 100`));
-      box.append(rival);
-    }
   }
   return { box, parts };
 }
@@ -178,12 +169,12 @@ function assignScreen(state, tasks, week, crunch) {
 
     // The crew is shown to look at, not to assign: the Rulebook has no numbers for astronaut jobs.
     for (const astronaut of state.crew) {
-      const row = el('div', 'trail-row');
+      const row = el('div', 'trail-row trail-row-crew');
       const who = el('div', 'trail-who');
       who.append(el('div', null, astronaut.name), el('div', null, 'Astronaut'));
       const stats = el('div', 'trail-stats');
       for (const stat of CREW_STATS) stats.append(ui.bar(astronaut[stat.id], 5, `${stat.label} ${astronaut[stat.id]}`));
-      row.append(ui.portrait(astronaut.portrait || astronaut.id, 64), who, stats);
+      row.append(ui.portrait(astronaut.portrait || astronaut.id, 68), who, stats);
       crewList.append(row);
     }
     if (state.crew.length === 0) crewList.append(el('p', 'small', 'No astronauts on the crew yet.'));
@@ -240,6 +231,32 @@ function chatterLine(state, chatter, crunch) {
   return row;
 }
 
+// A chart of the week: one row per stat, with this week's change and where it stands now.
+// Staff who left the team get a plain line underneath, since they have no number.
+function summaryTable(state, totals) {
+  const delta = (key) => totals.find((c) => c.key === key)?.delta ?? 0;
+  const sign = (n) => (n > 0 ? '+' : n < 0 ? '-' : '');
+  const money = (n) => `${sign(n)}$${Math.abs(n)}M`;
+  const plain = (n) => `${sign(n)}${Math.abs(n)}`;
+  const rows = [
+    ...PROGRESS_IDS.map((id) => [PROGRESS_NAMES[id], plain(delta(`progress.${id}`)), `${state.progress[id]} / 100`]),
+    ['Budget', money(delta('budget')), `$${state.budget}M`],
+    ['Morale', plain(delta('morale')), `${state.morale} / 100`],
+    ['Day', plain(delta('day')), `${state.day} / ${state.windowCloses}`],
+  ];
+  const row = (tag, cells) => {
+    const tr = el('tr');
+    tr.append(...cells.map((text) => el(tag, null, text)));
+    return tr;
+  };
+  const table = el('table', 'trail-table');
+  table.append(row('th', ['', 'This week', 'Now']), ...rows.map((cells) => row('td', cells)));
+  const left = totals.filter((c) => c.key === 'loseStaff').map((c) => el('p', null, `${c.name} left the team.`));
+  const box = el('div');
+  box.append(table, ...left);
+  return box;
+}
+
 function summaryScreen(state, changes, week, isLast, chatter, crunch) {
   return new Promise((resolve) => {
     const root = ui.screen('trail/workshop');
@@ -247,14 +264,42 @@ function summaryScreen(state, changes, week, isLast, chatter, crunch) {
     const panel = ui.panel(`Week ${week} is done`);
     panel.classList.add('trail-summary');
 
-    const list = el('ul');
-    for (const line of describeChanges(sumChanges(changes))) list.append(el('li', null, line));
-    panel.append(list, el('p', null, `Budget $${state.budget}M. Morale ${state.morale}.`));
+    panel.append(summaryTable(state, sumChanges(changes)));
     const talk = chatterLine(state, chatter, crunch);
     if (talk) panel.append(talk);
     panel.append(ui.button(isLast ? 'On to launch week' : 'Next week', resolve));
     root.append(panel);
   });
+}
+
+// Title card before week 1: the lobby fades in, two lines appear one after the other, then it
+// fades out. A click skips the wait, so it never feels stuck.
+const INTRO_LINES = [
+  'Five weeks of meetings lie ahead. Build, test and train, one week at a time.',
+  'And to make it harder, a rival company called Zenith wants to launch first.',
+];
+async function introCard() {
+  const root = ui.screen('briefing/hq_lobby');
+  root.classList.add('trail-intro');
+  const lines = INTRO_LINES.map((text) => el('p', 'trail-intro-line', text));
+  root.append(...lines);
+  root.style.opacity = '0';
+  root.getBoundingClientRect(); // lets the browser see opacity 0 first, so the fade-in plays
+  root.style.transition = 'opacity 1200ms';
+  root.style.opacity = '1';
+
+  let skipped = false;
+  root.addEventListener('pointerdown', () => { skipped = true; }, { once: true });
+  // Waits in small steps so a click ends the wait early.
+  const pause = async (ms) => { for (let t = 0; t < ms && !skipped; t += 100) await wait(100); };
+
+  await pause(1200);
+  lines[0].classList.add('shown');
+  await pause(2800);
+  lines[1].classList.add('shown');
+  await pause(4000);
+  root.style.opacity = '0';
+  await wait(1200);
 }
 
 export async function show(state, done) {
@@ -267,6 +312,8 @@ export async function show(state, done) {
   ]);
   ui.music('build_loop');
 
+  if (state.week === 1) await introCard(); // only at the start, so resuming mid-trail skips it
+
   const ticker = mountTicker(bulletins);
   // Whatever way the trail ends, the ticker must not follow the player into the next slice.
   const finish = (next) => { ticker.remove(); done(next); };
@@ -278,11 +325,10 @@ export async function show(state, done) {
   // Start from state.week so presets like midTrail pick up in the middle.
   for (let week = state.week; week <= LAST_WEEK; week++) {
     state.week = week;
-    zenithPercent = rivalPercent(bulletins, week);
     ticker.setWeek(week);
 
     // A. Week header
-    await showMap(week, LAST_WEEK, state.day);
+    await showMap(week, LAST_WEEK, state.day, state.rocket);
 
     // Near the end, if the bars are not full, Rosa offers one crunch week:
     // everything costs more that week, but progress goes up faster.
@@ -330,7 +376,8 @@ export async function show(state, done) {
     // Events can add days, so the launch window may open before week 5 is over.
     const isLast = week === LAST_WEEK || state.day + 7 >= state.windowOpens;
     await summaryScreen(state, weekChanges, week, isLast, chatter, crunch);
-    applyEffects(state, { day: 7 });
+    // The last week only runs up to the window (Rulebook 6.1), so it can't push the day past windowCloses.
+    applyEffects(state, { day: isLast ? clamp(state.windowOpens - state.day, 0, 7) : 7 });
     if (checkEnd(state)) return finish('finale');
     if (isLast) break;
   }

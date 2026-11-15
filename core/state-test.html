@@ -22,10 +22,10 @@
   <script type="module">
     import { fakeState, getReliability, launchProbability, PRESET_NAMES } from './state.js';
 
-    // Worked out by hand from the formulas. afterBuild uses Amendment A7 (rel.parts 0.07):
-    // (0.80 + 0.07) * 0.97 = 0.844. readyToLaunch: (0.80 + 0.05 + 0.07) * 0.97 = 0.892.
-    // launched: 0.892 * (1 - 0.05). launchedCold: 0.892 * (1 - 0.225) * (1 - 0.06).
-    const expectedOdds = { afterBuild: 0.844, readyToLaunch: 0.892, launched: 0.848, launchedCold: 0.650 };
+    // Worked out by hand from the formulas. Base reliability is 0.72 (A14). afterBuild uses Amendment A7 (rel.parts 0.07):
+    // (0.72 + 0.07) * 0.97 = 0.766. readyToLaunch: (0.72 + 0.05 + 0.07) * 0.97 = 0.815.
+    // launched: 0.815 * (1 - 0.05). launchedCold: 0.815 * (1 - 0.225) * (1 - 0.06).
+    const expectedOdds = { afterBuild: 0.766, readyToLaunch: 0.815, launched: 0.774, launchedCold: 0.594 };
     const tolerance = 0.005;
 
     const table = document.getElementById('results');

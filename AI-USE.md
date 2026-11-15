@@ -41,6 +41,10 @@ Example:
 
 ## Person 4: Weather & Go/No-Go
 
+- Sun: Claude Code playtested the whole game with a headless test script that ran the real game code through about 150,000 simulated games with different player types. It found that winning was too easy and listed 5 bugs. I turned the results into a team report.
+- Sun: With the team's approval, Claude Code fixed three bugs (the trail skipping launch week, finished testing counting as skipped, Hold not raising the odds). It retuned the score, medal lines and launch odds (amendment A14) and added the crew-skill formula (A15) after testing 9 options. It also fixed the report's row animation and updated the tests. I reviewed each step and checked the report screen.
+- Sun: Claude Code wrote amendments A14, A15 and A16 in `docs/RULEBOOK-AMENDMENTS.md`.
+
 ## Person 5: Launch & Report
 
 - Sat 1:00pm: Claude Code wrote `launch-sim.js` (resolveLaunch, computeScore, odds words, history card picker), `balance.html` and `sim-tests.html` (brief test cases, all passing) from my Slice 5 brief.

@@ -104,15 +104,24 @@ export function resolveWeek(state, plan, tasks) {
     ...applyEffects(state, { budget: -tasks.weekly.overhead }),
   ];
 
-  if (!plan.tested) {
+  // Once testing is at 100 there is nothing left to test, so an untested week isn't a skipped one.
+  const skipped = !plan.tested && state.progress.testing < 100;
+  if (skipped) {
     state.skippedTestingWeeks += 1;
     if (state.skippedTestingWeeks >= 2) applyEffects(state, { flags: ['skipped_testing'] });
   }
-  // Rulebook 6.3: testing helps reliability, every skipped week chips a little away.
+  updateTestingReliability(state);
+
+  return { changes, skippedTesting: skipped };
+}
+
+/**
+ * Rulebook 6.3: testing helps reliability, every skipped week chips a little away.
+ * Exported so launch week's Hold (extra testing) updates the odds with this same formula.
+ */
+export function updateTestingReliability(state) {
   const rel = state.progress.testing / 100 * 0.10 - 0.01 * state.skippedTestingWeeks;
   state.rel.testing = Math.round(clamp(rel, -0.05, 0.10) * 10000) / 10000;
-
-  return { changes, skippedTesting: !plan.tested };
 }
 
 /** Adds up repeated keys (e.g. fundraising and overhead both change budget) into one net change each. */

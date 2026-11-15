@@ -39,11 +39,11 @@
           "Crew of three to low Earth orbit",
           "Budget: $800M",
           "Time: 46 days",
-          "Win: crew safe, in orbit, score 60 or more"
+          "Win: crew safe, in orbit, score 70 or more"
         ]
       },
       "lines": [
-        { "speaker": "rosa", "text": "Here's your mission card. Get a crew of three to low Earth orbit, safely, with a score of 60 or better." },
+        { "speaker": "rosa", "text": "Here's your mission card. Get a crew of three to low Earth orbit, safely, with a score of 70 or better." },
         { "speaker": "rosa", "text": "Think of a launch window like a train that leaves once. If you're late, it doesn't wait for you." },
         { "speaker": "rosa", "text": "Winning means the crew is alive, the capsule is in orbit, and the books are in good shape. All three." }
       ]
@@ -139,7 +139,7 @@
       ]
     },
     "missingWarning": {
-      "intro": "TODO: Rosa's warning opener.",
+      "intro": "Hold on. That's like a road trip with no map.",
       "roles": {
         "engineer": "No engineer: slower building.",
         "inspector": "No inspector: less testing.",

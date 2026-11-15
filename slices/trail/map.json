@@ -4,7 +4,7 @@
   "backgroundNote": "Change to trail_map.gif to use an animated map instead. The file goes in art/backgrounds/trail/.",
   "snow": 40,
   "snowNote": "How many snowflakes fall on the map. 0 turns the snow off.",
-  "seconds": 2,
+  "seconds": 6,
   "stops": [
     { "name": "Design",   "x": 40,  "y": 125 },
     { "name": "Parts",    "x": 100, "y": 75 },

@@ -55,7 +55,8 @@
     import { resolveLaunch, STAGES, saveChance } from './launch-sim.js';
 
     const $ = (id) => document.getElementById(id);
-    const TARGETS = { readyToLaunch: [0.80, 0.90], launched: [0.80, 0.90], launchedCold: [0.55, 0.70] };
+    // Lowered with base reliability 0.72 (amendment A14): a sensible build now sits near 0.8, not 0.9.
+    const TARGETS = { readyToLaunch: [0.75, 0.85], launched: [0.72, 0.82], launchedCold: [0.55, 0.70] };
 
     $('preset').innerHTML = PRESET_NAMES.map((p) => `<option>${p}</option>`).join('');
     $('preset').value = 'readyToLaunch';

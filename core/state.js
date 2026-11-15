@@ -54,7 +54,8 @@ export function createState() {
     skippedTestingWeeks: 0,
     // gauges
     morale: 70,
-    rel: { base: 0.80, parts: 0, testing: 0, events: 0 }, // hidden: read it with getReliability()
+    // hidden: read it with getReliability(). base lowered from 0.80 (amendment A14) so a careless build really risks failing.
+    rel: { base: 0.72, parts: 0, testing: 0, events: 0 },
     // launch week (launchweek)
     weather: null, launchDay: null, scrubs: 0,
     weatherPenalty: 0, overrulePenalty: 0, launchWeather: null,
@@ -83,15 +84,29 @@ export function removeFlag(state, f) {
 
 // ---------- Reliability and launch odds (RULEBOOK sections 6.3 and 6.4)
 
+// Crew skill (amendment A15): the best engineer keeps the rocket reliable and the best pilot flies it.
+// 4 is the best on the roster, so a top pilot and a top engineer change nothing; each point below costs 0.05.
+const CREW_TOP = 4;
+const CREW_STEP = 0.05;
+
+// The crew's highest value for one skill ('pilot' or 'eng'). No crew yet (a bare test state) counts as top.
+export function bestCrewSkill(state, skill) {
+  const crew = state.crew ?? [];
+  return crew.length ? Math.max(...crew.map((c) => c[skill] ?? 0)) : CREW_TOP;
+}
+
 export function getReliability(state) {
   const r = state.rel;
-  return clamp(r.base + r.parts + r.testing + r.events, 0.5, 0.98);
+  const crewEng = -CREW_STEP * (CREW_TOP - bestCrewSkill(state, 'eng'));
+  return clamp(r.base + r.parts + r.testing + r.events + crewEng, 0.5, 0.98);
 }
 
 export function launchProbability(state) {
+  const crewPilot = 1 - CREW_STEP * (CREW_TOP - bestCrewSkill(state, 'pilot'));
   return clamp(
     getReliability(state)
       * state.derived.rocketReliability
+      * crewPilot
       * (1 - state.weatherPenalty)
       * (1 - state.overrulePenalty),
     0.05, 0.99);
