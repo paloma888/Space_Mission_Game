@@ -8,7 +8,8 @@ import { CATALOG } from '../build/catalog.js'; // Person 2's site list: fee and 
 
 export const meta = { id: 'launchweek', owner: 'Person 4' };
 
-const WAIT_COST = 10;     // $M per day waited (brief section 6)
+const SITE_BACKGROUND = 'launchweek/site_canaveral'; // every site shares one background for now
+const WAIT_COST = 10;    // $M per day waited (brief section 6)
 const FORECAST_DAYS = 5;  // day cards shown at once
 const SCRUB_RISK = 70;    // real risk at or above this scrubs the launch (brief section 7)
 const SCRUB_COST = 15;    // $M (RULEBOOK 6.2)
@@ -109,10 +110,14 @@ function weatherIcon(kind) {
   return img;
 }
 
+// The trouble chance the player was shown for each day, so Skye can be surprised when the morning is worse.
+const forecastShown = {};
+
 // Shows the five-day forecast and resolves with the day the player picks.
 function forecastScreen(state, site, noise, lines) {
   return new Promise((resolve) => {
-    const root = ui.screen(`launchweek/site_${state.site}`);
+    const root = ui.screen(SITE_BACKGROUND);
+    root.classList.add('lw-forecast');
     const met = bestStaff(state, 'meteorologist');
     const skill = met?.skill ?? 0;
 
@@ -120,7 +125,7 @@ function forecastScreen(state, site, noise, lines) {
     talk.classList.add('lw-talk');
     const speaker = met?.id ?? 'rosa';
     const line = lineAt(lines, [speaker, state.day > state.windowOpens ? 'sharper' : 'forecast'], "Here's the forecast.");
-    talk.append(ui.portrait(speaker, 64), el('p', null, line));
+    talk.append(ui.portrait(speaker, 96), el('p', null, line));
 
     const days = el('div', 'lw-days');
     const go = ui.button('Pick a day', () => resolve(picked));
@@ -131,9 +136,9 @@ function forecastScreen(state, site, noise, lines) {
     for (let day = state.day; day <= last; day++) {
       const wait = day - state.day;
       const shown = forecastRisk(state.weather[day].risk, noise[day], skill, wait);
+      forecastShown[day] = shown; // launch morning compares this with the real weather
       const card = ui.button([
         `Day ${day}`,
-        met ? state.weather[day].kind : '?',
         riskLabel(shown, skill > 0),
         wait ? `Wait ${wait}d, $${wait * WAIT_COST}M` : 'Today',
       ].join('\n'), () => {
@@ -144,24 +149,23 @@ function forecastScreen(state, site, noise, lines) {
         go.disabled = false;
       }, { variant: 'quiet' });
       card.classList.add('lw-day');
-      // Icon box sits above the text box, both the full width of the column.
+      // One card per day: the weather picture sits inside the button, above the text.
       // Without a meteorologist the real weather stays hidden, same as the old "?".
       const iconBox = el('div', 'lw-icon-box');
       iconBox.append(weatherIcon(met ? state.weather[day].kind : 'unknown'));
-      const column = el('div', 'lw-col');
-      column.append(iconBox, card);
-      days.append(column);
+      card.prepend(iconBox);
+      days.append(card);
     }
 
     const footer = el('div', 'lw-footer');
-    footer.append(el('p', 'small', `Launch fee $${site.fee}M at ${site.name}`), go);
+    footer.append(el('p', 'small lw-fee', `Launch fee $${site.fee}M at ${site.name}`), go);
     root.append(talk, days, footer);
   });
 }
 
 export async function show(state, done) {
   loadStyles();
-  ui.screen(`launchweek/site_${state.site}`); // draw something before the JSON loads, so the fade-in isn't blank
+  ui.screen(SITE_BACKGROUND); // draw something before the JSON loads, so the fade-in isn't blank
   // Launch week starts on windowOpens at the earliest (brief section 3).
   if (state.day < state.windowOpens) applyEffects(state, { day: state.windowOpens - state.day });
   if (state.day > state.windowCloses) return done('finale');
@@ -217,7 +221,7 @@ async function launch(state, today, site, lines) {
 // Runs Crunch Days until the capsule is fully built (brief section 4). Returns false if the player gives up.
 async function crunchDays(state, lines) {
   if (state.progress.build >= 100) return true;
-  ui.screen(`launchweek/site_${state.site}`);
+  ui.screen(SITE_BACKGROUND);
   while (state.progress.build < 100 && state.day <= state.windowCloses) {
     const intro = lineAt(lines, ['rosa', 'crunch'], "The capsule isn't finished. We can't fly half a capsule.");
     const choice = await ui.ask('rosa', `${intro} Build: ${state.progress.build}%.`, [
@@ -247,10 +251,17 @@ export function weatherPenalty({ risk, tempF }, state) {
 // Reveals today's real weather. Returns { risk, tempF, kind, penalty }, or null after paying for a scrub.
 async function launchMorning(state, lines) {
   const w = state.weather[state.day];
-  ui.screen(`launchweek/site_${state.site}`);
+  ui.screen('launchweek/control_room');
   if (w.kind === 'storm') ui.sfx('launchweek-thunder');
-  const speaker = bestStaff(state, 'meteorologist')?.id ?? 'rosa';
-  await ui.say(speaker, `Launch morning, day ${state.day}. ${w.kind}, ${w.tempF}°F. Trouble chance ${w.risk}%.`);
+  const met = bestStaff(state, 'meteorologist');
+  const speaker = met?.id ?? 'rosa';
+  // The meteorologist looks sad when the weather will be a No-Go, and gasps if the forecast promised better.
+  const bad = Boolean(met) && weatherNogoReasons(state, w).length > 0;
+  const mood = bad ? 'sad' : 'happy';
+  if (bad && (forecastShown[state.day] ?? 100) < 45) {
+    await ui.say(speaker, lineAt(lines, [speaker, 'shock'], "*gasp* The weather turned riskier than I expected!"), { mood });
+  }
+  await ui.say(speaker, `Launch morning, day ${state.day}. ${w.kind}, ${w.tempF}°F. Trouble chance ${w.risk}%.`, { mood });
 
   if (w.risk >= SCRUB_RISK) {
     ui.sfx('launchweek-scrub');
@@ -277,6 +288,15 @@ async function waitUntil(state, day) {
   return true;
 }
 
+// Why the weather station says No-Go (an empty list means Go). Shared by the poll and the launch-morning reaction.
+function weatherNogoReasons(state, w) {
+  return [
+    w.risk >= 45 && 'risk_high',
+    w.tempF <= 32 && 'cold',
+    w.kind === 'storm' && w.risk >= 35 && !hasFlag(state, 'lightning_ready') && 'lightning',
+  ].filter(Boolean);
+}
+
 // Works out all six Go/No-Go votes (brief section 8) without touching state, so it can be tested alone.
 // Each vote is { station, label, speaker, vote: 'go' | 'nogo' | 'unknown', reasons: [codes] }.
 export function evaluatePoll(state, weather) {
@@ -292,11 +312,7 @@ export function evaluatePoll(state, weather) {
       flag('software_bug_open') && 'software_bug',
       cold && !flag('heaters_installed') && 'cold',
     ]],
-    weather: ['meteorologist', [
-      weather.risk >= 45 && 'risk_high',
-      cold && 'cold',
-      weather.kind === 'storm' && weather.risk >= 35 && !flag('lightning_ready') && 'lightning',
-    ]],
+    weather: ['meteorologist', weatherNogoReasons(state, weather)],
     quality: ['inspector', [
       state.progress.testing < 60 && 'untested',
       flag('skipped_testing') && 'skipped_testing',
@@ -354,7 +370,7 @@ async function poll(state, today, lines, site) {
   const votes = evaluatePoll(state, today);
   for (const v of votes) {
     if (v.vote !== 'unknown') ui.sfx(v.vote === 'go' ? 'launchweek-go' : 'launchweek-nogo');
-    await ui.say(v.speaker, voteLine(lines, v));
+    await ui.say(v.speaker, voteLine(lines, v), { mood: v.vote === 'nogo' ? 'sad' : 'happy' });
     board.append(el('div', `lw-vote lw-${v.vote}`, `${v.label}: ${VOTE_TEXT[v.vote]}`));
   }
 

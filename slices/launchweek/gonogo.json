@@ -28,6 +28,7 @@
   "skye": {
     "forecast": ["Here's the week ahead. That forecast is looking up!", "Fresh charts, hot off the press! Let's find a day that's a breeze."],
     "sharper": ["Closer days, clearer charts. My forecast is sharper now. No more foggy guesses!"],
+    "shock": ["*gasp* The weather turned riskier than I expected!"],
     "go": [
       "Clear skies and calm winds. Weather is go, and I'm on cloud nine!",
       "Not a cloud to worry about. That forecast is looking up. Go!",
