@@ -20,6 +20,18 @@
          ?outcome=came_home_early&cause=power      lights flicker, then go dark (or cause=life_support)
          ?outcome=launch_failure&cause=lightning   a storm, and the strike stops the launch
 
+       No-launch endings (NOTES.md section 3). &endAt= is where the game stopped (default: trail):
+         ?outcome=bankrupt&endAt=build             build never locked in        -> broke_build
+         ?outcome=bankrupt&endAt=trail             money ran out on the trail   -> broke_trail
+         ?outcome=bankrupt&endAt=launchweek        money ran out in launch week -> broke_launchweek
+         ?outcome=bankrupt&endAt=giveup            Give up with money left      -> gave_up
+         ?outcome=window_closed&endAt=trail        out of days on the trail     -> late_trail
+         ?outcome=window_closed&endAt=launchweek   out of days in launch week   -> late_launchweek
+         &lean=1         locked in with only $20M left (-> broke_build)
+         &overrun=1      the cost_overrun flag (-> broke_overrun)
+         &fundraised=1   the fundraised flag (-> broke_after_fundraise)
+         &pr=1           a PR lead on staff (keeps Rosa's normal tip for broke_build and broke_trail)
+
        Also see sim-tests.html (automatic checks) and balance.html (5,000 launches). -->
   <div id="app"><div id="game"></div><div id="dashboard"></div></div>
   <script type="module">
@@ -30,7 +42,11 @@
     const outcome = params.get('outcome');
     const cause = params.get('cause');
     const emergency = params.get('emergency');
-    const state = fakeState(params.get('preset') || (outcome === 'aliens' ? 'secret' : 'launched'));
+    // No-launch endings start from the preset closest to where the game stopped.
+    const endAt = ['bankrupt', 'window_closed'].includes(outcome) ? (params.get('endAt') ?? 'trail') : null;
+    const PRESET_FOR = { build: 'afterBuild', trail: 'midTrail', launchweek: 'readyToLaunch', giveup: 'readyToLaunch' };
+    const presetName = params.get('preset') || (endAt ? PRESET_FOR[endAt] : outcome === 'aliens' ? 'secret' : 'launched');
+    const state = fakeState(presetName);
     window.state = state; // type "state" in the browser console (F12) to inspect it
 
     // Preview a launch site, rocket or weather without playing the earlier slices.
@@ -71,7 +87,23 @@
         opts.rng = dice(0.8);
       }
     }
-    if (outcome === 'bankrupt' || outcome === 'window_closed') state.outcome = outcome;
+    if (endAt) {
+      // Shape the state the way the real game would leave it (see endReason in launch-sim.js).
+      state.outcome = endAt === 'giveup' ? 'bankrupt' : outcome; // launchweek.js saves Give up as bankrupt
+      if (endAt === 'build') delete state.checkpoints.afterBuild; // Lock In never happened
+      if (endAt === 'launchweek' || endAt === 'giveup') {
+        state.weather = {}; // launchweek.js makes the forecast on its first day. Empty is enough here
+        state.scrubs = 1;
+        state.day = state.windowOpens + 2;
+      }
+      if (endAt === 'giveup') state.budget = 30;                        // money left: only Give up ends like this
+      else if (state.outcome === 'bankrupt') state.budget = endAt === 'build' ? 0 : -5; // out of money
+      else state.day = state.windowCloses + 1;                          // out of days
+      if (params.has('lean') && state.checkpoints.afterBuild) state.checkpoints.afterBuild.budget = 20;
+      if (params.has('overrun')) state.flags.push('cost_overrun');
+      if (params.has('fundraised')) state.flags.push('fundraised');
+      if (params.has('pr')) state.staff.push({ id: 'tasha', name: 'Tasha Brooks', role: 'pr', title: 'PR Lead', skill: 4, cost: 25, portrait: 'tasha' });
+    }
     if (params.has('report')) opts.reportOnly = true; // ?report=1 jumps straight to the mission report
 
     show(state, (next, extra) => {

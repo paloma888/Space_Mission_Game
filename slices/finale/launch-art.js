@@ -36,7 +36,7 @@ export const LAUNCH_COLORS = {
   light: '#e0b048', alarm: '#c0604a', ok: '#88b084', ocean: '#6a98d0', land: '#80b080', landShade: '#446c44',
 };
 
-// What each launch site looks like until its real background is drawn (the sites from Amendment A1).
+// The simple scene for sites that sites/ does not draw yet (the sites from Amendment A1).
 //   far: what's on the horizon    ground: what the pad stands on    props: decorations on the sides
 export const SCENES = {
   canaveral: { far: 'sea', ground: 'sand', props: 'palms' },
@@ -59,10 +59,11 @@ export function makeCanvas(w, h) {
   g.imageSmoothingEnabled = false;
   return { canvas, g };
 }
-const dot = (g, x, y, color) => { g.fillStyle = color; g.fillRect(x, y, 1, 1); };
-const box = (g, x, y, w, h, color) => { g.fillStyle = color; g.fillRect(x, y, w, h); };
+// (Exported so the site files in sites/ draw with the same tools.)
+export const dot = (g, x, y, color) => { g.fillStyle = color; g.fillRect(x, y, 1, 1); };
+export const box = (g, x, y, w, h, color) => { g.fillStyle = color; g.fillRect(x, y, w, h); };
 // A filled pixel circle, drawn one row at a time.
-function disk(g, cx, cy, r, color) {
+export function disk(g, cx, cy, r, color) {
   g.fillStyle = color;
   for (let y = -r; y <= r; y++) {
     const half = Math.floor(Math.sqrt(r * r - y * y));
@@ -248,7 +249,8 @@ function drawPine(g, ink, x, baseY) {
 }
 
 // The concrete launch pad, with a dark flame trench under the rocket. Its top surface is row PAD_Y.
-function drawPad(g, ink) {
+// (Exported so every site in sites/ gets the same pad, where the rocket expects it.)
+export function drawPad(g, ink) {
   box(g, 128, PAD_Y + 8, 64, 4, ink.concreteShade);   // wide base step
   box(g, 134, PAD_Y, 52, 10, ink.concreteShade);      // the pad block
   box(g, 134, PAD_Y, 52, 2, ink.concrete);            // its flat top surface
@@ -485,3 +487,29 @@ export function buildEarthLimb(ink) {
   }
   return canvas;
 }
+
+// ---------- 🛸 The secret ending's flying saucer (launch-anim.js abduct())
+
+/**
+ * Job: draws the flying saucer: a glass dome with a little green alien inside, a grey disc, and a
+ *   green glow underneath where the tractor beam comes out. The blinking lights around the rim
+ *   change every frame, so launch-anim.js draws those itself (see SAUCER_LIGHTS).
+ * @returns {HTMLCanvasElement} - 24x9.
+ */
+export function buildSaucer(ink) {
+  const { canvas, g } = makeCanvas(24, 9);
+  // Each row: [first column, last column, color]. Top to bottom.
+  const rows = [
+    [9, 14, ink.window], [8, 15, ink.window], [7, 16, ink.window], // the glass dome
+    [3, 20, ink.body], [1, 22, ink.bodyShade], [0, 23, ink.bodyShade], // the top of the disc
+    [1, 22, ink.nozzle], [4, 19, ink.nozzle], [8, 15, ink.ok],         // its underside and the beam glow
+  ];
+  rows.forEach(([x0, x1, color], y) => box(g, x0, y, x1 - x0 + 1, 1, color));
+  box(g, 9, 1, 2, 1, ink.body);   // a shine on the glass
+  box(g, 11, 1, 2, 2, ink.ok);    // the alien's head...
+  dot(g, 11, 1, ink.ring);        // ...and its two big eyes
+  dot(g, 12, 1, ink.ring);
+  return canvas;
+}
+// Where the saucer's blinking lights sit (x on row 5 of the picture above).
+export const SAUCER_LIGHTS = [3, 8, 13, 18];

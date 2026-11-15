@@ -12,12 +12,13 @@
 // Art: the team's PNGs are used when they exist; until then launch-art.js draws placeholders.
 //   art/backgrounds/launchweek/site_<id>.png, art/sprites/rocket_<id>.png, art/sprites/capsule.png
 
-import { hash, clampN, readPalette, pickColors, nearestColor } from './pixel.js';
+import { hash, clampN, readPalette, pickColors, nearestColor, BAYER } from './pixel.js';
 import {
   W, H, PAD_Y, ROCKET_X, SKY_TOP, LAUNCH_COLORS, CAPSULE_WINDOW, CAPSULE_BEACON,
   makeCanvas, skyStops, buildSkyStrip, buildScene, buildFog, buildTower, buildRocket, splitRocketImage,
-  buildCapsule, buildCloud, makePuffCache, buildEarthLimb,
+  buildCapsule, buildCloud, makePuffCache, buildEarthLimb, buildSaucer, SAUCER_LIGHTS,
 } from './launch-art.js';
+import { buildSite } from './sites/index.js';
 
 const FOLLOW_Y = 118;   // once it climbs, the camera keeps the rocket's base on this row
 const HOLD_DOWN = 0.8;  // seconds the engines roar before the rocket lets go of the pad (like real clamps)
@@ -47,7 +48,7 @@ function altitudeKm(px) {
  * @param {Object} opts - { sleep, altitudeEl }:
  *   sleep - the Skip-aware pause from finale.js, so Skip also skips the animation's own waits
  *   altitudeEl - an element to show "ALTITUDE ≈ 12 KM" in
- * @returns {Object} - the beats: countdown, stage, lightning, fail, toSpace, alarm, settle, headHome,
+ * @returns {Object} - the beats: countdown, stage, lightning, fail, toSpace, alarm, settle, headHome, abduct,
  *   zoomOut, and destroy() to stop the animation.
  * ⭐
  */
@@ -83,7 +84,9 @@ export function mountLaunchAnim(parent, state, opts = {}) {
   // ---------- Art, drawn once now (placeholders until the team's pictures exist)
   const art = {
     sky: g.createPattern(buildSkyStrip(pal, skyStops(C, weather)), 'repeat-x'),
-    scene: buildScene(ink, state.site),
+    // The launch site as layers [{ img, rate }], far to near (sites/index.js). A site that isn't
+    // drawn there yet gets the simple scene as one layer that moves with the ground.
+    site: buildSite(ink, state.site ?? 'canaveral') ?? [{ img: buildScene(ink, state.site), rate: 1 }],
     fog: weather === 'fog' ? buildFog(ink) : null,
     tower: buildTower(ink, TOWER_H),
     rocket: buildRocket(ink, state.rocket),
@@ -109,7 +112,8 @@ export function mountLaunchAnim(parent, state, opts = {}) {
   // The team's pictures replace the placeholders as soon as they load (if they exist yet).
   loadImage(`art/backgrounds/launchweek/site_${state.site ?? 'canaveral'}.png`).then((img) => {
     if (!img || !alive) return;
-    art.scene = img;
+    art.site = [{ img, rate: 1 }]; // the team's picture is one flat layer
+
     // Continue the picture's own sky color above it, so there's no seam during the climb.
     art.sky = g.createPattern(buildSkyStrip(pal, skyStops(C, weather, averageRowColor(pal, img, 0))), 'repeat-x');
   });
@@ -139,6 +143,7 @@ export function mountLaunchAnim(parent, state, opts = {}) {
     flashLeft: 0,       // lightning: seconds left of the strike effect
     strikeSeed: 0,
     zoom: null,         // the Kirby fly-away, once it starts
+    abduct: null,       // 🛸 the secret ending's saucer beat, once it starts
     lights: 'calm',     // capsule lights in space: 'calm', 'power', 'life_support', 'dark' or 'ok'
     lightsT: 0,         // seconds since the lights last changed
     homeT: -1,          // seconds since the capsule turned for home (-1 = it hasn't)
@@ -218,6 +223,18 @@ export function mountLaunchAnim(parent, state, opts = {}) {
     await sleep(450);
   }
 
+  // 🛸 The secret ending (only with the mysterious component, launching on the last day).
+  // A flying saucer swoops in, holds the rocket in a green tractor beam, then zips off with it,
+  // and a green flash leads into the globe. Timeline (seconds): 0-1.4 swoop in, 1.5-3.4 beam
+  // (the rocket floats up a little), 3.4+ both shoot off the top. See drawAbduct().
+  async function abduct() {
+    art.saucer ??= buildSaucer(ink);
+    w.abduct = { t: 0, ...snapshotRocket() };
+    await sleep(4300);
+    cover('green');
+    await sleep(450);
+  }
+
   // Stops the animation and removes the canvas (the cover stays until the next screen replaces it).
   function destroy() {
     alive = false;
@@ -249,11 +266,13 @@ export function mountLaunchAnim(parent, state, opts = {}) {
     if (w.homeT >= 0) w.homeT += dt;
     if (w.flashLeft > 0) w.flashLeft -= dt;
     if (w.zoom) w.zoom.t += dt;
+    if (w.abduct) w.abduct.t += dt;
     if (w.armMoving) w.arm = Math.max(0, w.arm - dt * 1.2);
 
     // 🚀 The climb: speed grows by this beat's acceleration while the engines push.
     let push = pushing() ? (ACCEL[w.phase] ?? ACCEL.orbit) : 0;
     if (w.zoom) push = ACCEL.orbit;                  // keep flying during the fly-away
+    if (w.abduct) { push = 0; w.v = 0; }             // the saucer has it now: drawAbduct() moves it
     if (w.failing) w.v *= Math.exp(-2.2 * dt);       // engines out: the climb slows to a stop
     w.v += push * dt;
     w.alt += w.v * dt;
@@ -279,7 +298,7 @@ export function mountLaunchAnim(parent, state, opts = {}) {
 
   // Is there fire under the rocket this frame? Sputtering = flickering on and off.
   function flameOn() {
-    if (!w.engine) return false;
+    if (!w.engine || w.abduct) return false;          // in the tractor beam, the engines go quiet
     if (w.separated && w.t - w.sepT < COAST) return false;
     if (w.failing) return w.failT < 1 && hash(frameCount >> 1) > 0.5;
     if (w.trouble && w.phaseT > 1.6) return hash(frameCount >> 1) > 0.35;
@@ -371,6 +390,7 @@ export function mountLaunchAnim(parent, state, opts = {}) {
   // 📷 The camera follows the rocket up. camY = how far it has risen; everything else is drawn relative to it.
   function cameraY() {
     if (w.zoom) return w.zoom.camY;                  // frozen during the fly-away
+    if (w.abduct) return w.abduct.camY;              // and while the saucer has the rocket
     return Math.max(0, Math.round(w.alt - (PAD_Y - FOLLOW_Y) + w.camShift));
   }
   // A height above the pad -> a row on screen. Higher up = smaller row number.
@@ -397,11 +417,13 @@ export function mountLaunchAnim(parent, state, opts = {}) {
       if (y > -c.img.height && y < H) g.drawImage(c.img, c.x, y);
     }
 
-    // The launch site slides down out of view as we climb.
-    if (camY < H) {
-      g.drawImage(art.scene, 0, camY);
-      if (art.fog) g.drawImage(art.fog, 0, camY);
+    // The launch site slides down out of view as we climb. Each layer slides at its own rate:
+    // far ones slower than near ones (parallax), so the horizon lingers while the ground drops away.
+    for (const layer of art.site) {
+      const y = Math.round(camY * layer.rate);
+      if (y < H) g.drawImage(layer.img, 0, y);
     }
+    if (art.fog && camY < H) g.drawImage(art.fog, 0, camY);
     drawTower(camY);
 
     // The rocket, the pieces that fell off it, and its smoke.
@@ -409,7 +431,7 @@ export function mountLaunchAnim(parent, state, opts = {}) {
       const y = toScreen(d.h, camY) - d.img.height;
       if (y < H) g.drawImage(d.img, Math.round(d.x - d.img.width / 2), y);
     }
-    if (!w.zoom) drawRocket(camY);
+    if (!w.zoom && !w.abduct) drawRocket(camY);    // during those two, drawZoom/drawAbduct draw it
     drawVapor(camY);
     drawSmoke(camY);
 
@@ -651,6 +673,17 @@ export function mountLaunchAnim(parent, state, opts = {}) {
       const img = art.capsuleImg ?? art.capsule;
       return { t: 0, img, from: { x, y: y + Math.round(img.height / 2) }, to, fire: false };
     }
+    const { img, camY, x, y, flameW } = snapshotRocket();
+    return { t: 0, img, camY, from: { x, y }, to, fire: true, flameW };
+  }
+
+  /**
+   * Job: paints the whole rocket as it looks right now (boosters and all) into one small picture,
+   *   so the fly-away and the saucer can move it around as a single piece.
+   * @returns {Object} - { img, camY, x, y, flameW }: the picture, the frozen camera, where the
+   *   rocket's base is on screen, and how wide its flame is.
+   */
+  function snapshotRocket() {
     const r = art.rocket;
     const camY = cameraY();
     const withBoosters = r.boosters && !w.separated;
@@ -666,7 +699,62 @@ export function mountLaunchAnim(parent, state, opts = {}) {
     }
     s.drawImage(r.upper, Math.round(mid - r.upper.width / 2), 0);
     const flameW = w.separated ? Math.max(2, r.upper.width - 4) : Math.max(3, r.coreW - 2);
-    return { t: 0, img: snap, camY, from: { x: ROCKET_X, y: toScreen(w.alt, camY) }, to, fire: true, flameW };
+    return { img: snap, camY, x: ROCKET_X, y: toScreen(w.alt, camY), flameW };
+  }
+
+  // ---------- 🛸 The saucer beat (abduct() above starts it)
+
+  // Draws one frame of the saucer beat: the saucer swooping in, its beam, and the rocket floating
+  // up into it. a.t = seconds since it started. Positions are on screen (the camera is frozen).
+  function drawAbduct() {
+    const a = w.abduct;
+    const t = a.t;
+    const sw = art.saucer.width;
+    const hoverX = a.x;
+    const hoverY = a.y - a.img.height - 18;          // the saucer hovers just above the rocket's nose
+
+    // Where the saucer is: swooping in from the top right (fast, then slowing down), then hovering
+    // with a gentle bob.
+    let ux = hoverX + Math.round(Math.sin(t * 3) * 1.5);
+    let uy = hoverY + Math.round(Math.sin(t * 4) * 1.5);
+    if (t < 1.4) {
+      const p = t / 1.4;
+      const e = 1 - (1 - p) ** 3;
+      ux = Math.round(hoverX + (1 - e) * 170);
+      uy = Math.round(hoverY - (1 - e) * 90 + Math.sin(p * Math.PI) * 18); // dips down mid-swoop
+    }
+
+    // The rocket floats up 10 pixels in the beam, wobbling a little, then both zip off the top.
+    const zip = t > 3.4 ? Math.round((t - 3.4) ** 2 * 500) : 0;
+    const pull = Math.round(clampN((t - 1.8) / 1.6, 0, 1) * 10);
+    const wobble = t > 1.8 ? Math.round(Math.sin(t * 6)) : 0;
+    const rocketBase = a.y - pull - zip;
+    uy -= zip;
+
+    if (t > 1.5 && t < 3.6) drawBeam(ux, uy + 9, rocketBase + 3, a.img.width, t);
+    g.drawImage(a.img, Math.round(a.x - a.img.width / 2) + wobble, rocketBase - a.img.height);
+    g.drawImage(art.saucer, ux - sw / 2, uy);
+    // The rim lights blink in turn: gold, green, red.
+    const colors = [ink.light, ink.ok, ink.alarm];
+    SAUCER_LIGHTS.forEach((lx, i) => {
+      g.fillStyle = colors[((frameCount >> 3) + i) % 3];
+      g.fillRect(ux - sw / 2 + lx, uy + 5, 2, 1);
+    });
+  }
+
+  // The green tractor beam: a cone from under the saucer down past the rocket, made of dithered
+  // dots with brighter bands sliding up it. It flickers on over its first 0.2 seconds.
+  function drawBeam(cx, top, bottom, rocketW, t) {
+    const fadeIn = clampN((t - 1.5) / 0.2, 0, 1);
+    for (let y = top; y < bottom; y++) {
+      const frac = (y - top) / Math.max(1, bottom - top);   // 0 at the saucer, 1 at the bottom
+      const half = Math.round(3 + frac * (rocketW / 2 + 6));
+      const band = (y + Math.floor(t * 30)) % 8 < 2;        // a brighter stripe, moving up
+      const density = (band ? 0.85 : 0.45) * fadeIn;
+      for (let x = cx - half; x <= cx + half; x++) {
+        if (BAYER[(y & 3) * 4 + (x & 3)] < density) { g.fillStyle = ink.ok; g.fillRect(x, y, 1, 1); }
+      }
+    }
   }
 
   function drawZoom() {
@@ -702,7 +790,7 @@ export function mountLaunchAnim(parent, state, opts = {}) {
 
   // How hard the screen shakes, in pixels: gentle at liftoff, strongest at max-Q, still after separation.
   function shakeAmount() {
-    if (calm || !w.engine || w.scene !== 'rocket' || w.zoom) return 0;
+    if (calm || !w.engine || w.scene !== 'rocket' || w.zoom || w.abduct) return 0;
     if (w.failing) return w.failT < 0.6 ? 1 : 0;
     if (w.phase === 'liftoff') return Math.min(1.5, w.phaseT * 2);
     if (w.phase === 'maxq') return 1.5 + 2 * Math.sin(Math.PI * Math.min(1, w.phaseT / 3));
@@ -714,6 +802,7 @@ export function mountLaunchAnim(parent, state, opts = {}) {
     if (w.scene === 'space') drawSpace();
     else drawWorld();
     if (w.zoom) drawZoom();
+    if (w.abduct) drawAbduct();
     const amp = shakeAmount();
     const jolt = frameCount >> 1;                    // a new nudge every other frame
     const sx = amp ? Math.round((hash(jolt * 2 + 1) - 0.5) * 2 * amp) : 0;
@@ -727,8 +816,18 @@ export function mountLaunchAnim(parent, state, opts = {}) {
     if (!opts.altitudeEl) return;
     let label = `ALTITUDE ≈ ${altitudeKm(w.climbed)} KM`;
     if (w.scene === 'space') label = w.homeT >= 0 ? 'HEADING HOME' : 'IN ORBIT';
+    if (w.abduct) label = 'ALTITUDE ≈ ??? KM'; // nobody knows anymore
     if (label !== lastLabel) {
-      opts.altitudeEl.textContent = label;
+      // The ≈ gets its own <span>, so finale.css can make it bigger (Press Start 2P has no ≈ of its own).
+      const [before, after] = label.split('≈');
+      if (after === undefined) {
+        opts.altitudeEl.textContent = label;
+      } else {
+        const approx = document.createElement('span');
+        approx.className = 'fin-approx';
+        approx.textContent = '≈';
+        opts.altitudeEl.replaceChildren(before, approx, after);
+      }
       lastLabel = label;
     }
   }
@@ -747,7 +846,7 @@ export function mountLaunchAnim(parent, state, opts = {}) {
   }
   raf = requestAnimationFrame(tick);
 
-  return { countdown, stage, lightning, fail, toSpace, alarm, settle, headHome, zoomOut, destroy };
+  return { countdown, stage, lightning, fail, toSpace, alarm, settle, headHome, zoomOut, abduct, destroy };
 }
 
 // ---------- Helpers for the team's pictures
