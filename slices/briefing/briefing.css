@@ -163,24 +163,30 @@
 .hire-card.is-hired .hire-card-badge { display: block; }
 
 /* The detail strip: see-through dark palette color, so the hall still shows around and through it.
-   color-mix only adds transparency to a palette color, so no new colors enter the game. */
+   color-mix only adds transparency to a palette color, so no new colors enter the game.
+   Portrait | stacked text | Hire, all vertically centered. Full width (same edges as the bottom
+   bar) so the text gets long lines instead of making the strip taller.
+   Height: 192px portrait + 2 x 12px padding + 2 x 4px border = 224px. It sits between the
+   counter (ends near y 390) and the bottom bar (starts at y 648), so there is no overlap or scroll. */
 .hiring-detail {
   display: grid;
-  grid-template-columns: 64px 1fr 280px auto;
-  align-items: start;
-  gap: 16px;
-  width: 1000px;
-  max-height: 232px;
-  overflow-y: auto;
+  grid-template-columns: 192px minmax(0, 1fr) 160px;
+  align-items: center;
+  column-gap: 20px;
+  width: 1232px;
   margin-top: 10px;
   padding: 12px;
   color: var(--ink);
   background: color-mix(in srgb, var(--bg) 72%, transparent);
   border: 4px solid var(--frame-edge);
 }
-.hiring-detail-name { color: var(--frame); margin-bottom: 4px; }
-.hiring-subtitle { color: var(--accent); margin-bottom: 8px; }
-.hiring-bio, .hiring-line, .hiring-quote { font-size: var(--small); line-height: 1.6; margin: 0 0 6px; }
+/* Same size whether the art loaded or the placeholder box shows. */
+.hiring-detail .portrait { width: 192px; height: 192px; image-rendering: pixelated; }
+.hiring-detail-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; margin-bottom: 8px; }
+.hiring-detail-name { color: var(--frame); }
+.hiring-subtitle { color: var(--accent); }
+.hiring-bio, .hiring-line, .hiring-quote { font-size: var(--small); line-height: 1.5; margin: 0 0 6px; }
+.hiring-quote { margin: 0; }
 .hiring-line-label { color: var(--accent); }
 .hiring-quote { font-style: italic; }
 .hiring-hire { width: 160px; }

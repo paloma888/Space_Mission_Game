@@ -199,24 +199,26 @@ export async function runHiring(state, { candidates, staff, hiringText }) {
 
     // ---------- Detail panel
 
-    // A compact strip under the cards: small portrait | name and bio | strength, flaw, quote | Hire.
+    // The strip under the cards: big portrait on the left, the text stacked on its right, Hire last.
+    // 192 = 3 x 64, a whole-number scale of the 64px art, so the pixels stay sharp.
     // Not a ui.panel on purpose: panels are solid, and the strip must let the background show.
+    const DETAIL_PORTRAIT_SIZE = 192;
+
     function renderDetail() {
       const person = selectedPerson();
       if (!person) { detailColumn.replaceChildren(); return; }
       const subtitle = activeKind === 'astronaut' ? (castSheet[person.id]?.title ?? 'Astronaut candidate') : person.title;
 
-      const aboutColumn = el('div', 'hiring-detail-about');
-      aboutColumn.append(el('div', 'hiring-detail-name', person.name), el('div', 'hiring-subtitle', subtitle),
-        el('p', 'hiring-bio', person.bio));
-
-      const traitsColumn = el('div', 'hiring-detail-traits');
-      if (activeKind === 'staff') traitsColumn.append(labeledLine('Effect', person.effect));
-      traitsColumn.append(labeledLine('Strength', person.strength), labeledLine('Flaw', person.flaw));
+      const heading = el('div', 'hiring-detail-heading');
+      heading.append(el('span', 'hiring-detail-name', person.name), el('span', 'hiring-subtitle', subtitle));
+      const textColumn = el('div', 'hiring-detail-text');
+      textColumn.append(heading, el('p', 'hiring-bio', person.bio));
+      if (activeKind === 'staff') textColumn.append(labeledLine('Effect', person.effect));
+      textColumn.append(labeledLine('Strength', person.strength), labeledLine('Flaw', person.flaw));
       const tic = castSheet[person.id]?.tic;
-      if (tic) traitsColumn.append(el('p', 'hiring-quote', `"${tic}"`));
+      if (tic) textColumn.append(el('p', 'hiring-quote', `"${tic}"`));
 
-      detailColumn.replaceChildren(ui.portrait(person.portrait ?? person.id, 64), aboutColumn, traitsColumn, hireButton(person));
+      detailColumn.replaceChildren(ui.portrait(person.portrait ?? person.id, DETAIL_PORTRAIT_SIZE), textColumn, hireButton(person));
     }
 
     function labeledLine(label, text) {
