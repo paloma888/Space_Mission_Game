@@ -212,6 +212,10 @@
   height: 60px;
   padding: 0 12px;
   color: var(--ink);
+  /* 0.86, not the 0.8 default: the "Empty" seat text is blue (--frame-edge), which only reaches
+     4.5:1 contrast over the brightest art from 0.86 up. Both lines are needed (see base.css). */
+  --panel-alpha: 0.86;
+  --panel-bg: rgba(var(--c0-rgb), var(--panel-alpha));
   background: var(--panel-bg);
   text-shadow: 1px 1px 0 var(--bg); /* same crisp edge as base.css text boxes */
   border: 4px solid var(--frame-edge);
