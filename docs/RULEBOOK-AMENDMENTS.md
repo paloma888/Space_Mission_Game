@@ -79,7 +79,7 @@ The Warp Coil is not sold in Mission 1, so the `aliens` ending cannot trigger. T
 
 Status: ADOPTED (proposed by Person 2, approved by the team). Person 1 owns `core/state.js`.
 
-`afterBuild`: standard shell, life support, battery, comms and computer, no abort, no science, Condor at Canaveral, leo. Budget 190, mass 7.3 t, margin +4.7 t, power 320 of 600 W, `rel.parts` 0.07, spent 370. Once `recompute` merges, the preset should call it instead of hard-coding `derived`.
+`afterBuild`: standard shell, life support, battery, comms and computer, no abort, no science, Condor at Canaveral, leo. Budget 190, mass 7.3 t, margin +2.7 t (Condor lifts 10 t after the rocket retune), power 320 of 600 W, `rel.parts` 0.07, spent 370. Once `recompute` merges, the preset should call it instead of hard-coding `derived`.
 
 ## A8. Open questions
 
