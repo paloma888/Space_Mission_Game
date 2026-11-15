@@ -9,9 +9,16 @@
   justify-content: center;
   gap: 32px;
 }
-.briefing-logo { font-size: var(--title); color: var(--accent); text-shadow: 4px 4px 0 var(--bg); }
+/* Dark see-through backing so the logo and buttons stay readable over the busy photo.
+   color-mix keeps it a palette color (--bg) instead of a raw rgba. */
+.briefing-logo, .briefing-menu {
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+  padding: 16px 24px;
+}
+.briefing-logo { font-size: var(--title); color: var(--accent); text-shadow: 4px 4px 0 var(--bg); margin: 0; }
 .briefing-menu { display: flex; flex-direction: column; align-items: center; }
-.briefing-menu .btn { min-width: 320px; }
+/* margin-right 0: the shared .btn has an 8px right margin that pushes buttons off-center. */
+.briefing-menu .btn { min-width: 320px; margin-right: 0; }
 .briefing-menu .panel { width: 640px; }
 .briefing-slide-buttons { display: flex; flex-direction: column; align-items: flex-start; }
 
@@ -147,9 +154,15 @@
   margin-bottom: 4px;
 }
 .hire-card-head + .bar { margin-top: auto; }
-.hire-card-cost { color: var(--accent); }
+/* Dark navy (the dashboard bar color) on the light card, so name, cost and role are easy to read.
+   Bar labels are left alone: they sit half on a dark bar. */
+.hire-card-name, .hire-card-cost, .hire-card-role, .hire-card-effect { color: var(--c4); text-shadow: none; }
 .hire-card .btn { margin: 6px 0 0; padding: 4px 8px; }
 .hire-card .bar { margin-top: 4px; }
+/* Thin dark outline (1px in four directions) so the label reads on both the light fill and the black bar. */
+.hire-card .bar-label {
+  text-shadow: -1px 0 var(--bg), 1px 0 var(--bg), 0 -1px var(--bg), 0 1px var(--bg);
+}
 .hire-card-role { margin-bottom: 4px; }
 .hire-card-effect { margin-top: 6px; line-height: 1.5; }
 .hire-card-badge {
