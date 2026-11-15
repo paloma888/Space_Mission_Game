@@ -163,7 +163,7 @@
 .hire-card.is-hired .hire-card-badge { display: block; }
 
 /* The detail strip: see-through dark palette color, so the hall still shows around and through it.
-   color-mix only adds transparency to a palette color, so no new colors enter the game.
+   --panel-bg (core/base.css) is the darkest palette color made see-through.
    Portrait | stacked text | Hire, all vertically centered. Full width (same edges as the bottom
    bar) so the text gets long lines instead of making the strip taller.
    Height: 192px portrait + 2 x 12px padding + 2 x 4px border = 224px. It sits between the
@@ -177,7 +177,7 @@
   margin-top: 10px;
   padding: 12px;
   color: var(--ink);
-  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  background: var(--panel-bg);
   border: 4px solid var(--frame-edge);
 }
 /* Same size whether the art loaded or the placeholder box shows. */
@@ -211,7 +211,7 @@
   height: 60px;
   padding: 0 12px;
   color: var(--ink);
-  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  background: var(--panel-bg);
   border: 4px solid var(--frame-edge);
 }
 .hiring-seats { display: flex; gap: 8px; }

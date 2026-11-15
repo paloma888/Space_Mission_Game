@@ -128,9 +128,11 @@ small, .small { font-size: var(--small); }
   border: 2px solid var(--border-grey);
 }
 
-/* ---------- Frames */
+/* ---------- Frames
+   Text boxes are see-through dark (--panel-bg) so the background art shows behind them.
+   The pixel frame (border and outer ring) stays fully opaque, so they still read as boxes. */
 .panel, .dialogue, .card, .toast {
-  background: var(--frame);
+  background: var(--panel-bg);
   border: 4px solid var(--frame-edge);
   box-shadow: 0 0 0 4px var(--bg); /* chunky double border, no blur */
 }
@@ -208,7 +210,7 @@ small, .small { font-size: var(--small); }
   inset: 0;
   display: grid;
   place-items: center;
-  background: rgb(0 0 0 / 0.7);
+  background: var(--panel-bg); /* was raw black at 0.7, now the palette's darkest color */
   z-index: 20;
 }
 .card { width: 900px; max-height: 620px; overflow: auto; padding: 32px; line-height: 1.8; }
