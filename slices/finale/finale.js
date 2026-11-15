@@ -461,9 +461,12 @@ function report(state, result, data, ending) {
   total.style.animationDelay = `${score.lines.length * 0.35}s`;
   left.append(total);
   if (score.medal) setTimeout(() => ui.sfx('finale/medal'), score.lines.length * 350 + 300); // "ta-da!" after the rows
-  // No medal: just the reason (e.g. "Launch the rocket to earn a medal."). Short, so the panel fits.
-  left.append(el('div', `fin-medal fin-medal-${score.medal ?? 'none'}`,
-    score.medal ? MEDAL_NAMES[score.medal] : score.medalReason));
+  // The medal, or the reason there isn't one. With no launch there's no medal box at all: the badge
+  // caption below says it in one line, so the panel still fits with all 6 score rows (A14).
+  if (launched) {
+    left.append(el('div', `fin-medal fin-medal-${score.medal ?? 'none'}`,
+      score.medal ? MEDAL_NAMES[score.medal] : score.medalReason));
+  }
   // Badges: lit if earned, dim with a hint if not. Labels come from badges.json.
   // No launch: all greyed out with one caption, and no per-badge hints (they'd be confusing here).
   const badges = el('div', launched ? 'fin-badges' : 'fin-badges fin-badges-locked');
@@ -476,7 +479,7 @@ function report(state, result, data, ending) {
     badges.append(chip);
   }
   left.append(badges);
-  if (!launched) left.append(el('p', 'fin-badges-note', 'Launch your ship to unlock badges'));
+  if (!launched) left.append(el('p', 'fin-badges-note', 'Launch your ship to earn a medal and unlock badges'));
 
   // Middle: the real NASA story that matches what happened.
   const card = pickHistoryCard(data.cards, state, result);

@@ -33,8 +33,9 @@ const ACCEL = { liftoff: 12, maxq: 24, separation: 40, orbit: 55 };
 /**
  * Job: turns climbed pixels into an APPROXIMATE altitude for the on-screen counter.
  *   Tuned so a normal climb reads about 12 km at max-Q, about 50 km at separation and 200 km at
- *   orbit: the right range for a real crewed launch. (Rosa explains the real math next push;
- *   check those numbers against a NASA page first.)
+ *   orbit. Checked Sun Nov 15: 200 km is in low Earth orbit ("the first 100 to 200 miles (161 to
+ *   322 km) of space", NASA: What Is an Orbit? Grades 5-8). Where max-Q and separation happen
+ *   depends on the rocket, and NASA gives no single number, so those two stay approximate (≈).
  * @param {number} px - art pixels climbed.
  * @returns {number} - kilometers, rounded, never more than 200.
  */
@@ -147,7 +148,8 @@ export function mountLaunchAnim(parent, state, opts = {}) {
     abduct: null,       // 🛸 the secret ending's saucer beat, once it starts
     lights: 'calm',     // capsule lights in space: 'calm', 'power', 'life_support', 'dark' or 'ok'
     lightsT: 0,         // seconds since the lights last changed
-    homeT: -1,          // seconds since the capsule turned for home (-1 = it hasn't)
+    battery: null,      // 🔋 power left (1 = full, 0 = empty) in a power emergency. null = no battery bar
+    homeT: -1,         // seconds since the capsule turned for home (-1 = it hasn't)
     spaceT: -1,         // seconds since we started moving into space (-1 = not yet): the dissolve and Earth rising
   };
   const puffs = [];       // smoke puffs: { x, h, vx, vh, r0, r1, life, age, tone }
@@ -198,13 +200,17 @@ export function mountLaunchAnim(parent, state, opts = {}) {
     setLights('calm');
   }
 
-  // 🚨 An emergency in orbit starts: the window light flickers (power) or a red alarm blinks (life support).
+  // 🚨 An emergency in orbit starts. Power: the window light dims like a dying flashlight and a
+  // battery bar drains (see updateBattery). Life support: a red alarm blinks.
   function alarm(type) {
-    if (type !== 'lightning') setLights(type === 'life_support' ? 'life_support' : 'power');
+    if (type === 'lightning') return;
+    setLights(type === 'life_support' ? 'life_support' : 'power');
+    if (type !== 'life_support') w.battery = 1;
   }
 
-  // The emergency is over. Fixed: lights back to normal (plus a green light for life support).
-  // Not fixed: the lights go out (power) or the red alarm keeps blinking (life support).
+  // The emergency is over. Fixed: lights back to normal (plus a green light for life support,
+  // or the battery refilling for power). Not fixed: the battery runs out and the lights go off
+  // (power), or the red alarm keeps blinking (life support).
   function settle(type, saved) {
     if (type === 'lightning') return;
     if (saved) setLights(type === 'life_support' ? 'ok' : 'calm');
@@ -267,6 +273,7 @@ export function mountLaunchAnim(parent, state, opts = {}) {
     w.t += dt;
     w.phaseT += dt;
     w.lightsT += dt;
+    updateBattery(dt);
     if (w.failing) w.failT += dt;
     if (w.homeT >= 0) w.homeT += dt;
     if (w.spaceT >= 0) w.spaceT += dt;
@@ -655,7 +662,33 @@ export function mountLaunchAnim(parent, state, opts = {}) {
     return { x: 160, y: 64 + Math.round(riseOffset() * 40) + (calm ? 0 : Math.round(Math.sin(w.t * 1.2))) };
   }
 
-  // The capsule with its lights: the window (lit, flickering or dark) and the top light (red alarm or green).
+  // 🔋 Moves the battery level during a power emergency (the numbers are seconds of animation):
+  //   power: drains to the last red bar in 2.5 s and stops there (the alarm lasts 3 s), so the
+  //          answer stays a surprise
+  //   fixed: refills in about 1 s, stays full for a moment, then the bar goes away
+  //   not fixed ('dark'): the last bar runs out in half a second
+  function updateBattery(dt) {
+    if (w.battery === null) return;
+    if (w.lights === 'power') w.battery = Math.max(0.25, w.battery - dt * 0.3);
+    else if (w.lights === 'dark') w.battery = Math.max(0, w.battery - dt * 0.5);
+    else {                                           // fixed (or a different alarm came next)
+      w.battery = Math.min(1, w.battery + dt * 0.6);
+      if (w.battery === 1 && w.lightsT > 2.5) w.battery = null;
+    }
+  }
+
+  // How bright the window is: 0 = bright, 1 = dim, 2 = dimmer, 3 = off. In a power emergency it
+  // follows the battery, like a flashlight running out, with a slow stutter (at most 3 a second,
+  // and none when the computer asks for less motion).
+  function windowGlow() {
+    if (w.battery === null) return w.lights === 'dark' ? 3 : 0;
+    let step = w.battery > 0.75 ? 0 : w.battery > 0.5 ? 1 : w.battery > 0.1 ? 2 : 3;
+    if (w.lights === 'power' && !calm && hash(Math.floor(w.lightsT * 3) * 7 + 1) > 0.65) step += 1;
+    return Math.min(step, 3);
+  }
+
+  // The capsule with its lights: the window (lit, dimming or dark), the top light (red alarm or
+  // green) and the battery bar in a power emergency.
   function drawCapsule(cx, cy) {
     const dark = w.lights === 'dark';
     const img = art.capsuleImg ?? (dark ? art.capsuleDim : art.capsule);
@@ -664,9 +697,9 @@ export function mountLaunchAnim(parent, state, opts = {}) {
     g.drawImage(img, x0, y0);
     const blinkOn = Math.floor(w.t * 2) % 2 === 0;   // twice a second: an alarm, not a strobe
     if (w.lights === 'life_support' && blinkOn) drawAlert(x0 + img.width + 3, y0 - 2);
+    if (w.battery !== null && w.homeT < 1.5) drawBattery(x0 + img.width + 3, y0 + 1);
     if (art.capsuleImg) return;                      // the team's capsule picture has its own window
-    const flicker = hash(Math.floor(w.t * 10)) > 0.45;
-    g.fillStyle = (w.lights === 'power' ? flicker : !dark) ? ink.light : ink.ring;
+    g.fillStyle = [ink.light, ink.flameOuter, ink.trunk, ink.ring][windowGlow()]; // bright gold to off
     g.fillRect(x0 + CAPSULE_WINDOW.x, y0 + CAPSULE_WINDOW.y, CAPSULE_WINDOW.w, CAPSULE_WINDOW.h);
     let top = null;
     if (w.lights === 'life_support' && blinkOn) top = ink.alarm;
@@ -682,6 +715,20 @@ export function mountLaunchAnim(parent, state, opts = {}) {
     g.fillStyle = ink.alarm;
     g.fillRect(x, y, 2, 5);
     g.fillRect(x, y + 6, 2, 2);
+  }
+
+  // 🔋 A standing battery like a phone's, 5 wide and 12 tall, with 4 bars inside. The bars are
+  // green when it's mostly full, gold at 2 and red at the last one. Empty: the frame turns red.
+  function drawBattery(x, y) {
+    const bars = Math.ceil(w.battery * 4 - 0.001);   // the tiny bit keeps a full 1 bar at exactly 0.25
+    g.fillStyle = bars === 0 ? ink.alarm : ink.body;
+    g.fillRect(x + 1, y, 3, 1);                      // the bump on top
+    g.fillRect(x, y + 1, 5, 1);                      // frame: top, bottom, left, right
+    g.fillRect(x, y + 11, 5, 1);
+    g.fillRect(x, y + 1, 1, 11);
+    g.fillRect(x + 4, y + 1, 1, 11);
+    g.fillStyle = bars >= 3 ? ink.ok : bars === 2 ? ink.light : ink.alarm;
+    for (let i = 0; i < bars; i++) g.fillRect(x + 1, y + 9 - i * 2, 3, 1); // bottom bar first
   }
 
   // 🔥 Re-entry: air rushing past the heat shield glows hot, in a bow under the capsule, with a trail behind.

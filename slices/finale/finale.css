@@ -27,7 +27,7 @@
    twice as big, nudge it to the middle of the capital letters, and keep the box from growing
    taller (line-height 0). */
 .fin-approx { font-size: 2em; line-height: 0; vertical-align: -0.04em; }
-.fin-log { left: 24px; bottom: 24px; width: 470px; padding: 8px 16px; line-height: 1.7; }
+.fin-log { left: 24px; bottom: 24px; width: 520px; padding: 8px 16px; line-height: 1.7; } /* wide enough for the explaining captions */
 .fin-log:empty, .fin-alt:empty { display: none; }
 .fin-log > div { margin: 6px 0; }
 .fin-go { color: var(--c9); }   /* sage green: GO */
