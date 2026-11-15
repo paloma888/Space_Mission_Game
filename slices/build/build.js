@@ -10,6 +10,7 @@ import { showRocket, showSite } from './vehicle.js';
 import { showReview } from './review.js';
 import { commit } from './common.js';
 import { showDealer } from './dealer.js';
+import { showIntro } from './intro.js';
 
 export const meta = { id: 'build', owner: 'Person 2' };
 export { CATALOG };
@@ -46,6 +47,8 @@ export async function show(state, done) {
   // ctx.paid: what the budget has already been charged. Each screen's choices are
   // charged when the player presses Next, so the dashboard budget only moves then.
   const ctx = { catalog: CATALOG, lines: LINES, recompute, paid: state.derived.spent };
+  // A short opener between the briefing and the build, like the trail's week map.
+  await showIntro(state, ctx);
   // No Back buttons (team decision): each screen runs once, in order, and its choice is final.
   for (const screen of SCREENS) {
     await screen(state, ctx);
