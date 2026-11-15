@@ -26,7 +26,7 @@
 /* Press Start 2P has no ≈, so the browser borrows a small one from another font. Make it
    twice as big, nudge it to the middle of the capital letters, and keep the box from growing
    taller (line-height 0). */
-.fin-approx { font-size: 2em; line-height: 0; vertical-align: -0.12em; }
+.fin-approx { font-size: 2em; line-height: 0; vertical-align: -0.04em; }
 .fin-log { left: 24px; bottom: 24px; width: 470px; padding: 8px 16px; line-height: 1.7; }
 .fin-log:empty, .fin-alt:empty { display: none; }
 .fin-log > div { margin: 6px 0; }
@@ -110,7 +110,7 @@
 
 /* ---------- Mission report (1280x720, top 56px kept for the dashboard) */
 .fin-report {
-  padding: 72px 24px 16px;
+  padding: 44px 24px; /* 44 top and bottom: same total as before (72 + 16), so the boxes keep their size and sit centered */
   display: grid;
   grid-template-columns: 380px 1fr 340px;
   grid-template-rows: 1fr auto;
