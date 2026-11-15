@@ -13,6 +13,7 @@
 .briefing-menu { display: flex; flex-direction: column; align-items: center; }
 .briefing-menu .btn { min-width: 320px; }
 .briefing-menu .panel { width: 640px; }
+.briefing-slide-buttons { display: flex; flex-direction: column; align-items: flex-start; }
 
 /* ---------- Cutscenes */
 .briefing-scene { padding: 32px; }
