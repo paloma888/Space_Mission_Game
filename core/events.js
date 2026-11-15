@@ -1,14 +1,11 @@
 // core/events.js (owner: Person 3)
-// The one place that changes budget, day, morale and hidden reliability.
-// Every slice calls applyEffects() so the rules stay the same everywhere
-// (Rulebook sections 4, 5 and 7.3, Slice 3 brief section 6).
-//
-// pickEvent, runEvent and loadAllEvents come next. They need random() and
-// ui.say / ui.ask from Person 1, which are not written yet.
+// The one place that changes budget, day, morale and hidden reliability, and
+// the engine that picks and plays events. Every slice calls applyEffects() so
+// the rules stay the same everywhere (Rulebook sections 4, 5 and 7.3, Slice 3
+// brief section 6).
 
-// Namespace import on purpose: while core/ui.js is still empty, a named
-// import of refresh would stop this whole file from loading.
 import * as ui from './ui.js';
+import { clamp, addFlag, removeFlag, hasFlag, random, pick, checkEnd } from './state.js';
 
 // Used in the "why" text of a greyed-out choice, e.g. 'Needs a logistics manager.'
 const ROLE_NAMES = {
@@ -20,12 +17,16 @@ const ROLE_NAMES = {
 };
 
 const PROGRESS_KEYS = ['build', 'testing', 'training'];
+const PROGRESS_LABELS = { build: 'Build', testing: 'Testing', training: 'Training' };
 
 // One decimal for things the player sees, so 0.1 + 0.2 never shows as 0.30000000000000004.
 const round1 = (n) => Math.round(n * 10) / 10;
 // Reliability moves in steps of 0.01, so it needs finer rounding.
 const round4 = (n) => Math.round(n * 10000) / 10000;
-const clamp0to100 = (n) => Math.min(100, Math.max(0, n));
+const asList = (v) => (Array.isArray(v) ? v : [v]);
+const signed = (n) => (n > 0 ? `+${n}` : `${n}`);
+
+// ---------- Effects
 
 // Lowest skill goes first: losing your weakest person stings without ending the run.
 function lowestSkill(staff, role) {
@@ -54,7 +55,7 @@ export function applyEffects(state, effects) {
       }
       case 'morale': {
         const before = state.morale;
-        state.morale = round1(clamp0to100(before + value));
+        state.morale = round1(clamp(before + value, 0, 100));
         changes.push({ key, delta: round1(state.morale - before) });
         break;
       }
@@ -67,23 +68,23 @@ export function applyEffects(state, effects) {
         for (const part of PROGRESS_KEYS) {
           if (value[part] === undefined) continue;
           const before = state.progress[part];
-          state.progress[part] = round1(clamp0to100(before + value[part]));
+          state.progress[part] = round1(clamp(before + value[part], 0, 100));
           changes.push({ key: `progress.${part}`, delta: round1(state.progress[part] - before) });
         }
         break;
       }
       case 'flags': {
         for (const flag of value) {
-          if (state.flags.includes(flag)) continue; // no duplicates
-          state.flags.push(flag);
+          if (hasFlag(state, flag)) continue; // no duplicates
+          addFlag(state, flag);
           changes.push({ key: 'flag', flag, delta: 1 });
         }
         break;
       }
       case 'removeFlags': {
         for (const flag of value) {
-          if (!state.flags.includes(flag)) continue;
-          state.flags = state.flags.filter((f) => f !== flag);
+          if (!hasFlag(state, flag)) continue;
+          removeFlag(state, flag);
           changes.push({ key: 'flag', flag, delta: -1 });
         }
         break;
@@ -101,10 +102,29 @@ export function applyEffects(state, effects) {
     }
   }
 
-  // Optional call: ui.refresh does not exist until Person 1's core/ui.js lands.
-  ui.refresh?.();
+  ui.refresh();
   return changes;
 }
+
+/**
+ * Turns the list from applyEffects into short lines for toasts and summaries,
+ * e.g. ['-$20M', '+2 days']. Reliability and flags are left out on purpose:
+ * the Rulebook keeps them hidden from the player.
+ */
+export function describeChanges(changes) {
+  const lines = [];
+  for (const c of changes) {
+    if (c.delta === 0) continue;
+    if (c.key === 'budget') lines.push(`${c.delta > 0 ? '+' : '-'}$${Math.abs(c.delta)}M`);
+    else if (c.key === 'day') lines.push(`${signed(c.delta)} ${Math.abs(c.delta) === 1 ? 'day' : 'days'}`);
+    else if (c.key === 'morale') lines.push(`Morale ${signed(c.delta)}`);
+    else if (c.key.startsWith('progress.')) lines.push(`${PROGRESS_LABELS[c.key.slice(9)]} ${signed(c.delta)}`);
+    else if (c.key === 'loseStaff') lines.push(`${c.name} left the team`);
+  }
+  return lines;
+}
+
+// ---------- Requirements
 
 /**
  * Why a requirement fails, as a short line for the player, or '' if it passes.
@@ -118,17 +138,183 @@ export function requirementWhy(state, req) {
   if (r.role && !state.staff.some((s) => s.role === r.role)) {
     return `Needs ${ROLE_NAMES[r.role] || `a ${r.role}`}.`;
   }
-  if (r.flag && !state.flags.includes(r.flag)) return 'Not possible right now.';
-  if (r.notFlag && state.flags.includes(r.notFlag)) return 'Too late for that now.';
+  if (r.flag && !hasFlag(state, r.flag)) return 'Not possible right now.';
+  if (r.notFlag && hasFlag(state, r.notFlag)) return 'Too late for that now.';
   if (r.minBudget !== undefined && state.budget < r.minBudget) return `Needs $${r.minBudget}M.`;
-  if (r.site) {
-    const sites = Array.isArray(r.site) ? r.site : [r.site];
-    if (!sites.includes(state.site)) return 'Not at this launch site.';
-  }
+  if (r.site && !asList(r.site).includes(state.site)) return 'Not at this launch site.';
   return '';
 }
 
 /** True when the requirement passes. For the reason it fails, use requirementWhy(). */
 export function meetsRequirement(state, req) {
   return requirementWhy(state, req) === '';
+}
+
+// ---------- Loading events
+
+const EVENT_SLICES = ['trail', 'build', 'launchweek'];
+let allEvents = null;
+
+/**
+ * Loads events.json from the trail, build and launchweek slices. A missing,
+ * empty or broken file is skipped, so nobody is blocked by another slice.
+ * Call it once (with await) before pickEvent. Later calls reuse the result.
+ */
+export async function loadAllEvents() {
+  if (allEvents) return allEvents;
+  const lists = await Promise.all(EVENT_SLICES.map(async (slice) => {
+    try {
+      const res = await fetch(new URL(`../slices/${slice}/events.json`, import.meta.url));
+      if (!res.ok) return [];
+      const text = await res.text();
+      return text.trim() ? JSON.parse(text) : [];
+    } catch (err) {
+      console.warn(`Could not read slices/${slice}/events.json. Skipping it.`, err);
+      return [];
+    }
+  }));
+  allEvents = lists.flat();
+  return allEvents;
+}
+
+// ---------- Picking an event
+
+// How many capsule parts were bought at the cheapest tier (for budgetTiersAtLeast).
+// The parts list follows Amendment A3: a flight computer, and no abort system.
+function budgetTierCount(state) {
+  const p = state.parts || {};
+  return [p.shell, p.lifeSupport, p.comms, p.computer, p.power?.tier].filter((t) => t === 'budget').length;
+}
+
+// Does a `when` block (Rulebook 7.3) hold right now? An empty block always does.
+function whenMatches(state, when, week) {
+  if (!when) return true;
+  if (when.minWeek !== undefined && week < when.minWeek) return false;
+  if (when.maxWeek !== undefined && week > when.maxWeek) return false;
+  if (when.flagsAny && !when.flagsAny.some((f) => hasFlag(state, f))) return false;
+  if (when.flagsNone && when.flagsNone.some((f) => hasFlag(state, f))) return false;
+  if (when.siteIn && !when.siteIn.includes(state.site)) return false;
+  if (when.rocketIn && !when.rocketIn.includes(state.rocket)) return false;
+  if (when.staffHas && !asList(when.staffHas).some((role) => state.staff.some((s) => s.role === role))) return false;
+  if (when.moraleBelow !== undefined && !(state.morale < when.moraleBelow)) return false;
+  if (when.budgetBelow !== undefined && !(state.budget < when.budgetBelow)) return false;
+  if (when.budgetTiersAtLeast !== undefined && budgetTierCount(state) < when.budgetTiersAtLeast) return false;
+  // The three build gauges. The numbers used in events.json match the levels at
+  // which the dashboard turns a gauge yellow, so an event never comes out of nowhere.
+  const d = state.derived || {};
+  if (when.commsIn && !when.commsIn.includes(d.comms)) return false;
+  if (when.massMarginBelow !== undefined && !(d.massMargin < when.massMarginBelow)) return false;
+  // powerLoadAbove is a share of the battery: 0.9 means "using more than 90% of the supply".
+  if (when.powerLoadAbove !== undefined && !(d.powerSupply > 0 && d.powerUse > when.powerLoadAbove * d.powerSupply)) return false;
+  return true;
+}
+
+/**
+ * Chooses this week's event, or null if nothing fits.
+ * Order: week 1 is always first_shipment, then any overdue guaranteed event,
+ * then a weighted random pick. Events already in state.events never repeat.
+ */
+export function pickEvent(state, week) {
+  if (!allEvents) {
+    console.warn('pickEvent: call "await loadAllEvents()" first.');
+    return null;
+  }
+  const candidates = allEvents.filter((e) =>
+    !state.events.includes(e.id)
+    && (!e.weeks || (week >= e.weeks[0] && week <= e.weeks[1]))
+    && whenMatches(state, e.when, week));
+  if (candidates.length === 0) return null;
+
+  if (week === 1) {
+    const first = candidates.find((e) => e.id === 'first_shipment');
+    if (first) return first;
+  }
+
+  // A guaranteed event is a story beat the player must not miss, so once its
+  // deadline week arrives it jumps the queue. Earliest deadline goes first.
+  const overdue = candidates
+    .filter((e) => e.guarantee && week >= e.guarantee.byWeek)
+    .sort((a, b) => a.guarantee.byWeek - b.guarantee.byWeek);
+  if (overdue.length > 0) return overdue[0];
+
+  const weights = candidates.map((e) => {
+    let w = e.weight ?? 1;
+    for (const b of e.boost || []) if (whenMatches(state, b.when, week)) w *= b.mult;
+    return w;
+  });
+  let ticket = random() * weights.reduce((a, b) => a + b, 0);
+  for (let i = 0; i < candidates.length; i++) {
+    ticket -= weights[i];
+    if (ticket < 0) return candidates[i];
+  }
+  return candidates[candidates.length - 1];
+}
+
+// ---------- Playing an event
+
+// Who delivers the event. Rosa steps in when the written speaker was not hired,
+// which is why event text is written in a neutral voice.
+function resolveSpeaker(state, speaker) {
+  if (speaker === 'crew' && state.crew.length) return { id: pick(state.crew).id, own: true };
+  if (speaker === 'crew_jittery' && state.crew.length) {
+    const jittery = state.crew.reduce((low, c) => (c.nerves < low.nerves ? c : low));
+    return { id: jittery.id, own: true };
+  }
+  const present = speaker === 'rosa'
+    || state.staff.some((s) => s.id === speaker)
+    || state.crew.some((c) => c.id === speaker);
+  return present ? { id: speaker, own: true } : { id: 'rosa', own: false };
+}
+
+// One chance roll across a choice's outcomes. The p values add up to 1.
+function rollOutcome(outcomes) {
+  let ticket = random();
+  for (const o of outcomes) {
+    ticket -= o.p;
+    if (ticket < 0) return o;
+  }
+  return outcomes[outcomes.length - 1];
+}
+
+// Which sound fits what just happened. Losing reliability, morale or a person
+// is bad news even when the player cannot see the number.
+function resultSound(changes) {
+  const hurt = changes.some((c) => c.key === 'loseStaff' || ((c.key === 'reliability' || c.key === 'morale') && c.delta < 0));
+  if (hurt) return 'trail-bad';
+  if (changes.some((c) => c.key === 'budget' && c.delta > 0)) return 'trail-cash';
+  return 'trail-good';
+}
+
+/**
+ * Plays one event: scene, dialogue, choice, effects, result line, toast.
+ * Returns { choice, changes, ended }. `ended` is checkEnd(state): if it is not
+ * null (for example 'bankrupt'), the caller should call done('finale').
+ */
+export async function runEvent(state, event) {
+  const root = ui.screen(event.scene || 'trail/mission_floor');
+  if (event.title) root.append(ui.panel(event.title));
+  ui.sfx('trail-event');
+
+  const speaker = resolveSpeaker(state, event.speaker);
+  // The flavor line is in the written speaker's own voice, so Rosa never says it for them.
+  // For 'crew' events it is a map of astronaut id to line, since any of them may speak.
+  const flavor = typeof event.flavor === 'object' ? event.flavor?.[speaker.id] : event.flavor;
+  if (flavor && speaker.own) await ui.say(speaker.id, flavor);
+
+  const choices = event.choices.map((c) => {
+    const why = requirementWhy(state, c.requires);
+    return { label: c.label, disabled: why !== '', why };
+  });
+  const index = await ui.ask(speaker.id, event.text, choices);
+  const choice = event.choices[index];
+
+  const picked = choice.outcomes ? rollOutcome(choice.outcomes) : choice;
+  const changes = applyEffects(state, picked.effects);
+  ui.sfx(resultSound(changes));
+  if (picked.result) await ui.say(speaker.id, picked.result);
+  const lines = describeChanges(changes);
+  if (lines.length) ui.toast(lines.join('   '), 3000);
+
+  state.events.push(event.id);
+  return { choice: index, changes, ended: checkEnd(state) };
 }
