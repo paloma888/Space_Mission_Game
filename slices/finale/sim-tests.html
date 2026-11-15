@@ -242,7 +242,7 @@
     // Extra: odds words never show numbers.
     {
       const words = oddsWords(fakeState('launchedCold'));
-      check('extra. odds panel uses words only', words.length === 6 && words.every((w) => !/\d/.test(w.words)),
+      check('extra. odds panel uses words only', words.length === 7 && words.every((w) => !/\d/.test(w.words)),
         words.map((w) => `${w.id}: ${w.words}`).join(', '));
     }
 

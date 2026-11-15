@@ -210,3 +210,84 @@ What each person needs to change:
 - **Erick (Person 5), report:**
   - [ ] Treat launch-week bankruptcy as `budget < 0`.
   - [ ] Add a "broke after fundraising" reason for Rosa.
+
+## A14. Harder to win, and careful play pays (changes sections 6.3, 6.8 and the A11 score table)
+
+Status: ADOPTED (proposed by Paloma, Person 4, from a playtest of about 150,000 simulated games; approved in team chat on Sun Nov 15, 2026). Affects Audrey (Person 1), Person 2, Sharon (Person 3) and Erick (Person 5). Person 1 should review the pull request.
+
+**Why.** The playtest found that any clean orbit already earned bronze (Smooth flight 30 + Reached orbit 30 = 60). A random clicker won a medal 1 game in 3. Gold went mostly to the cheapest, most reckless play, because careful steps cost money and days and earned no points.
+
+**Score.** Replaces the score table in A11. Still out of 100.
+
+| Part | Points | Rule |
+| --- | --- | --- |
+| Smooth flight | 30 | Unchanged |
+| Reached orbit | 25 | `orbit` or `aliens`: 25. `came_home_early`: 12.5. Otherwise 0 |
+| Good calls | 20 | 5 each for the Measure Twice, Team Player and Honest Parts badges, plus 5 if `launchProbability` is 0.85 or more at launch |
+| Budget left | 10 | `10 * min(1, budget / 200)` |
+| Days to spare | 5 | `5 * clamp((windowCloses - launchDay) / 6, 0, 1)` |
+| Morale | 10 | `10 * morale / 100` |
+
+No-launch endings still score Morale only, now at most 10.
+
+**Medals.** Bronze 70, silver 82, gold 92.
+
+**Launch odds.**
+- `rel.base` drops from 0.80 to 0.72 (`core/state.js`).
+- Every budget-tier part has reliability -0.02 instead of 0.00 (`slices/build/parts.json`). Dealer copies of budget parts drop by the same amount.
+
+**Bug fixes in the same pull request.** No rule changes. Listed so each owner knows.
+- `slices/trail/trail.js`: the last trail week only adds days up to `windowOpens`, so the trail can no longer push the day past `windowCloses` (Rulebook 6.1).
+- `slices/trail/week.js`: a week with nobody on Test is not a skipped week once Testing is at 100. The `rel.testing` formula moved into the exported `updateTestingReliability(state)`.
+- `slices/launchweek/launchweek.js`: Hold's +10 testing now calls `updateTestingReliability()`, so it raises the launch odds. The formula stays in Slice 3.
+- `slices/finale/finale.css`: score rows could stop one animation step short (a floating-point delay). They now use `steps(3, jump-start)`.
+- Tests updated to the new numbers: `slices/finale/sim-tests.html`, `slices/finale/balance.html`, `core/state-test.html`.
+
+**Result** (together with A15, 3,000 simulated games each):
+
+| Player | Medal before | Medal after | Gold after |
+| --- | --- | --- | --- |
+| Random clicker | 32% | 15% | 0% |
+| Follows Rosa's advice | 74% | 82% | 1.4% |
+| Reckless (no testing, shady parts, ignores No-Go) | 47% | 26%, bronze only | 0% |
+| Cheapest everything (Sparrow, budget parts, cheapest crew) | 80% | 41%, almost all bronze | 0% |
+
+Luck still matters: a careful player loses about 1 launch in 6.
+
+## A15. Crew skills change the launch odds (changes sections 6.3 and 6.4)
+
+Status: ADOPTED (proposed by Paloma, Person 4, after testing 9 formulas on all 56 possible crews; approved in team chat on Sun Nov 15, 2026). Affects Audrey (Person 1, owns `core/state.js`) and Erick (Person 5).
+
+**Why.** Before this, the Piloting stat was never used, and the cheapest crew scored best because the money saved counted in Budget left.
+
+**Rule.** The best pilot flies the rocket and the best engineer keeps it reliable. 4 is the best on the roster, so a top pilot and a top engineer change nothing. Each point below 4 costs 0.05.
+
+```js
+getReliability(state) = clamp(rel.base + rel.parts + rel.testing + rel.events
+                              - 0.05 * (4 - bestEngineering), 0.5, 0.98)
+launchProbability(state) = clamp(getReliability(state)
+                                 * derived.rocketReliability
+                                 * (1 - 0.05 * (4 - bestPilot))
+                                 * (1 - weatherPenalty)
+                                 * (1 - overrulePenalty), 0.05, 0.99)
+```
+
+`bestPilot` and `bestEngineering` are the highest values among the 3 astronauts, read with `bestCrewSkill(state, skill)` from `core/state.js`. A state with no crew counts as 4. No new state fields.
+
+**Report.** "What shaped your odds" gets a "Your astronauts" row: Top pilot and engineer, Nearly ready, or Missing key skills.
+
+**Result.** The gap between the best and worst crews grew from 5.8 to 8.8 points, and the cheapest crew dropped from 9th to 34th of 56. The best crews pair Amara or Dmitri with Jun or Zainab. The worst have no engineer, which matches Rosa's "light engineering" warning at hiring.
+
+If anyone changes an astronaut's stats in `candidates.json` (for example, adds a 5), tell Audrey: `CREW_TOP` in `core/state.js` may need to change, and the balance should be retested.
+
+## A16. The launch window is days 40 to 46 (changes sections 5, 6.1, 6.6 and 12)
+
+Status: PROPOSED (written by Paloma, Person 4, to match the code; Audrey to confirm). Affects everyone who reads `windowOpens` or `windowCloses`.
+
+`createState()` in `core/state.js` sets `windowOpens: 40` and `windowCloses: 46`, and the presets use the same window (`readyToLaunch` on day 40, `launched` on day 41, `secret` on day 46). The Rulebook still says days 36 to 42. This amendment records what the code does.
+
+- The trail still ends after week 5 (day 36 with no delays) or when the day reaches `windowOpens`.
+- Launch week starts on day 40. The days between the end of the trail and day 40 pass for free.
+- Code that reads `windowOpens` and `windowCloses` instead of typing 36 or 42 needs no change.
+
+If Audrey prefers 36 to 42, change `createState()` and the presets instead, and mark this amendment withdrawn.

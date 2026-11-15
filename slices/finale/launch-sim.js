@@ -6,7 +6,7 @@
 
 // Borrow three tools that Person 1 _____ (Insert name) wrote in core/state.js. Nothing runs here: we get the
 // functions themselves and call them later, for example launchProbability(state).
-import { launchProbability, clamp, random } from '../../core/state.js';
+import { launchProbability, clamp, random, bestCrewSkill } from '../../core/state.js';
 
 //   launchProbability: turns every choice in slices 1 to 4 into one odds number (Rulebook 6.4)
 //   clamp: keeps a number inside a range, e.g. never above 0.95
@@ -379,15 +379,17 @@ export function computeScore(state, result = {}) {
 // ---------- "What shaped your odds" (Slice 5 brief section 8). Words, never numbers (user doesn't see #'s).
 
 /**
- * Job: the "What shaped your odds" panel, turning six hidden numbers into plain words.
+ * Job: the "What shaped your odds" panel, turning seven hidden numbers into plain words.
  * @param {Object} state - the shared backpack. Reads rel.parts, rel.testing, rel.events,
- *   derived.rocketReliability, weatherPenalty and overrulePenalty.
- * @returns {Array} - 6 rows { id, label, words, tone },
+ *   derived.rocketReliability, the crew's best pilot and engineer, weatherPenalty and overrulePenalty.
+ * @returns {Array} - 7 rows { id, label, words, tone },
  *   e.g. { label: 'Your testing', words: 'Helped a lot', tone: 'good' }. tone picks the color.
  */
 export function oddsWords(state) {
   const rel = state.rel ?? {};
   const rocket = state.derived?.rocketReliability ?? 0.95;
+  // Skill points the crew's best pilot and best engineer are below the top of the roster (4), as in core/state.js (A15).
+  const crewGap = (4 - bestCrewSkill(state, 'pilot')) + (4 - bestCrewSkill(state, 'eng'));
   // pick: walks down a list of [lowest value, words, tone] steps and returns the first one the value reaches.
   const pick = (value, steps) => steps.find(([min]) => value >= min).slice(1);
   const rows = [
@@ -395,6 +397,7 @@ export function oddsWords(state) {
     ['testing', 'Your testing', pick(rel.testing ?? 0, [[0.06, 'Helped a lot', 'good'], [0.02, 'Helped', 'good'], [0, 'Barely helped', 'neutral'], [-Infinity, 'Hurt', 'bad']])],
     ['events', 'Choices on the trail', pick(rel.events ?? 0, [[0.02, 'Helped', 'good'], [-0.0095, 'Neutral', 'neutral'], [-0.0395, 'Hurt', 'bad'], [-Infinity, 'Hurt a lot', 'bad']])],
     ['rocket', 'Your rocket', pick(rocket, [[0.97, 'Proven', 'good'], [0.93, 'Good', 'neutral'], [-Infinity, 'Risky', 'bad']])],
+    ['astronauts', 'Your astronauts', pick(-crewGap, [[0, 'Top pilot and engineer', 'good'], [-1, 'Nearly ready', 'neutral'], [-Infinity, 'Missing key skills', 'bad']])],
     ['weather', 'The weather', pick(-(state.weatherPenalty ?? 0), [[-0.0499, 'No problem', 'good'], [-0.1499, 'Hurt a little', 'bad'], [-Infinity, 'Hurt a lot', 'bad']])],
     ['crew', 'Listening to the crew', (state.overrulePenalty ?? 0) > 0 ? ['You overruled them, and it hurt', 'bad'] : ['You listened', 'good']],
   ];
