@@ -46,14 +46,25 @@ export async function runHiring(state, { candidates, staff, hiringText }) {
     root.classList.add('hiring');
     const layout = el('div', 'hiring-layout');
     const tabRow = el('div', 'hiring-tabs');
-    const cardGrid = el('div', 'hiring-cards');
+    // The carousel spans the screen so the arrows sit at its edges; the cards stay centered.
+    const carousel = el('div', 'hiring-carousel');
+    const cardRow = el('div', 'hiring-cards');
+    const previousArrow = ui.button('◀', () => changePage(-1), { variant: 'quiet' });
+    const nextArrow = ui.button('▶', () => changePage(1), { variant: 'quiet' });
+    previousArrow.classList.add('hiring-arrow', 'hiring-arrow-prev');
+    nextArrow.classList.add('hiring-arrow', 'hiring-arrow-next');
+    previousArrow.setAttribute('aria-label', 'Previous page');
+    nextArrow.setAttribute('aria-label', 'Next page');
+    carousel.append(previousArrow, cardRow, nextArrow);
+    const pageDots = el('div', 'hiring-dots');
     const detailColumn = el('div', 'hiring-detail');
     const footer = el('div', 'hiring-footer');
-    layout.append(tabRow, cardGrid, detailColumn, footer);
+    layout.append(tabRow, carousel, pageDots, detailColumn, footer);
     root.append(layout);
 
     let activeKind = 'astronaut';
     let selectedId = candidates[0]?.id;
+    let pageIndex = 0;
     let rosaIsTalking = false;
     const cardsById = new Map();
 
@@ -85,13 +96,42 @@ export async function runHiring(state, { candidates, staff, hiringText }) {
       if (kind === activeKind) return;
       activeKind = kind;
       selectedId = peopleFor(kind)[0]?.id;
+      pageIndex = 0;
       renderAll();
+    }
+
+    // ---------- Pages: three cards at a time. Paging never changes who is selected or hired.
+
+    function changePage(step) {
+      if (rosaIsTalking) return;
+      const people = peopleFor(activeKind);
+      const newPageIndex = rules.clampPage(pageIndex + step, people.length);
+      if (newPageIndex === pageIndex) return;
+      pageIndex = newPageIndex;
+      renderCards();
+    }
+
+    // Arrow keys page too. Ignored while Rosa talks, since any key advances her lines then.
+    function onArrowKey(event) {
+      if (event.key === 'ArrowLeft') changePage(-1);
+      else if (event.key === 'ArrowRight') changePage(1);
+    }
+    window.addEventListener('keydown', onArrowKey);
+
+    function renderPageControls() {
+      const totalPages = rules.pageCount(peopleFor(activeKind).length);
+      previousArrow.disabled = pageIndex === 0;
+      nextArrow.disabled = pageIndex >= totalPages - 1;
+      pageDots.replaceChildren(...Array.from({ length: totalPages }, (_, dotIndex) =>
+        el('span', `hiring-dot${dotIndex === pageIndex ? ' is-current' : ''}`)));
+      pageDots.setAttribute('aria-label', `Page ${pageIndex + 1} of ${totalPages}`);
     }
 
     // ---------- Cards
 
     function buildCard(person) {
       const card = el('div', 'hire-card');
+      card.dataset.personId = person.id;
       card.tabIndex = 0;
       card.setAttribute('role', 'button');
       card.setAttribute('aria-label', person.name);
@@ -130,21 +170,25 @@ export async function runHiring(state, { candidates, staff, hiringText }) {
       return card;
     }
 
+    // Only the current page's cards exist. Hired and selected come from state and selectedId,
+    // so they survive paging away and back.
     function renderCards() {
       cardsById.clear();
-      cardGrid.classList.toggle('is-staff', activeKind === 'staff');
-      cardGrid.replaceChildren(...peopleFor(activeKind).map((person) => {
+      cardRow.classList.toggle('is-staff', activeKind === 'staff');
+      cardRow.replaceChildren(...rules.peopleOnPage(peopleFor(activeKind), pageIndex).map((person) => {
         const card = buildCard(person);
         cardsById.set(person.id, card);
         return card;
       }));
       updateCards();
+      renderPageControls();
     }
 
     // Only classes change here, so portraits aren't rebuilt (and re-requested) on every click.
     function updateCards() {
       for (const person of peopleFor(activeKind)) {
         const card = cardsById.get(person.id);
+        if (!card) continue; // on another page
         const hired = rules.isHired(state, activeKind, person.id);
         card.classList.toggle('is-selected', person.id === selectedId);
         card.classList.toggle('is-hired', hired);
@@ -269,6 +313,7 @@ export async function runHiring(state, { candidates, staff, hiringText }) {
           layout.classList.remove('is-talking');
         }
       }
+      window.removeEventListener('keydown', onArrowKey);
       resolve();
     }
 

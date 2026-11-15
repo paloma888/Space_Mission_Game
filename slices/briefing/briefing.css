@@ -65,14 +65,16 @@
   #dashboard.briefing-slide-in { animation: none; }
 }
 
-/* ---------- Hiring screen (brief section 10). Top 56px stays clear for the dashboard. */
-.screen.hiring { padding: 64px 24px 16px; }
+/* ---------- Hiring screen (brief section 10)
+   The hiring_hall background must stay visible: nothing covers the whole screen. Only the cards
+   have a solid fill; the detail strip and bottom bar are see-through palette colors.
+   The top 56px stays clear for the dashboard, which sits above #game (core/base.css z-index 5). */
+.screen.hiring { padding: 64px 0 0; }
 .hiring-layout {
-  display: grid;
-  /* 320px still fits the 128px portrait and the Hire button, and gives the cards more room. */
-  grid-template-columns: 1fr 320px;
-  grid-template-rows: auto 1fr auto;
-  gap: 12px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   height: 100%;
   font-size: var(--small);
 }
@@ -81,22 +83,45 @@
 .hiring-layout .panel { margin: 0; }
 .hiring-layout .btn { font-size: var(--small); padding: 8px 12px; }
 
-.hiring-tabs { grid-column: 1; grid-row: 1; }
+.hiring-tabs { align-self: flex-start; margin-left: 24px; }
 .hiring-tabs .btn { margin-top: 0; }
 
-.hiring-cards {
-  grid-column: 1; grid-row: 2;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-auto-rows: 1fr; /* both rows the same height, so all 8 cards line up */
-  align-content: start;
-  gap: 12px;
+/* Full width, so the arrows sit at the screen edges while the three cards stay centered. */
+.hiring-carousel {
+  position: relative;
+  width: 100%;
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
 }
+.hiring-cards {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  height: 248px; /* every card on every page is this tall, astronaut or staff */
+}
+.hiring-layout .hiring-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  margin: 0;
+  font-size: var(--body);
+  padding: 20px 14px;
+}
+.hiring-arrow-prev { left: 24px; }
+.hiring-arrow-next { right: 24px; }
+
+.hiring-dots { display: flex; gap: 8px; margin-top: 10px; }
+.hiring-dot { width: 8px; height: 8px; background: var(--frame-edge); }
+.hiring-dot.is-current { background: var(--accent); }
+
 /* A column, so the skill bars can be pushed to the bottom of every card. */
 .hire-card {
   display: flex;
   flex-direction: column;
   position: relative;
+  width: 280px;
+  height: 100%;
   background: var(--frame);
   border: 4px solid var(--frame-edge);
   padding: 8px;

@@ -6,6 +6,23 @@ export const KEY_ROLES = ['engineer', 'inspector', 'meteorologist'];
 export const WHY_CREW_FULL = 'Your capsule only fits three.';
 export const WHY_NO_BUDGET = 'Not enough budget.';
 
+// ---------- Paging: the hiring screen shows three cards at a time.
+export const CARDS_PER_PAGE = 3;
+
+export function pageCount(totalPeople) {
+  return Math.max(1, Math.ceil(totalPeople / CARDS_PER_PAGE));
+}
+
+// Keeps a page number inside 0 .. last page, so arrows and keys can never go past the ends.
+export function clampPage(pageIndex, totalPeople) {
+  return Math.min(Math.max(pageIndex, 0), pageCount(totalPeople) - 1);
+}
+
+export function peopleOnPage(people, pageIndex) {
+  const firstIndex = clampPage(pageIndex, people.length) * CARDS_PER_PAGE;
+  return people.slice(firstIndex, firstIndex + CARDS_PER_PAGE);
+}
+
 // state.crew and state.staff hold exactly the RULEBOOK 7.1 fields, the same shape fakeState uses.
 // Bios and lines stay in the JSON files, so other slices never depend on them.
 const ASTRONAUT_FIELDS = ['id', 'name', 'pilot', 'eng', 'nerves', 'cost', 'portrait'];
