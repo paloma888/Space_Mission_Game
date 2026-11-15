@@ -389,6 +389,47 @@ function drawBooster(ink, rightSide) {
  * @param {HTMLImageElement} img - the loaded rocket_<id>.png.
  * @returns {Object} - { upper, lower, boosters: null, coreW } like buildRocket.
  */
+/**
+ * Job: fits a teammate's sprite to our art scale. Their picture can be any size (Daniel's rockets
+ *   are 554x580, drawn big with empty space around them), but our scene is only 320x180. So:
+ *   1. trim off the see-through border around the drawing
+ *   2. shrink (or grow) it to `height` art pixels, keeping its shape, with sharp pixels (no blur)
+ * @param {HTMLImageElement} img - the loaded picture.
+ * @param {number} height - how tall it should be, in art pixels.
+ * @returns {HTMLCanvasElement|null} - the fitted picture, or null if the browser won't let us read it.
+ */
+export function fitSprite(img, height) {
+  const { canvas: full, g: fg } = makeCanvas(img.width, img.height);
+  fg.drawImage(img, 0, 0);
+  let px;
+  try {
+    px = fg.getImageData(0, 0, img.width, img.height).data;
+  } catch {
+    // Opened straight from disk (file:///), the browser treats the picture as "foreign" and won't
+    // let us read its pixels. Drawing it anyway would also break the dissolve into space, so we
+    // return null and the placeholder rocket stays. (Through Live Server or the real site, it works.)
+    return null;
+  }
+  let x0 = img.width, y0 = img.height, x1 = -1, y1 = -1;   // the drawing's edges
+  for (let y = 0; y < img.height; y++) {
+    for (let x = 0; x < img.width; x++) {
+      if (px[(y * img.width + x) * 4 + 3] < 32) continue;   // (almost) see-through: not part of the drawing
+      if (x < x0) x0 = x;
+      if (x > x1) x1 = x;
+      if (y < y0) y0 = y;
+      if (y > y1) y1 = y;
+    }
+  }
+  if (x1 < 0) return full;                                  // nothing drawn at all: leave it alone
+  const w = x1 - x0 + 1;
+  const h = y1 - y0 + 1;
+  const outH = Math.max(1, Math.round(height));
+  const outW = Math.max(1, Math.round((w * outH) / h));
+  const { canvas, g } = makeCanvas(outW, outH);              // makeCanvas turns smoothing off: sharp pixels
+  g.drawImage(full, x0, y0, w, h, 0, 0, outW, outH);
+  return canvas;
+}
+
 export function splitRocketImage(img, split = 0.6) {
   const cut = Math.round(img.height * split);
   const upper = makeCanvas(img.width, cut);

@@ -29,11 +29,14 @@ The Rulebook and `docs/RULEBOOK-AMENDMENTS.md` still win over anything here.
 - **Built: sound.** All Slice 5 audio lives in `audio/sfx/finale/` and `audio/music/finale/` (so the names in code start with `finale/`). The audio tools are in `slices/finale/sound/`:
   - `sound-maker.mjs` makes the sound effects and 4 original songs in code. To remake the music too: `LAMEJS=path/to/lame.all.js node slices/finale/sound/sound-maker.mjs`.
   - `shrink-wav.mjs` shrinks any 16-bit WAV under the 500 KB limit, and can cut it shorter: `node slices/finale/sound/shrink-wav.mjs file.wav 6`.
-  - Erick added `alien-creepy.wav` (the saucer) and `rocketrumble.wav` (the launch, trimmed to 6 s; `LAUNCH_SOUND` in `finale.js`). A failed launch plays Sharon's `trail-bad.wav` boom 3 times (`BOOMS`).
+  - Erick added `alien-creepy.wav` (the saucer) and the launch rumble, `rumble-1.wav` to `rumble-4.wav` (Erick's recording, stretched to 12.5 s and cut into one overlapping piece per stage, so a failure or Skip stops the roar; `LAUNCH_RUMBLE` in `finale.js`). A failed launch plays Sharon's `trail-bad.wav` boom 3 times (`BOOMS`).
   - ⚠️ Check where the rumble and the boom came from (the rumble is from YouTube). Keep them only if they're free to use, and credit them. Otherwise set `LAUNCH_SOUND` to `finale/ignite`, our code-made roar.
+  - `speaker-boost.mjs` makes deep sounds audible on laptop and phone speakers. The rumble was boosted this way. The boom is Sharon's original `trail-bad.wav`, untouched: Erick preferred it to the boosted copy (it's 93% deep bass, so it's quiet on laptop speakers; boost it with `--click --strong` if that matters later).
   - The Minecraft totem sound was removed (it belongs to Mojang). `finale/fixed` plays when the crew fixes an emergency.
   - Heads-up for the team: these folders differ from the Rulebook's `audio/sfx/<slice>-<name>.wav` naming.
-- Next: the emergency-moment polish (section 5).
+- **Built: a smooth arrival in space.** When there's an emergency in orbit, the climb dissolves dot by dot into the space view, and Earth's edge and the capsule glide up into place (`drawDissolve`, `riseOffset` in `launch-anim.js`).
+- **Checked Sun night (full bug sweep):** every ending played through by a robot player (all sites, rockets, weather, emergencies, no-launch reasons, the secret ending, reduced motion, and the real game via `index.html?slice=finale&preset=...`), no errors; every report fits. Fixed: the rumble roared on after a failure (now in 4 pieces); What next? stayed clickable behind the menu; teammates' big rocket art (fitted by `fitSprite`); opening from `file:///` could freeze the space dissolve.
+- Next: the rest of the emergency polish in section 5 (a "dying flashlight" power-down, and maybe a splashdown).
 
 ### What each file does
 

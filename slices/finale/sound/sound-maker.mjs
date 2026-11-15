@@ -103,6 +103,15 @@ function normalize(out, peak) {
   return out;
 }
 
+// Makes a song about as loud as `target` on average (not just at its loudest moment). Quiet songs
+// sounded like "no music" next to the sound effects. A soft limiter (tanh) rounds off any peaks
+// that would get too loud, so nothing distorts.
+function loudness(out, target) {
+  const rms = Math.sqrt(out.reduce((sum, v) => sum + v * v, 0) / out.length) || 1;
+  for (let i = 0; i < out.length; i++) out[i] = Math.tanh((out[i] * target) / rms);
+  return out; // already between -1 and 1 (tanh never goes past them)
+}
+
 // Turns the sound into 16-bit numbers (what WAV and MP3 files store).
 function toInt16(out) {
   const s = new Int16Array(out.length);
@@ -124,8 +133,8 @@ function saveWav(name, out, peak = 0.8) {
 }
 
 // Saves a song as audio/music/finale/<name>.mp3, using the lamejs encoder (see the top of this file).
-function saveMp3(lame, name, out, peak = 0.55) {
-  const pcm = toInt16(normalize(out, peak));
+function saveMp3(lame, name, out, target = 0.22) {
+  const pcm = toInt16(loudness(out, target));
   const enc = new lame.Mp3Encoder(1, SR, 64);        // mono, 64 kbps: small files that still sound fine
   const parts = [];
   for (let i = 0; i < pcm.length; i += 1152) parts.push(Buffer.from(enc.encodeBuffer(pcm.subarray(i, i + 1152))));
@@ -261,7 +270,7 @@ const SFX = {
 const BAR = 4; // beats in a bar
 
 // 🌍 The space theme (globe): slow organ chords, a ticking clock, and a steady pattern of notes
-// that joins halfway, then a soft high melody. Moody and spacious, with an echo like a big hall.
+// from the first bar, then a soft high melody. Moody and spacious, with an echo like a big hall.
 function spaceTheme() {
   const bpm = 72;
   const chords = [[45, 57, 60, 64], [41, 53, 57, 60], [48, 55, 60, 64], [43, 55, 59, 62],
@@ -269,18 +278,17 @@ function spaceTheme() {
   const out = track((chords.length * BAR * 60) / bpm);
   chords.forEach(([bass, ...pad], bar) => {
     part(out, bpm, [[bar * BAR, BAR, bass]], { wave: 'organ', vol: 0.25, attack: 0.3, release: 0.5 });
-    part(out, bpm, pad.map((key) => [bar * BAR, BAR, key]), { wave: 'organ', vol: 0.12, attack: 0.9, release: 0.9 });
-    if (bar >= 2) {                                            // the pattern joins in on bar 3
-      const [a, b, c] = pad.map((key) => key + 12);
-      part(out, bpm, [a, b, c, b, a, b, c, b].map((key, i) => [bar * BAR + i * 0.5, 0.5, key]), { wave: 'bell', vol: 0.1, decay: 3 });
-    }
+    part(out, bpm, pad.map((key) => [bar * BAR, BAR, key]), { wave: 'organ', vol: 0.16, attack: 0.5, release: 0.9 });
+    // The steady pattern of bell notes, from the very first bar (later bars ring a little louder, so it builds).
+    const [a, b, c] = pad.map((key) => key + 12);
+    part(out, bpm, [a, b, c, b, a, b, c, b].map((key, i) => [bar * BAR + i * 0.5, 0.5, key]), { wave: 'bell', vol: 0.12 + bar * 0.01, decay: 3 });
   });
   // A soft, high melody over the second half.
   part(out, bpm, [[16, 4, 76], [20, 4, 77], [24, 2, 81], [26, 2, 77], [28, 2, 76], [30, 2, 80]],
-    { wave: 'square', duty: 0.25, vol: 0.06, attack: 0.3, release: 0.6, vibrato: { rate: 5, depth: 0.15 } });
+    { wave: 'square', duty: 0.25, vol: 0.1, attack: 0.3, release: 0.6, vibrato: { rate: 5, depth: 0.15 } });
   // The clock: tick... tock... on every beat.
   for (let b = 0; b < chords.length * BAR; b++) {
-    note(out, { at: (b * 60) / bpm, dur: 0.03, wave: 'noise', cutoff: b % 2 ? 2500 : 6000, vol: 0.18 });
+    note(out, { at: (b * 60) / bpm, dur: 0.03, wave: 'noise', cutoff: b % 2 ? 2500 : 6000, vol: 0.12 });
   }
   echo(out, 0.42, 0.3);
   return out;
@@ -336,14 +344,17 @@ function happyTheme() {
   return out;
 }
 
-// 🚀 The launch music: a low, tense pulse with a ticking hi-hat. Kept quiet, so the countdown
-// and the engine roar stay in front.
+// 🚀 The launch music: a tense pulse with a ticking hi-hat and a high, nervous bell pattern. The pulse
+// has a brighter copy an octave up, so laptop speakers (which can't play deep notes) still carry it.
+// A bit softer than the other songs, so the countdown and the engine rumble stay in front.
 function launchTheme() {
   const bpm = 116;
   const roots = [40, 40, 36, 38, 40, 40, 36, 35];             // E E C D E E C B
   const out = track((roots.length * BAR * 60) / bpm);
   roots.forEach((root, bar) => {
-    part(out, bpm, Array.from({ length: 8 }, (_, i) => [bar * BAR + i * 0.5, 0.45, root]), { wave: 'square', duty: 0.5, vol: 0.2, decay: 5 });
+    part(out, bpm, Array.from({ length: 8 }, (_, i) => [bar * BAR + i * 0.5, 0.45, root]), { wave: 'square', duty: 0.5, vol: 0.16, decay: 5 });
+    part(out, bpm, Array.from({ length: 8 }, (_, i) => [bar * BAR + i * 0.5, 0.45, root + 12]), { wave: 'square', duty: 0.125, vol: 0.08, decay: 5 });
+    part(out, bpm, [24, 31, 36, 31, 24, 31, 36, 31].map((up, i) => [bar * BAR + i * 0.5, 0.5, root + up]), { wave: 'bell', vol: 0.07, decay: 6 });
     part(out, bpm, [[bar * BAR, BAR, root + 12], [bar * BAR, BAR, root + 19]], { wave: 'organ', vol: 0.06, attack: 0.5, release: 0.5 });
   });
   for (let i = 0; i < roots.length * BAR * 4; i++) {
@@ -363,10 +374,12 @@ if (process.env.LAMEJS) {
   vm.createContext(box);
   vm.runInContext(fs.readFileSync(process.env.LAMEJS, 'utf8'), box);
   const lame = box.lamejs;
-  saveMp3(lame, 'ending_orbit', spaceTheme());
-  saveMp3(lame, 'report_sad', sadTheme());
-  saveMp3(lame, 'report_loop', happyTheme());
-  saveMp3(lame, 'launch_theme', launchTheme(), 0.45);
+  // How loud each song is on average. The globe's theme is the loudest; the launch music stays
+  // softer, so the countdown and the rumble are heard over it.
+  saveMp3(lame, 'ending_orbit', spaceTheme(), 0.26);
+  saveMp3(lame, 'report_sad', sadTheme(), 0.24);
+  saveMp3(lame, 'report_loop', happyTheme(), 0.22);
+  saveMp3(lame, 'launch_theme', launchTheme(), 0.19);
 } else {
   console.log('  (music skipped: set LAMEJS to the path of lamejs/lame.all.js to make the MP3s)');
 }
