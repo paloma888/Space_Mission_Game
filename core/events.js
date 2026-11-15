@@ -180,9 +180,10 @@ export async function loadAllEvents() {
 // ---------- Picking an event
 
 // How many capsule parts were bought at the cheapest tier (for budgetTiersAtLeast).
+// The parts list follows Amendment A3: a flight computer, and no abort system.
 function budgetTierCount(state) {
   const p = state.parts || {};
-  return [p.shell, p.lifeSupport, p.abort, p.comms, p.power?.tier].filter((t) => t === 'budget').length;
+  return [p.shell, p.lifeSupport, p.comms, p.computer, p.power?.tier].filter((t) => t === 'budget').length;
 }
 
 // Does a `when` block (Rulebook 7.3) hold right now? An empty block always does.
@@ -198,6 +199,13 @@ function whenMatches(state, when, week) {
   if (when.moraleBelow !== undefined && !(state.morale < when.moraleBelow)) return false;
   if (when.budgetBelow !== undefined && !(state.budget < when.budgetBelow)) return false;
   if (when.budgetTiersAtLeast !== undefined && budgetTierCount(state) < when.budgetTiersAtLeast) return false;
+  // The three build gauges. The numbers used in events.json match the levels at
+  // which the dashboard turns a gauge yellow, so an event never comes out of nowhere.
+  const d = state.derived || {};
+  if (when.commsIn && !when.commsIn.includes(d.comms)) return false;
+  if (when.massMarginBelow !== undefined && !(d.massMargin < when.massMarginBelow)) return false;
+  // powerLoadAbove is a share of the battery: 0.9 means "using more than 90% of the supply".
+  if (when.powerLoadAbove !== undefined && !(d.powerSupply > 0 && d.powerUse > when.powerLoadAbove * d.powerSupply)) return false;
   return true;
 }
 
