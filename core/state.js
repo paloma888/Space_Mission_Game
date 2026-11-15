@@ -130,9 +130,9 @@ export function checkEnd(state) {
 // Keep these in sync if those stats change.
 
 const PEOPLE = {
-  amara: { id: 'amara', name: 'Amara Okonkwo', pilot: 5, eng: 2, nerves: 3, cost: 55, portrait: 'amara' },
-  jun:   { id: 'jun',   name: 'Jun Takahashi', pilot: 2, eng: 5, nerves: 3, cost: 50, portrait: 'jun' },
-  lucia: { id: 'lucia', name: 'Lucía Herrera', pilot: 3, eng: 2, nerves: 5, cost: 45, portrait: 'lucia' },
+  amara: { id: 'amara', name: 'Amara Okonkwo', pilot: 4, eng: 2, nerves: 3, cost: 55, portrait: 'amara' },
+  jun:   { id: 'jun',   name: 'Jun Takahashi', pilot: 2, eng: 4, nerves: 3, cost: 50, portrait: 'jun' },
+  lucia: { id: 'lucia', name: 'Lucía Herrera', pilot: 3, eng: 2, nerves: 4, cost: 45, portrait: 'lucia' },
   hal:   { id: 'hal',  name: 'Hal Brennan', role: 'engineer', title: 'Chief Engineer', skill: 5, cost: 40, portrait: 'hal' },
   inez:  { id: 'inez', name: 'Inez Moreau', role: 'inspector', title: 'Quality Inspector', skill: 4, cost: 25, portrait: 'inez' },
   skye:  { id: 'skye', name: 'Skye Patel', role: 'meteorologist', title: 'Meteorologist', skill: 4, cost: 25, portrait: 'skye' },
