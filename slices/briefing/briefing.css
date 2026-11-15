@@ -161,5 +161,16 @@
 /* min-width 0 lets the summary shrink, so the Continue button is never pushed off the edge. */
 .hiring-summary { flex: 1; min-width: 0; line-height: 1.8; }
 .hiring-staff-heading { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Two lines, then it scrolls, so hiring all six staff can't grow the footer or hide Continue. */
+.hiring-staff-list {
+  max-height: 3.6em;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--frame-edge) var(--frame);
+}
+.hiring-staff-list::-webkit-scrollbar { width: 8px; }
+.hiring-staff-list::-webkit-scrollbar-track { background: var(--frame); }
+.hiring-staff-list::-webkit-scrollbar-thumb { background: var(--frame-edge); }
+.hiring-continue { flex: none; }
 .hiring-continue { text-align: right; }
 .hiring-continue .btn { margin: 0; }
