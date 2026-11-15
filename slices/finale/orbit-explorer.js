@@ -9,6 +9,9 @@
 
 import { button } from '../../core/ui.js';
 import { BAYER, rad, clampN, hash, hash2, noise3, readPalette, pickColors, nearestColor, darker } from './pixel.js';
+import {
+  SKY_COLORS, SKY_PLACES, buildAndromeda, buildCloud, blackHolePixel, BLACK_HOLE_BOX, milkyWayPoints, cross,
+} from './explorer-sky.js';
 
 const W = 320;
 const H = 180;
@@ -73,7 +76,7 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
   const buf = new Uint32Array(image.data.buffer);
   const pal = readPalette();
   const P = pal.u32;
-  const C = pickColors(pal, GLOBE_COLORS); // role -> palette number, e.g. C.ocean
+  const C = pickColors(pal, { ...GLOBE_COLORS, ...SKY_COLORS }); // role -> palette number, e.g. C.ocean
 
   // Each kind of ground has a [day, dusk, night] color. Anything else (a hand-drawn map's own
   // colors) gets a darker version of itself for dusk.
@@ -119,8 +122,27 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
 
   // The Sun and Moon are placed relative to the starting view: the Sun lights the front-left,
   // and the Moon hides off to the right so the player can go looking for it.
-  const sun = fromView(...normalize([-0.55, 0.45, 0.7]));
+  const sun = fromView(...normalize([-0.6, 0.3, 0.74])); // top left, just on screen, so its glow shows
   const moon = fromView(...normalize([0.95, 0.25, -0.25]));
+
+  // 🌌 The deep sky (explorer-sky.js): fixed directions like the Moon, and pictures drawn once now.
+  const deep = {
+    andromeda: fromView(...normalize(SKY_PLACES.andromeda)),
+    center: fromView(...normalize(SKY_PLACES.galacticCenter)), // the black hole
+    lmc: fromView(...normalize(SKY_PLACES.lmc)),
+    smc: fromView(...normalize(SKY_PLACES.smc)),
+  };
+  // The Milky Way band runs through the galaxy's center. bandAxis points at right angles to the band.
+  const bandAxis = normalize(cross(deep.center, [0.3, 1, 0.2]));
+  const milkyWay = milkyWayPoints(C, deep.center, bandAxis);
+  const andromedaArt = buildAndromeda(C);
+  const lmcArt = buildCloud(C, 28, 18, 3.1, true);
+  const smcArt = buildCloud(C, 16, 11, 7.7, false);
+  // The deep sky's fact boxes, from explorer-facts.json. Until it loads, a click shows just the name.
+  let facts = {};
+  fetch(new URL('./explorer-facts.json', import.meta.url))
+    .then((res) => res.json()).then((f) => { facts = f; })
+    .catch(() => console.warn('finale: could not load explorer-facts.json'));
 
   const stars = Array.from({ length: 380 }, (_, i) => {
     const z = hash(i * 3 + 1) * 2 - 1;
@@ -150,17 +172,35 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
   info.className = 'panel fin-info';
   info.hidden = true;
   let infoTimer = null;
-  // Shows the fact box (title and text) for 8 seconds after the player clicks something.
-  const showInfo = (title, text) => {
+  // Shows the fact box (title, text and any NASA source links) after the player clicks something.
+  // It stays 8 seconds, or 15 when there are links, so there's time to click one.
+  const showInfo = (title, text, sources = []) => {
     const h = document.createElement('h2');
     h.className = 'panel-title';
     h.textContent = title;
     const p = document.createElement('p');
     p.textContent = text;
-    info.replaceChildren(h, p);
+    const links = sources.filter((s) => /^https:\/\//.test(s.url ?? '')).map((s) => { // never a TODO link
+      const a = document.createElement('a');
+      a.className = 'fin-source';
+      a.href = s.url;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.textContent = `Source: ${s.title}`;
+      return a;
+    });
+    info.replaceChildren(h, p, ...links);
     info.hidden = false;
     clearTimeout(infoTimer);
-    infoTimer = setTimeout(() => { info.hidden = true; }, 8000);
+    infoTimer = setTimeout(() => { info.hidden = true; }, links.length ? 15000 : 8000);
+  };
+  // Shows one fact from explorer-facts.json, with its NASA source links. `text` (optional) replaces
+  // the file's text, for facts that change with the game (the capsule names your crew). Facts nobody
+  // has checked yet still have a `todo`, so they print a yellow warning in the console (F12).
+  const showFact = (id, fallbackTitle, text) => {
+    const f = facts[id] ?? {};
+    if (f.todo) console.warn(`finale: sky fact "${id}" is not checked yet. TODO: ${f.todo}`);
+    showInfo(f.title ?? fallbackTitle, text ?? f.text ?? '', f.sources ?? []);
   };
   const zoom = document.createElement('div');
   zoom.className = 'fin-zoom';
@@ -255,14 +295,18 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
 
   /**
    * Job: handles a click. Checks the clickable things drawn this frame (`spots`: capsule, launch
-   *   site, Sun, Moon) and shows the first one under the click. If the click hits Earth instead,
-   *   works out the latitude and longitude there and shows that.
+   *   site, Sun, Moon, galaxies, black hole) and shows the first one under the click. If the click
+   *   hits Earth instead, works out the latitude and longitude there and shows that. If it hits
+   *   the Milky Way band, shows the Milky Way fact.
    * @param {number} x - click position on the 320x180 canvas.
    * @param {number} y - same, up and down.
    */
   function inspect(x, y) {
     for (const s of spots) {
-      if (Math.hypot(x - s.x, y - s.y) <= s.r) { showInfo(s.title, s.text); return; }
+      if (Math.hypot(x - s.x, y - s.y) > s.r) continue;
+      if (s.fact) showFact(s.fact, s.title, s.text); // facts with NASA sources (explorer-facts.json)
+      else showInfo(s.title, s.text);
+      return;
     }
     const dx = (x - CX) / cam.r;
     const dy = -(y - CY) / cam.r;
@@ -272,7 +316,13 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
       const lat = Math.round((Math.asin(wy) * 180) / Math.PI);
       const lon = Math.round((Math.atan2(ex, ez) * 180) / Math.PI);
       showInfo('Earth', `Near ${Math.abs(lat)}°${lat >= 0 ? 'N' : 'S'} ${Math.abs(lon)}°${lon >= 0 ? 'E' : 'W'}. From orbit, your crew can cross a whole ocean in under an hour.`);
+      return;
     }
+    // Not on Earth: is it on the Milky Way band? Turn the click into a sky direction (the reverse
+    // of skyPoint) and check how close it is to the band's middle line.
+    const dir = fromView(...normalize([(x - CX) / STAR_FOCAL, -(y - CY) / STAR_FOCAL, 1]));
+    const offBand = Math.abs(dir[0] * bandAxis[0] + dir[1] * bandAxis[1] + dir[2] * bandAxis[2]);
+    if (offBand < 0.08) showFact('milkyWay', 'The Milky Way');
   }
 
   // ---------- Drawing
@@ -298,17 +348,20 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
   // The Sun and Moon can sit behind the globe. Then a click there means Earth, not them.
   const behindEarth = (q) => Math.hypot(q.x - CX, q.y - CY) < cam.r;
 
-  // Draws the stars, then the Sun and Moon, and makes the Sun and Moon clickable.
+  // Draws the stars, the deep sky (Milky Way, galaxies, black hole), then the Sun and Moon,
+  // and makes all of them clickable.
   function drawSky() {
     for (const s of stars) {
       const q = skyPoint(s.d);
       if (q) plot(q.x, q.y, s.c);
     }
+    drawDeepSky();
     const sunAt = skyPoint(sun);
     if (sunAt) {
+      sunGlow(sunAt.x, sunAt.y, calm ? 0 : now); // the halo and rays go behind the Sun's disc
       disc(sunAt.x, sunAt.y, 7, () => C.sunRim);
       disc(sunAt.x, sunAt.y, 5, () => C.sun);
-      if (!behindEarth(sunAt)) spots.push({ x: sunAt.x, y: sunAt.y, r: 9, title: 'The Sun', text: 'Sunlight takes about 8 minutes to reach Earth. Never look straight at the real one!' });
+      if (!behindEarth(sunAt)) spots.push({ x: sunAt.x, y: sunAt.y, r: 9, fact: 'sun', title: 'The Sun' });
     }
     const moonAt = skyPoint(moon);
     if (moonAt) {
@@ -318,8 +371,75 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
         if (light < -0.05) return C.night;
         return (px * 7 + py * 3) % 11 === 0 ? C.moonDark : C.moon; // a few crater pixels
       });
-      if (!behindEarth(moonAt)) spots.push({ x: moonAt.x, y: moonAt.y, r: 8, title: 'The Moon', text: 'About 384,000 km away. Getting there is a mission for another day.' });
+      if (!behindEarth(moonAt)) spots.push({ x: moonAt.x, y: moonAt.y, r: 8, fact: 'moon', title: 'The Moon' });
     }
+  }
+
+  // ☀️ The Sun's glow, drawn just before its disc:
+  //   - a soft halo: lots of gold dots near the Sun, fewer and orange farther out, so it fades away
+  //   - 8 thin rays that slowly turn and gently grow and shrink. Their outer ends break into dots.
+  // t = seconds (0 with reduced motion, so the rays hold still).
+  function sunGlow(cx, cy, t) {
+    const R = 20; // how far the halo reaches, in pixels
+    for (let y = -R; y <= R; y++) {
+      for (let x = -R; x <= R; x++) {
+        const d = Math.hypot(x, y);
+        if (d < 7 || d > R) continue;
+        const strength = (1 - (d - 7) / (R - 7)) ** 1.6 * 0.75;      // 0.75 next to the Sun, 0 at the edge
+        const b = BAYER[((Math.round(cy) + y) & 3) * 4 + ((Math.round(cx) + x) & 3)];
+        if (b < strength) plot(cx + x, cy + y, d < 11 ? C.sun : C.sunRim);
+      }
+    }
+    for (let k = 0; k < 8; k++) {
+      const a = (k / 8) * Math.PI * 2 + t * 0.08;                    // a slow turn
+      const len = (k % 2 ? 22 : 30) + Math.sin(t * 1.5 + k) * 3;     // long and short rays, breathing
+      for (let s = 8; s < len; s++) {
+        if (s > len * 0.6 && s % 2) continue;                        // the outer end fades into dots
+        plot(cx + Math.cos(a) * s, cy + Math.sin(a) * s, s < 14 ? C.sun : C.sunRim);
+      }
+    }
+  }
+
+  // 🌌 The deep sky: the Milky Way band, the two Magellanic Clouds, Andromeda and the black hole.
+  // They're "infinitely" far away like the stars, so zooming doesn't change their size.
+  function drawDeepSky() {
+    for (const s of milkyWay) {
+      const q = skyPoint(s.d);
+      if (q) plot(q.x, q.y, s.c);
+    }
+    drawSkyArt(deep.lmc, lmcArt, 'lmc', 'Large Magellanic Cloud', 13);
+    drawSkyArt(deep.smc, smcArt, 'smc', 'Small Magellanic Cloud', 8);
+    drawSkyArt(deep.andromeda, andromedaArt, 'andromeda', 'Andromeda Galaxy', 22);
+
+    // The black hole is drawn fresh every frame, so its disk swirls (it stays still with reduced motion).
+    const q = skyPoint(deep.center);
+    if (!q || q.x < -30 || q.x > W + 30 || q.y < -12 || q.y > H + 32) return; // off screen
+    const B = BLACK_HOLE_BOX;
+    const t = calm ? 0 : now;
+    for (let y = B.top; y <= B.bottom; y++) {
+      for (let x = B.left; x <= B.right; x++) {
+        const c = blackHolePixel(C, x, y, t);
+        if (c >= 0) plot(q.x + x, q.y + y, c);
+      }
+    }
+    if (!behindEarth(q)) spots.push({ x: q.x, y: q.y, r: 14, fact: 'blackHole', title: 'Black hole' });
+  }
+
+  // Draws one deep-sky picture (sprite) centered on its sky direction, and makes it clickable.
+  // factId picks its fact in explorer-facts.json; clickR is how close a click must be (in pixels).
+  function drawSkyArt(dir, art, factId, title, clickR) {
+    const q = skyPoint(dir);
+    if (!q) return;
+    const x0 = Math.round(q.x - art.w / 2);
+    const y0 = Math.round(q.y - art.h / 2);
+    if (x0 > W || y0 > H || x0 + art.w < 0 || y0 + art.h < 0) return; // off screen
+    for (let y = 0; y < art.h; y++) {
+      for (let x = 0; x < art.w; x++) {
+        const c = art.px[y * art.w + x];
+        if (c >= 0) plot(x0 + x, y0 + y, c);
+      }
+    }
+    if (!behindEarth(q)) spots.push({ x: q.x, y: q.y, r: clickR, fact: factId, title });
   }
 
   // A small shaded ball at a screen point. colorAt gets the surface normal and pixel position.
@@ -443,17 +563,19 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
     const blink = Math.floor(t * 2) % 2 ? 'r' : 'w';
     drawSprite(q.x, q.y, ['..w..', `.wbw.`, 'wwwww', `.g${blink}g.`],
       { w: C.capsule, b: C.capsuleWindow, g: C.capsuleShield, r: C.capsuleLight }, scale);
-    spots.push({ x: q.x, y: q.y, r: 7 * scale, title: 'Your capsule', text: `${crewNames} in ${orbitName}, going about 28,000 km/h. One lap around Earth takes about 90 minutes.` });
+    spots.push({ x: q.x, y: q.y, r: 7 * scale, fact: 'capsule', title: 'Your capsule', text: `${crewNames} in ${orbitName}, going about 28,000 km/h, as fast as the International Space Station. One lap around Earth takes about 90 minutes.` });
   }
 
-  // The secret ending's saucer with a dancing alien on top (paused in Mission 1, Amendment A6).
+  // 🛸 The secret ending's saucer, with an alien dancing on its roof (Amendment A6). Always drawn
+  // twice as big as the capsule, because it's the star of this ending. Click it for a message.
   function drawUfo(q, t) {
     const f = Math.floor(t * 4) % 4;
     const arms = ['a.a', '.a.', 'a..', '..a'][f]; // a four-frame alien dance on the saucer's roof
-    drawSprite(q.x, q.y - 1, [
+    const bob = Math.round(Math.sin(t * 3) * 2);   // the saucer bobs up and down to the beat
+    drawSprite(q.x, q.y - 1 + bob, [
       `..${arms}..`, '...a...', '..ggg..', f % 2 ? '.ywywy.' : '.wywyw.', 'ggggggg', '.l.l.l.',
-    ], { a: C.alien, g: C.hull, w: C.capsule, y: C.sun, l: f % 2 ? C.sun : C.sunRim }, cam.r > 140 ? 2 : 1);
-    spots.push({ x: q.x, y: q.y, r: 9, title: 'Visitors!', text: 'Nobody at Mission Control can explain this. They seem to love your warp coil.' });
+    ], { a: C.alien, g: C.hull, w: C.capsule, y: C.sun, l: f % 2 ? C.sun : C.sunRim }, cam.r > 140 ? 3 : 2);
+    spots.push({ x: q.x, y: q.y, r: 14, title: 'Visitors!', text: 'Nobody at Mission Control can explain this. They seem to love your mysterious component.' });
   }
 
   // The blinking red launch-site marker. It turns with Earth and hides on the far side.
@@ -524,7 +646,8 @@ export function mountOrbitExplorer(parent, state, opts = {}) {
     drawSky();
     drawOrbit(false);
     const capsule = project(orbitPoint(theta0 + (now * Math.PI * 2) / ORBIT_SECONDS));
-    const ufo = opts.aliens ? project(orbitPoint(theta0 + (now * Math.PI * 2) / ORBIT_SECONDS - 0.22, 1.2)) : null;
+    // The saucer flies right behind the capsule, a little farther out, so they stay on screen together.
+    const ufo = opts.aliens ? project(orbitPoint(theta0 + (now * Math.PI * 2) / ORBIT_SECONDS - 0.14, ORBIT_RADIUS + 0.06)) : null;
     if (capsule.z < 0 && !capsule.hidden) drawCapsule(capsule, now);
     if (ufo && ufo.z < 0 && !ufo.hidden) drawUfo(ufo, now);
     drawEarth(now, spin);
