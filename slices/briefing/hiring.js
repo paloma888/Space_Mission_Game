@@ -242,8 +242,9 @@ export async function runHiring(state, { candidates, staff, hiringText }) {
     }
 
     // Quick hiring would stack toasts on top of each other, so a new one replaces the last.
+    // Matches toasts anywhere: ui.toast() currently ends up appending them to <body>, not #app.
     function showPersonLine(person, text) {
-      document.querySelectorAll('#app > .toast').forEach((oldToast) => oldToast.remove());
+      document.querySelectorAll('.toast').forEach((oldToast) => oldToast.remove());
       ui.toast(`${person.name}: ${text}`, 2500);
     }
 
