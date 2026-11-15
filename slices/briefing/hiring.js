@@ -279,8 +279,8 @@ export async function runHiring(state, { candidates, staff, hiringText }) {
       const seats = el('div', 'hiring-seats');
       for (let seatIndex = 0; seatIndex < rules.CREW_SIZE; seatIndex++) {
         const astronaut = state.crew[seatIndex];
-        // First name only: full names don't fit in a seat.
-        const seat = el('div', `hiring-seat${astronaut ? ' is-filled' : ''}`, astronaut ? astronaut.name.split(' ')[0] : 'Empty seat');
+        // First name only, and 'Empty' not 'Empty seat': a seat fits about 7 letters.
+        const seat = el('div', `hiring-seat${astronaut ? ' is-filled' : ''}`, astronaut ? astronaut.name.split(' ')[0] : 'Empty');
         if (astronaut) seat.title = astronaut.name;
         seats.append(seat);
       }
