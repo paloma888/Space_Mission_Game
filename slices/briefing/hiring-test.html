@@ -15,10 +15,13 @@
        and the briefing data files. Every line should say PASS. -->
   <h1>Hiring rules</h1>
   <div id="results"></div>
+  <!-- The real hiring screen runs in here for the paging checks. Hidden: only clicks are tested. -->
+  <div id="app" style="position: absolute; left: -10000px; top: 0;"><div id="game"></div></div>
   <script type="module">
     import { fakeState } from '../../core/state.js';
     import { applyEffects } from '../../core/events.js';
     import * as rules from './hiring-rules.js';
+    import { runHiring } from './hiring.js';
 
     const loadJson = async (path) => (await fetch(path)).json();
     const [candidates, staff, sceneData, castList] = await Promise.all(
@@ -126,6 +129,59 @@
     check('astronaut bios are 280 characters or fewer', candidates.every((astronaut) => astronaut.bio.length <= 280));
     check('strength and flaw are 60 characters or fewer', [...candidates, ...staff].every((person) => person.strength.length <= 60 && person.flaw.length <= 60));
     check('astronauts have 2 hired lines and 1 released line', candidates.every((astronaut) => astronaut.lines.hired.length === 2 && astronaut.lines.released.length === 1));
+
+    // ---------- Paging math: three cards a page
+    const pageSizes = (people) => Array.from({ length: rules.pageCount(people.length) }, (_, pageIndex) => rules.peopleOnPage(people, pageIndex).length);
+    check('astronauts: 3 pages of 3, 3, 2', JSON.stringify(pageSizes(candidates)) === '[3,3,2]', JSON.stringify(pageSizes(candidates)));
+    check('staff: 2 pages of 3, 3', JSON.stringify(pageSizes(staff)) === '[3,3]', JSON.stringify(pageSizes(staff)));
+    check('paging stops at the first and last page', rules.clampPage(-1, 8) === 0 && rules.clampPage(5, 8) === 2);
+
+    // ---------- Paging on the real hiring screen
+    const pagingState = fakeState('fresh');
+    runHiring(pagingState, { candidates, staff, hiringText: sceneData.hiring }); // resolves only on Continue
+    const gameArea = document.getElementById('game');
+    for (let wait = 0; wait < 50 && !gameArea.querySelector('.hire-card'); wait++) {
+      await new Promise((resolveWait) => setTimeout(resolveWait, 20));
+    }
+    const cardIdsShown = () => [...gameArea.querySelectorAll('.hire-card')].map((card) => card.dataset.personId).join(',');
+    const cardFor = (personId) => gameArea.querySelector(`[data-person-id="${personId}"]`);
+    const detailName = () => gameArea.querySelector('.hiring-detail-name')?.textContent;
+    const nextArrow = () => gameArea.querySelector('.hiring-arrow-next');
+    const previousArrow = () => gameArea.querySelector('.hiring-arrow-prev');
+    const pressKey = (key) => window.dispatchEvent(new KeyboardEvent('keydown', { key }));
+
+    check('page 1 shows Amara, Jun, Lucía', cardIdsShown() === 'amara,jun,lucia', cardIdsShown());
+    check('left arrow off on page 1', previousArrow().disabled && !nextArrow().disabled);
+
+    cardFor('amara').click();
+    gameArea.querySelector('.hiring-hire .btn').click();
+    check('hire Amara on page 1', rules.isHired(pagingState, 'astronaut', 'amara'));
+
+    nextArrow().click();
+    check('right arrow shows page 2', cardIdsShown() === 'dmitri,priya,sam', cardIdsShown());
+    check('paging keeps the selected person (Amara)', detailName() === 'Amara Okonkwo', detailName());
+    cardFor('sam').click();
+    check('selecting a card on page 2 works', detailName() === "Sam 'Sparks' Whitaker", detailName());
+
+    pressKey('ArrowRight');
+    check('right arrow key shows page 3', cardIdsShown() === 'zainab,mateo', cardIdsShown());
+    check('right arrow off on page 3', nextArrow().disabled && !previousArrow().disabled);
+    check('paging keeps the selected person (Sam)', detailName() === "Sam 'Sparks' Whitaker", detailName());
+    pressKey('ArrowRight');
+    check('no page 4', cardIdsShown() === 'zainab,mateo');
+
+    pressKey('ArrowLeft');
+    pressKey('ArrowLeft');
+    check('Amara still hired after paging away and back', cardFor('amara')?.classList.contains('is-hired') && pagingState.crew.length === 1);
+    check('Hire button for Sam still works after paging', (() => {
+      gameArea.querySelector('.hiring-hire .btn').click();
+      return rules.isHired(pagingState, 'astronaut', 'sam');
+    })());
+
+    nextArrow().click();
+    [...gameArea.querySelectorAll('.hiring-tabs .btn')].find((button) => button.textContent === 'Staff').click();
+    check('Staff tab starts on page 1 of 2', cardIdsShown() === 'hal,dev,inez' && gameArea.querySelectorAll('.hiring-dot').length === 2, cardIdsShown());
+    document.querySelectorAll('.toast').forEach((leftoverToast) => leftoverToast.remove());
 
     const allText = JSON.stringify([candidates, staff, sceneData]);
     const todoCount = (allText.match(/TODO/g) ?? []).length;
