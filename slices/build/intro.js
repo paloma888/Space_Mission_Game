@@ -3,7 +3,7 @@
 // by itself after a few seconds. A click or key press skips ahead.
 
 import * as ui from '../../core/ui.js';
-import { el, art } from './common.js';
+import { el, art, playSound } from './common.js';
 
 export function showIntro(state, { catalog, lines }) {
   const I = lines.intro ?? {};
@@ -29,7 +29,7 @@ export function showIntro(state, { catalog, lines }) {
   const sub = (I.sub ?? 'Day {day} · ${budget}M to spend')
     .replace('{day}', state.day).replace('{budget}', state.budget);
   root.append(el('div', 'intro-sub', sub));
-  ui.sfx('build-next');
+  playSound('build-next');
 
   return new Promise((resolve) => {
     const finish = () => {

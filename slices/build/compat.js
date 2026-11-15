@@ -3,7 +3,7 @@
 // main teaching moment, so it gets a red banner and a clunk sound.
 
 import * as ui from '../../core/ui.js';
-import { el, signed } from './common.js';
+import { el, signed, playSound } from './common.js';
 import { findRocket, liftFor } from './recompute.js';
 
 let wasTooHeavy = false; // play the clunk only when the build *becomes* too heavy
@@ -54,7 +54,7 @@ export function compatPanel(state, { catalog, lines }) {
   if (tooHeavy) {
     const text = (lines.shop?.tooHeavy ?? 'Too heavy by {n} t.').replace('{n}', Math.abs(margin).toFixed(1));
     box.prepend(el('div', 'compat-banner', text));
-    if (!wasTooHeavy) ui.sfx('build-clunk');
+    if (!wasTooHeavy) playSound('build-clunk');
   }
   wasTooHeavy = tooHeavy;
   return box;

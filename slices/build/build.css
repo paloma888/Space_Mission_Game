@@ -191,10 +191,11 @@
 .intro-ghost-head { visibility: hidden; }
 .intro-ghost-card { background: transparent; border-color: transparent; cursor: default; overflow: visible; }
 /* Each rocket starts below the screen and rises in 8px steps, like the trail marker's hop. */
-.intro-rocket { transform: translateY(600px); animation: intro-rise 0.9s steps(75) forwards; }
+.intro-rocket { transform: translateY(600px); animation: intro-rise 1.05s steps(75) forwards; }
 @keyframes intro-rise { to { transform: translateY(0); } }
-/* Banner sits below the rockets so it never covers them. */
+/* Banner sits below the rockets so it never covers them. Same see-through box and blue edge
+   as the screen titles (--panel-bg from base.css). */
 .intro-banner { position: absolute; top: 380px; left: 50%; transform: translateX(-50%); z-index: 1;
-  padding: 16px 24px; background: var(--bg); color: var(--accent); white-space: nowrap; }
-.intro-sub { position: absolute; top: 448px; left: 50%; transform: translateX(-50%); z-index: 1;
-  padding: 8px 16px; background: var(--bg); color: var(--c1); font-size: var(--small); white-space: nowrap; }
+  padding: 16px 24px; background: var(--panel-bg); border: 4px solid var(--c12); color: var(--accent); white-space: nowrap; }
+.intro-sub { position: absolute; top: 456px; left: 50%; transform: translateX(-50%); z-index: 1;
+  padding: 8px 16px; background: var(--panel-bg); border: 4px solid var(--c12); color: var(--c1); font-size: var(--small); white-space: nowrap; }

@@ -56,13 +56,44 @@ export async function halOnce(root, lines, key) {
   await talk(root, 'hal', lines.hal[key], { mood: 'sad' });
 }
 
+// ---------- Sounds for this slice
+// Plays one of our sounds, one at a time: a new sound stops the one before it, so they never
+// pile up. Returns a promise that resolves when the sound ends, so a caller can wait before
+// dialogue starts (the typing blips would otherwise talk over it). Respects the mute setting.
+// Speeds: the jsfxr files stay as made; these just play them quicker (pitch stays the same).
+const SOUND_SPEED = { 'build-next': 1.4, 'shady-deal': 1.4 };
+const missingSounds = new Set(); // don't ask for a missing file again and again
+let playing = null;
+
+export function playSound(name) {
+  return new Promise((resolve) => {
+    if (ui.isMuted() || missingSounds.has(name)) return resolve();
+    if (playing) playing.pause();
+    const audio = new Audio(asset(`audio/sfx/${name}.wav`));
+    audio.playbackRate = SOUND_SPEED[name] ?? 1;
+    playing = audio;
+    let finished = false;
+    const done = () => {
+      if (finished) return;
+      finished = true;
+      if (playing === audio) playing = null;
+      resolve();
+    };
+    audio.addEventListener('ended', done, { once: true });
+    audio.addEventListener('pause', done, { once: true }); // stopped by the next sound
+    audio.addEventListener('error', () => { missingSounds.add(name); done(); }, { once: true });
+    audio.play().catch(done); // blocked before the first click, or missing: just carry on
+    setTimeout(done, 3000); // never let a stuck sound hold up the game
+  });
+}
+
 // Greys out a card the player can't pick. A real disabled button ignores clicks, so this one
 // stays clickable and plays build-deny instead, letting the player know "no" was heard.
 // aria-disabled tells screen readers the card is not available. Set it after any onclick.
 export function lockCard(card) {
   card.classList.add('is-disabled');
   card.setAttribute('aria-disabled', 'true');
-  card.onclick = () => ui.sfx('build-deny');
+  card.onclick = () => playSound('build-deny');
   return card;
 }
 

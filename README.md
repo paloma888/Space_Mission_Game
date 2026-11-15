@@ -37,7 +37,10 @@ URL: (https://gray-cliff-0754f071e.4.azurestaticapps.net/)
 
 ## Credits
 
-- Font: TODO
-- Palette: TODO, add the Lospec palette name and link
-- Sound effects: TODO
+- Team: Audrey, Daniel, Erick, Paloma and Sharon (see the Slices table above for who built what).
+- Font: Press Start 2P
+- Palette: Planets by Jude Buffman, from Lospec
+- Pixel art: drawn by hand by the team.
+- Sound effects: made in jsfxr by the team.
+- AI use in AI-USE.md file
 - History card sources are linked on each card in the game.

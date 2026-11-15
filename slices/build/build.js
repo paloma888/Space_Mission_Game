@@ -8,7 +8,7 @@ import * as ui from '../../core/ui.js';
 import { showShop } from './shop.js';
 import { showRocket, showSite } from './vehicle.js';
 import { showReview } from './review.js';
-import { commit } from './common.js';
+import { commit, playSound } from './common.js';
 import { showDealer } from './dealer.js';
 import { showIntro } from './intro.js';
 
@@ -53,7 +53,7 @@ export async function show(state, done) {
   for (const screen of SCREENS) {
     await screen(state, ctx);
     // Review ends with Lock In, which has its own chime (build-lock).
-    if (screen !== showReview) ui.sfx('build-next');
+    if (screen !== showReview) await playSound('build-next');
     commit(state, ctx);
     // Right after the shop is paid for, the shady dealer offers one trade-in (every game
     // for now, so demos always show it; the team may make it a chance later).

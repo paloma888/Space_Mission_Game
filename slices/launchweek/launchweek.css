@@ -48,3 +48,6 @@
 .lw-go { background: var(--c5); }
 .lw-nogo { background: var(--c13); }
 .lw-unknown { background: var(--c14); }
+
+/* "Launch on Day ..." matches the build slice's big Next button (.big-next in slices/build/build.css). */
+.lw-launch { font-size: var(--body); padding: 12px 48px; margin: 0; }

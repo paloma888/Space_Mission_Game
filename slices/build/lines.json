@@ -105,6 +105,6 @@
   "intro": {
     "banner": "Part 2: Build Your Mission",
     "sub": "Day {day} · ${budget}M to spend",
-    "seconds": 2.6
+    "seconds": 2.75
   }
 }
