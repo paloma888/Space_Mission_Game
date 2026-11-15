@@ -198,19 +198,24 @@ export async function runHiring(state, { candidates, staff, hiringText }) {
 
     // ---------- Detail panel
 
+    // A compact strip under the cards: small portrait | name and bio | strength, flaw, quote | Hire.
+    // Not a ui.panel on purpose: panels are solid, and the strip must let the background show.
     function renderDetail() {
       const person = selectedPerson();
       if (!person) { detailColumn.replaceChildren(); return; }
-      const detailPanel = ui.panel(person.name);
       const subtitle = activeKind === 'astronaut' ? (castSheet[person.id]?.title ?? 'Astronaut candidate') : person.title;
-      detailPanel.append(ui.portrait(person.portrait ?? person.id, 128), el('div', 'hiring-subtitle', subtitle));
-      detailPanel.append(el('p', 'hiring-bio', person.bio));
-      if (activeKind === 'staff') detailPanel.append(labeledLine('Effect', person.effect));
-      detailPanel.append(labeledLine('Strength', person.strength), labeledLine('Flaw', person.flaw));
+
+      const aboutColumn = el('div', 'hiring-detail-about');
+      aboutColumn.append(el('div', 'hiring-detail-name', person.name), el('div', 'hiring-subtitle', subtitle),
+        el('p', 'hiring-bio', person.bio));
+
+      const traitsColumn = el('div', 'hiring-detail-traits');
+      if (activeKind === 'staff') traitsColumn.append(labeledLine('Effect', person.effect));
+      traitsColumn.append(labeledLine('Strength', person.strength), labeledLine('Flaw', person.flaw));
       const tic = castSheet[person.id]?.tic;
-      if (tic) detailPanel.append(el('p', 'hiring-quote', `"${tic}"`));
-      detailPanel.append(hireButton(person));
-      detailColumn.replaceChildren(detailPanel);
+      if (tic) traitsColumn.append(el('p', 'hiring-quote', `"${tic}"`));
+
+      detailColumn.replaceChildren(ui.portrait(person.portrait ?? person.id, 64), aboutColumn, traitsColumn, hireButton(person));
     }
 
     function labeledLine(label, text) {
