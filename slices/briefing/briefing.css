@@ -17,19 +17,23 @@
 
 /* ---------- Cutscenes */
 .briefing-scene { padding: 32px; }
-/* Top right, below where the dashboard sits in scene 3. */
+/* Just above the dialogue box, on its right edge, so it never meets the dashboard or the
+   mute slot. The box (core/base.css) sits 32px up and is 184px tall: 128px portrait, 48px
+   padding, 8px border. Bottom-anchored, so it stays put whether the dashboard shows or not. */
 .briefing-skip {
   position: absolute;
-  top: 72px; right: 24px;
+  bottom: 224px; right: 32px;
   z-index: 15;
   font-size: var(--small);
   padding: 8px 12px;
+  margin: 0;
 }
 .briefing-skip-confirm {
   position: absolute;
-  top: 128px; right: 24px;
+  bottom: 272px; right: 32px;
   z-index: 15;
   width: 360px;
+  margin: 0;
 }
 .briefing-skip-confirm .btn { font-size: var(--small); }
 
