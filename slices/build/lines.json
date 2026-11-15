@@ -40,10 +40,6 @@
       "Where you launch matters, like picking an airport for a big trip.",
       "Some sites are cheap, some give extra lift, and every one has its own weather."
     ],
-    "orbit": [
-      "Low Earth orbit circles the middle of the planet. Your rocket gives its full lift.",
-      "Polar orbit passes over both poles. Going that way costs 15% of the lift."
-    ],
     "lockIn": [
       "Build locked in! Next comes five weeks of building, testing and training.",
       "Measure twice, launch once. Let's get to work."
@@ -62,7 +58,8 @@
     "mahia": "Island pad. Parts come by boat. Slowly.",
     "sriharikota": "Monsoon season. Rain, wind, more rain. Watch the sky.",
     "marginThin": "No room for surprises. Everything gets heavier during testing.",
-    "lockPowerShort": "Power is short. Lock this in and something goes dark up there."
+    "lockPowerShort": "Power is short. Lock this in and something goes dark up there.",
+    "dealer": "Don't."
   },
   "shop": {
     "title": "Build your capsule",
@@ -72,8 +69,34 @@
     "tooHeavy": "Too heavy by {n} t. Pick a bigger rocket, a launch site with more lift, or cut weight.",
     "pickRocket": "Pick a rocket.",
     "pickSite": "Pick a launch site.",
-    "pickOrbit": "Pick an orbit.",
-    "polarSwitched": "That site cannot reach polar orbit, so your orbit is now low Earth.",
-    "lockAnyway": "Lock it in anyway?"
+    "lockAnyway": "Keep these parts anyway?",
+    "final": "Choices are final.",
+    "shopTooHeavy": "Too heavy for your rocket. Swap some parts for lighter ones.",
+    "noCapsuleMoney": "Leaves too little money for a capsule."
+  },
+  "dealer": {
+    "intro": [
+      "...",
+      "Psst. Over here."
+    ],
+    "deal": "I can get you the same thing for half the price. Let's make a deal.",
+    "title": "Today's special",
+    "pitch": {
+      "power": "Same battery you just bought. Half the price. Barely used. Mostly.",
+      "comms": "Same radio, half the price. It fell off a truck. A very nice truck.",
+      "computer": "Same flight brain, half the price. It only rebooted twice today. A personal best."
+    },
+    "yourWarranty": "Warranty: 2 years",
+    "dealerWarranty": "Warranty: \"Trust me.\"",
+    "take": "Take the deal",
+    "pass": "No thanks",
+    "accept": "Pleasure doing business. We never met. Got it? Good.",
+    "decline": "Your loss. If anyone asks, I was never here.",
+    "noticed": "I saw you just bought a {part} for ${price}M. That's a lot of money for a {noun}.",
+    "upsell": "And just for you, I'll throw in this mysterious component. Only $10M more.",
+    "upsellYes": "Sure, why not",
+    "upsellNo": "No thanks",
+    "upsellBought": "Excellent. Don't ask what it does. I don't know either.",
+    "upsellPassed": "Suit yourself. It was a one-time offer."
   }
 }

@@ -8,8 +8,37 @@ const round4 = (n) => Math.round(n * 10000) / 10000; // reliability moves in 0.0
 
 const POLAR_LIFT = 0.85; // a polar orbit costs 15% of lift
 
-// Every installed part as its catalog entry. Unknown keys (old abort, science or
-// warpCoil fields from before the amendments) are skipped instead of crashing (A9).
+// Turns each "dealer" template in parts.json into shady_budget, shady_standard and
+// shady_premium. A dealer part copies the mass and power of the tier it replaces, so the
+// only visible difference is the lower price. The catch is hidden: lower reliability.
+// It reports as the tier it copies (looksLike), so the dashboard and Go/No-Go see no difference.
+export function expandDealerParts(parts) {
+  const groups = [parts.shell, parts.lifeSupport, parts.comms, parts.computer,
+    ...Object.values(parts.power ?? {})];
+  for (const group of groups) {
+    const deal = group?.dealer;
+    if (!deal) continue;
+    for (const tier of ['budget', 'standard', 'premium']) {
+      const base = group[tier];
+      if (!base) continue;
+      group[`shady_${tier}`] = {
+        ...base,
+        label: deal.label,
+        icon: deal.icon ?? base.icon,
+        tradeoff: deal.tradeoff,
+        shady: true,
+        looksLike: tier,
+        cost: Math.round(base.cost * (1 - deal.discount)),
+        rel: round4(base.rel - deal.relPenalty),
+      };
+    }
+    delete group.dealer; // a template, not a part anyone can install
+  }
+  return parts;
+}
+
+// Every installed part as its catalog entry. Unknown keys (old abort or science
+// fields from before the amendments) are skipped instead of crashing (A9).
 export function installedParts(parts, catalog) {
   const p = parts ?? {};
   return [
@@ -18,6 +47,9 @@ export function installedParts(parts, catalog) {
     p.power && catalog.parts.power?.[p.power.type]?.[p.power.tier],
     catalog.parts.comms?.[p.comms],
     catalog.parts.computer?.[p.computer],
+    // The dealer's mysterious component: adds mass, cost and a hidden penalty. (state.parts.warpCoil
+    // keeps its Rulebook name because core/state.js and other slices use it.)
+    p.warpCoil ? catalog.parts.mysteriousComponent : null,
   ].filter(Boolean);
 }
 

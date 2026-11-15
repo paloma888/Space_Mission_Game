@@ -1,7 +1,7 @@
 // slices/build/checks.js: the Slice 2 test cases (brief section 16, updated for the amendments).
 // Pure math, no screens. checks.html shows the results. Run them before every merge.
 
-import { recompute, lockInProblems, siteProblem, findSite } from './recompute.js';
+import { recompute, lockInProblems, siteProblem, findSite, hasShadyPart } from './recompute.js';
 
 const tier = (t) => ({ shell: t, lifeSupport: t, power: { type: 'battery', tier: t }, comms: t, computer: t });
 
@@ -71,17 +71,32 @@ export function runChecks(catalog) {
   check('7. Condor polar at Kodiak: lift', run(tier('standard'), 'condor', 'kodiak', 'polar').derived.liftCapacity, 8.5);
   check('7. Condor at Sriharikota: lift', run(tier('standard'), 'condor', 'sriharikota').derived.liftCapacity, 10.5);
 
-  // Shady parts (amendment A5): premium-like stats, cheap, hidden penalty.
-  s = run({ ...tier('standard'), power: { type: 'battery', tier: 'shady' } });
-  check('Shady battery: supply', s.derived.powerSupply, 800);
-  check('Shady battery: mass', s.derived.capsuleMass, 7.7);
-  check('Shady battery: reliability bonus', s.rel.parts, 0.02);
-  s = run({ ...tier('standard'), comms: 'shady' });
-  check('Shady radio: reports as premium', s.derived.comms, 'premium');
-  check('Shady radio: reliability bonus', s.rel.parts, 0.03);
-  s = run({ ...tier('standard'), computer: 'shady' });
-  check('Shady computer: reliability bonus', s.rel.parts, 0); // 0.05 from the rest, -0.05 from it
-  check('Shady computer: spent (parts only)', s.derived.spent, 205);
+  // Dealer parts (amendment A5): same stats as the tier they copy, half the price,
+  // hidden reliability penalty. Standard everything adds up to 0.07 before the swap.
+  s = run({ ...tier('standard'), power: { type: 'battery', tier: 'shady_standard' } });
+  check('Dealer battery: same supply as Standard', s.derived.powerSupply, 600);
+  check('Dealer battery: same mass', s.derived.capsuleMass, 7.3);
+  check('Dealer battery: reliability bonus', s.rel.parts, 0.01); // 0.07 - 0.06
+  check('Dealer battery: half price (35 -> 18)', s.derived.spent, 203);
+  s = run({ ...tier('standard'), comms: 'shady_standard' });
+  check('Dealer radio: reports as Standard', s.derived.comms, 'standard');
+  check('Dealer radio: reliability bonus', s.rel.parts, 0.02); // 0.07 - 0.05
+  s = run({ ...tier('standard'), computer: 'shady_standard' });
+  check('Dealer computer: reliability bonus', s.rel.parts, -0.02); // 0.07 - 0.09
+  check('Dealer computer: half price (30 -> 15)', s.derived.spent, 205);
+  s = run({ ...tier('budget'), power: { type: 'battery', tier: 'shady_budget' } });
+  check('Dealer budget battery: supply', s.derived.powerSupply, 400);
+  check('Dealer budget battery: half price (20 -> 10)', s.derived.spent, 115);
+  check('Dealer premium radio: reports as Premium',
+    run({ ...tier('premium'), comms: 'shady_premium' }).derived.comms, 'premium');
+
+  // The dealer's mysterious component: +0.2 t, +$10M, hidden -0.03.
+  s = run({ ...tier('standard'), warpCoil: true }, 'condor', 'canaveral');
+  check('Mysterious component: mass', s.derived.capsuleMass, 7.5);
+  check('Mysterious component: spent', s.derived.spent, 380);
+  check('Mysterious component: reliability bonus', s.rel.parts, 0.04);
+  check('Mysterious component: counts as a shady part', hasShadyPart(s, catalog), true);
+  check('Mysterious component off: not shady', hasShadyPart(run(tier('standard')), catalog), false);
 
   // Half-empty and old-style states must not crash (amendment A9).
   s = run({});
