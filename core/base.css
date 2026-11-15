@@ -227,7 +227,9 @@ small, .small { font-size: var(--small); }
   z-index: 20;
 }
 .card { width: 900px; max-height: 620px; overflow: auto; padding: 32px; line-height: 1.8; }
-.card a { color: var(--frame-edge); }
+/* Links in any text box use the light frame color: 7.6:1 or better over the brightest art.
+   The browser's default dark blue can't be read on a dark see-through box at any alpha. */
+.panel a, .dialogue a, .toast a, .card a { color: var(--frame); }
 
 /* ---------- Placeholder slices and the dev panel */
 .stub { padding: 96px; }
