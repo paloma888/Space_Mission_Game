@@ -151,3 +151,34 @@ Status: PROPOSED (proposed by Person 5 on Nov 14, 2026). Affects Persons 1, 2, 3
 Status: ADOPTED (proposed by Person 4, team decision Sat 2:45pm). Affects Persons 4, 5.
 
 No Foundry or Azure AI service. `slices/launchweek/ask-rosa.js` stays a stub that always returns `null`. No screen may depend on it: every explanation uses scripted text in the character's voice. Person 5's report screen does not need the three "Why?" AI buttons. This overrides the `askRosa` parts of Rulebook section 4.
+
+## A13. Money: early debt, fundraising and launching at $0 (changes sections 6.2 and 6.7)
+
+Status: PROPOSED (agreed in team chat on Sat Nov 14, 2026; written up by Erick, Person 5). Affects Audrey (Person 1), Sharon (Person 3), Paloma (Person 4) and Erick (Person 5).
+
+**Early debt (trail weeks 1 and 2).** The budget may go to $0 or below in trail weeks 1 and 2 without ending the game. If the budget is still $0 or below when week 3 starts, the game ends as `bankrupt`. From week 3 on, $0 or below is `bankrupt` right away, as before. Finishing the build with exactly $0 left is also allowed, because week 1 hasn't started yet.
+
+**Fundraising.** Only possible with a PR lead on staff (`requires: "pr"`). The PR lead's salary, paid at hiring, is the price; the fundraiser itself costs nothing extra. Without a PR lead there is no fundraising, so early debt that isn't paid off by week 3 ends the game. Sharon decides how much it raises (for example, by PR skill), whether it is once only, and Tasha's lines.
+
+New flag-registry row:
+
+| Flag | Set by | Read by | Meaning |
+| --- | --- | --- | --- |
+| `fundraised` | Person 3 | 5 | A PR fundraiser ran on the trail. |
+
+**Launching at $0 (launch week).** Exactly $0 is not bankrupt; only below $0 is. Example: with $10M left, the player waits one more day for $10M and launches that day with $0. The launch site fee charged on confirmation may take the budget below $0. That was already allowed: `checkEnd()` ignores the budget once `launchDay` is set.
+
+What each person needs to change:
+- **Sharon (Person 3), trail:**
+  - [ ] Add a fundraising choice or event that needs a PR lead.
+  - [ ] Allow debt in weeks 1 and 2.
+  - [ ] End the game as `bankrupt` if the budget is $0 or below when week 3 starts, or any time after that.
+  - [ ] Set the `fundraised` flag when a fundraiser runs.
+- **Audrey (Person 1), `core/state.js`:**
+  - [ ] In `checkEnd()`, don't return `bankrupt` while `state.week` is 1 or 2 and no launch day is set. The trail enforces the week-3 rule itself.
+- **Paloma (Person 4), `launchweek.js`:**
+  - [ ] Use `budget < 0` in `ended()` and `endEarly()`.
+  - [ ] Warn in `waitUntil()` only when `budget - cost < 0`.
+- **Erick (Person 5), report:**
+  - [ ] Treat launch-week bankruptcy as `budget < 0`.
+  - [ ] Add a "broke after fundraising" reason for Rosa.
