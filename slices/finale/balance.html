@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Balance: launch odds</title>
+  <!-- Dev tool for the team, not part of the game. Open with Live Server.
+       Runs thousands of launches with resolveLaunch() and prints how often each ending happens.
+       Persons 2, 3 and 4 tune their numbers from what this page says (Slice 5 brief section 5). -->
+  <style>
+    body { font: 14px/1.5 monospace; margin: 24px; background: #ffffff; color: #000000; }
+    fieldset { border: 2px solid #000000; margin: 0 0 16px; }
+    label { display: inline-block; margin: 4px 16px 4px 0; }
+    input[type=number] { width: 80px; }
+    button { font: inherit; padding: 6px 12px; margin-right: 8px; }
+    pre { border: 2px solid #000000; padding: 12px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>Launch balance</h1>
+  <p>Pick a preset, change any number, press Run. Add <code>?seed=123</code> to the address to repeat a run exactly.</p>
+  <form id="form">
+    <fieldset>
+      <legend>Start from</legend>
+      <label>Preset <select id="preset"></select></label>
+      <label>Runs <input id="runs" type="number" value="5000" min="100" step="100"></label>
+    </fieldset>
+    <fieldset>
+      <legend>Reliability (hidden in the game)</legend>
+      <label>rel.parts <input id="relParts" type="number" step="0.01"></label>
+      <label>rel.testing <input id="relTesting" type="number" step="0.01"></label>
+      <label>rel.events <input id="relEvents" type="number" step="0.01"></label>
+      <label>rocketReliability <input id="rocket" type="number" step="0.01"></label>
+    </fieldset>
+    <fieldset>
+      <legend>Launch day</legend>
+      <label>weatherPenalty <input id="weather" type="number" step="0.01"></label>
+      <label>overrulePenalty <input id="overrule" type="number" step="0.01"></label>
+      <label>weather kind <select id="kind"><option>clear</option><option>rain</option><option>fog</option><option>wind</option><option>storm</option><option>cold</option></select></label>
+      <label>weather risk <input id="risk" type="number" step="5"></label>
+    </fieldset>
+    <fieldset>
+      <legend>Capsule and crew</legend>
+      <label>emergencyChance <input id="emergency" type="number" step="0.05"></label>
+      <label>powerOk <input id="powerOk" type="checkbox"></label>
+      <label>crew nerves (all three) <input id="nerves" type="number" min="1" max="5"></label>
+      <label>training <input id="training" type="number" min="0" max="100" step="10"></label>
+    </fieldset>
+    <button type="submit">Run</button>
+    <button type="button" id="copy">Copy results for team chat</button>
+  </form>
+  <pre id="out">Press Run.</pre>
+
+  <script type="module">
+    import { fakeState, PRESET_NAMES, launchProbability, getReliability } from '../../core/state.js';
+    import { resolveLaunch, STAGES, saveChance } from './launch-sim.js';
+
+    const $ = (id) => document.getElementById(id);
+    const TARGETS = { readyToLaunch: [0.80, 0.90], launched: [0.80, 0.90], launchedCold: [0.55, 0.70] };
+
+    $('preset').innerHTML = PRESET_NAMES.map((p) => `<option>${p}</option>`).join('');
+    $('preset').value = 'readyToLaunch';
+
+    // Copy the preset's numbers into the inputs, so you can see them and change one at a time.
+    function fill() {
+      const s = fakeState($('preset').value);
+      $('relParts').value = s.rel.parts;
+      $('relTesting').value = s.rel.testing;
+      $('relEvents').value = s.rel.events;
+      $('rocket').value = s.derived.rocketReliability;
+      $('weather').value = s.weatherPenalty;
+      $('overrule').value = s.overrulePenalty;
+      $('kind').value = s.launchWeather?.kind ?? 'clear';
+      $('risk').value = s.launchWeather?.risk ?? 0;
+      $('emergency').value = s.derived.emergencyChance;
+      $('powerOk').checked = s.derived.powerOk;
+      $('nerves').value = s.crew.length ? Math.round(s.crew.reduce((a, c) => a + c.nerves, 0) / s.crew.length) : 3;
+      $('training').value = s.progress.training;
+    }
+    $('preset').addEventListener('change', fill);
+    fill();
+
+    function buildState() {
+      const s = fakeState($('preset').value);
+      const num = (id) => Number($(id).value) || 0;
+      s.rel.parts = num('relParts');
+      s.rel.testing = num('relTesting');
+      s.rel.events = num('relEvents');
+      s.derived.rocketReliability = num('rocket');
+      s.weatherPenalty = num('weather');
+      s.overrulePenalty = num('overrule');
+      s.launchWeather = { ...(s.launchWeather ?? {}), kind: $('kind').value, risk: num('risk') };
+      s.derived.emergencyChance = num('emergency');
+      s.derived.powerOk = $('powerOk').checked;
+      s.crew.forEach((c) => { c.nerves = num('nerves'); });
+      s.progress.training = num('training');
+      if (s.launchDay == null) s.launchDay = s.day; // presets before launch week have no launch day yet
+      return s;
+    }
+
+    const pct = (n, total) => `${((100 * n) / total).toFixed(1)}%`.padStart(6);
+    const bar = (n, total) => '#'.repeat(Math.round((40 * n) / total));
+
+    function run() {
+      const s = buildState();
+      const runs = Math.max(100, Number($('runs').value) || 5000);
+      const outcomes = {};
+      const failed = Object.fromEntries(STAGES.map((id) => [id, 0]));
+      let emergencies = 0, saved = 0;
+      for (let i = 0; i < runs; i++) {
+        const r = resolveLaunch(s);
+        outcomes[r.outcome] = (outcomes[r.outcome] ?? 0) + 1;
+        if (r.failedStage) failed[r.failedStage] += 1;
+        emergencies += r.emergencies.length;
+        saved += r.emergencies.filter((e) => e.saved).length;
+      }
+
+      const p = launchProbability(s);
+      const lines = [
+        `Launch Trail balance: preset ${$('preset').value}, ${runs} runs`,
+        `Launch probability ${p.toFixed(3)} (each stage ${Math.pow(p, 0.25).toFixed(3)}). Same for every run of one state, so it is also the median.`,
+        `  reliability ${getReliability(s).toFixed(3)} x rocket ${s.derived.rocketReliability} x weather ${(1 - s.weatherPenalty).toFixed(2)} x crew ${(1 - s.overrulePenalty).toFixed(2)}`,
+        `Crew save chance ${saveChance(s).toFixed(2)}`,
+        '',
+        'Outcomes',
+        ...Object.entries(outcomes).sort((a, b) => b[1] - a[1]).map(([o, n]) => `  ${o.padEnd(10)} ${pct(n, runs)}  ${bar(n, runs)}`),
+        '',
+        'Failed stage',
+        ...STAGES.map((id) => `  ${id.padEnd(10)} ${pct(failed[id], runs)}  ${bar(failed[id], runs)}`),
+        '',
+        `Emergencies: ${emergencies} in ${runs} runs, ${emergencies ? ((100 * saved) / emergencies).toFixed(0) : 0}% saved`,
+      ];
+      const target = TARGETS[$('preset').value];
+      if (target) {
+        const orbit = (outcomes.orbit ?? 0) / runs;
+        const ok = orbit >= target[0] && orbit <= target[1];
+        lines.push(`Target orbit rate ${target[0] * 100}-${target[1] * 100}%: ${ok ? 'IN RANGE' : 'OUT OF RANGE'}`);
+      }
+      $('out').textContent = lines.join('\n');
+    }
+
+    $('form').addEventListener('submit', (e) => { e.preventDefault(); run(); });
+    $('copy').addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText($('out').textContent); $('copy').textContent = 'Copied!'; }
+      catch { $('copy').textContent = 'Copy failed: select the text by hand'; }
+      setTimeout(() => { $('copy').textContent = 'Copy results for team chat'; }, 2000);
+    });
+  </script>
+</body>
+</html>
