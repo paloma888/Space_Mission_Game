@@ -36,7 +36,9 @@ The Rulebook and `docs/RULEBOOK-AMENDMENTS.md` still win over anything here.
   - Heads-up for the team: these folders differ from the Rulebook's `audio/sfx/<slice>-<name>.wav` naming.
 - **Built: a smooth arrival in space.** When there's an emergency in orbit, the climb dissolves dot by dot into the space view, and Earth's edge and the capsule glide up into place (`drawDissolve`, `riseOffset` in `launch-anim.js`).
 - **Checked Sun night (full bug sweep):** every ending played through by a robot player (all sites, rockets, weather, emergencies, no-launch reasons, the secret ending, reduced motion, and the real game via `index.html?slice=finale&preset=...`), no errors; every report fits. Fixed: the rumble roared on after a failure (now in 4 pieces); What next? stayed clickable behind the menu; teammates' big rocket art (fitted by `fitSprite`); opening from `file:///` could freeze the space dissolve.
-- Next: the rest of the emergency polish in section 5 (a "dying flashlight" power-down, and maybe a splashdown).
+- **Built Sun (after the UI pull): launch words explained.** The launch captions (`launch-text.json`) now say what each big moment means: liftoff, max-Q, separation, orbit, plus what life support and the battery do. Each explanation was checked against a NASA page (Glenn's Thrust to Weight Ratio and Flight To Orbit, NASA's "Rocket Reaches Max Q" blog, Space Place's "What Is an Orbit?"). The caption box is wider (520px) to fit them.
+- **Built: the "dying flashlight".** In a power emergency the capsule window dims in steps (gold, orange, brown, off) with a slow stutter (at most 3 a second, none with reduced motion), and a battery bar next to the capsule drains to its last red bar. Fixed: it refills and the light comes back. Not fixed: it runs empty, the frame turns red and the capsule heads home (`updateBattery`, `windowGlow`, `drawBattery` in `launch-anim.js`).
+- Checked: the 200 km orbit altitude sits inside NASA's low Earth orbit range (comment in `altitudeKm`). Fixed the stale "`aliens` stays paused" line in A11. Splashdown: skipped (not a minor change).
 
 ### What each file does
 
@@ -219,9 +221,9 @@ Press Start 2P has no ≈ glyph, so the browser borrows a small one from another
 - **Smoother emergency transitions:**
   - No hard cut from the climb into space: keep climbing until the sky is black, fade the engine, separate the capsule, and slide the Earth's edge up from below.
   - A calm beat before each alarm.
-  - Power as a "dying flashlight": a battery meter draining, the window dimming in palette steps, at most 3 flickers a second. Today it is a tiny random 10 per second flicker that looks glitchy.
+  - ✅ Power as a "dying flashlight" with a battery bar (built, see section 1).
   - The life support alarm fades in.
-  - **Open:** a splashdown beat (parachutes, splash, "The crew is safe")?
+  - ❌ A splashdown beat: skipped (not a minor change).
 - **Backgrounds:** the plan changed, and Erick now makes them. Rulebook: hand-made pixel art only, so Erick draws them (Piskel or Lospec, 320x180, team palette). Code support: layered PNGs (`sky`, `far`, `mid`, `ground`) with parallax, a `&guides=1` overlay on `test.html` showing the pad, rocket and horizon lines, and optional failure layers. **Open:** confirm with the team.
 - **Galaxies:** real Andromeda (a tilted spiral: gold core, blue arms, pink star nurseries, dark dust lanes), the Large and Small Magellanic Clouds, and a Milky Way band, all clickable, with facts in `explorer-facts.json` (empty NASA source slots). The palette has no bright pink, so dither `#e5bda3` with `#bb6a52`. **Open:** code-drawn (like the globe) or Erick's hand-drawn sprite, and globe only or also in the black launch sky?
 - **Sun aura and sunrise rim on the globe.** Palette roles already checked: sunCore `#f6dcb8` maps to c15, sunHalo `#b86850` to c2.
@@ -260,11 +262,9 @@ Add for section 3:
 ## 7. Next push (parked)
 
 - Custom failure screens per failure type.
-- Rosa explains the launch stages, and a clickable altitude equation (labeled as simplified, numbers checked with NASA).
-- NASA sources in the globe's fact boxes.
+- A clickable altitude equation (labeled as simplified, numbers checked with NASA). The launch captions already explain the stages.
 - A settings menu with a reduce-motion toggle (coordinate with Audrey).
 - A mission patch.
-- A "Close Encounter" badge when the secret ending returns (A6).
 - A mass penalty (needs Daniel and an amendment).
 - A UI redesign from the team's design. Don't restyle until Erick shares it.
 
