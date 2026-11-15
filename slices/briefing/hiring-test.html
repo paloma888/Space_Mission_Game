@@ -15,7 +15,7 @@
        and the briefing data files. Every line should say PASS. -->
   <h1>Hiring rules</h1>
   <div id="results"></div>
-  <!-- The real hiring screen runs in here for the paging checks. Hidden: only clicks are tested. -->
+  <!-- The real hiring screen runs in here for the carousel checks. Hidden: only clicks are tested. -->
   <div id="app" style="position: absolute; left: -10000px; top: 0;"><div id="game"></div></div>
   <script type="module">
     import { fakeState } from '../../core/state.js';
@@ -130,57 +130,86 @@
     check('strength and flaw are 60 characters or fewer', [...candidates, ...staff].every((person) => person.strength.length <= 60 && person.flaw.length <= 60));
     check('astronauts have 2 hired lines and 1 released line', candidates.every((astronaut) => astronaut.lines.hired.length === 2 && astronaut.lines.released.length === 1));
 
-    // ---------- Paging math: three cards a page
-    const pageSizes = (people) => Array.from({ length: rules.pageCount(people.length) }, (_, pageIndex) => rules.peopleOnPage(people, pageIndex).length);
-    check('astronauts: 3 pages of 3, 3, 2', JSON.stringify(pageSizes(candidates)) === '[3,3,2]', JSON.stringify(pageSizes(candidates)));
-    check('staff: 2 pages of 3, 3', JSON.stringify(pageSizes(staff)) === '[3,3]', JSON.stringify(pageSizes(staff)));
-    check('paging stops at the first and last page', rules.clampPage(-1, 8) === 0 && rules.clampPage(5, 8) === 2);
+    // ---------- Carousel math: three cards around a middle one, looping at both ends
+    check('one step before the first is the last', rules.wrapIndex(-1, 8) === 7);
+    check('one step past the last is the first', rules.wrapIndex(8, 8) === 0);
+    const idsAround = (people, middleIndex) => rules.peopleAround(people, middleIndex).map((person) => person.id).join(',');
+    check('row around the first astronaut wraps to the last', idsAround(candidates, 0) === 'mateo,amara,jun', idsAround(candidates, 0));
+    check('row around the last astronaut wraps to the first', idsAround(candidates, 7) === 'zainab,mateo,amara', idsAround(candidates, 7));
+    check('three people or fewer show once each', idsAround(candidates.slice(0, 2), 0) === 'amara,jun');
 
-    // ---------- Paging on the real hiring screen
-    const pagingState = fakeState('fresh');
-    runHiring(pagingState, { candidates, staff, hiringText: sceneData.hiring }); // resolves only on Continue
+    // ---------- Carousel on the real hiring screen
+    const carouselState = fakeState('fresh');
+    runHiring(carouselState, { candidates, staff, hiringText: sceneData.hiring }); // resolves only on Continue
     const gameArea = document.getElementById('game');
     for (let wait = 0; wait < 50 && !gameArea.querySelector('.hire-card'); wait++) {
       await new Promise((resolveWait) => setTimeout(resolveWait, 20));
     }
     const cardIdsShown = () => [...gameArea.querySelectorAll('.hire-card')].map((card) => card.dataset.personId).join(',');
+    const counterText = () => gameArea.querySelector('.hiring-counter')?.textContent;
+    const middleCard = () => gameArea.querySelectorAll('.hire-card')[1];
     const cardFor = (personId) => gameArea.querySelector(`[data-person-id="${personId}"]`);
     const detailName = () => gameArea.querySelector('.hiring-detail-name')?.textContent;
+    const hireButton = () => gameArea.querySelector('.hiring-hire .btn');
     const nextArrow = () => gameArea.querySelector('.hiring-arrow-next');
     const previousArrow = () => gameArea.querySelector('.hiring-arrow-prev');
     const pressKey = (key) => window.dispatchEvent(new KeyboardEvent('keydown', { key }));
+    const middleIsSelected = () => middleCard()?.classList.contains('is-selected')
+      && gameArea.querySelectorAll('.hire-card.is-selected').length === 1;
 
-    check('page 1 shows Amara, Jun, Lucía', cardIdsShown() === 'amara,jun,lucia', cardIdsShown());
-    check('left arrow off on page 1', previousArrow().disabled && !nextArrow().disabled);
+    check('starts with Amara in the middle, 1 of 8', cardIdsShown() === 'mateo,amara,jun' && counterText() === '1 of 8', `${cardIdsShown()} ${counterText()}`);
+    check('middle card is the selected one', middleIsSelected() && detailName() === 'Amara Okonkwo');
+    check('arrows are never disabled', !previousArrow().disabled && !nextArrow().disabled);
+    check('no page dots left', !gameArea.querySelector('.hiring-dot'));
 
-    cardFor('amara').click();
-    gameArea.querySelector('.hiring-hire .btn').click();
-    check('hire Amara on page 1', rules.isHired(pagingState, 'astronaut', 'amara'));
-
+    previousArrow().click();
+    check('left arrow before the first wraps to the last (8 of 8)', cardIdsShown() === 'zainab,mateo,amara' && counterText() === '8 of 8', `${cardIdsShown()} ${counterText()}`);
+    check('selection follows the middle card (Mateo)', middleIsSelected() && detailName() === 'Mateo Silva', detailName());
+    check('arrows still enabled at the last card', !previousArrow().disabled && !nextArrow().disabled);
     nextArrow().click();
-    check('right arrow shows page 2', cardIdsShown() === 'dmitri,priya,sam', cardIdsShown());
-    check('paging keeps the selected person (Amara)', detailName() === 'Amara Okonkwo', detailName());
-    cardFor('sam').click();
-    check('selecting a card on page 2 works', detailName() === "Sam 'Sparks' Whitaker", detailName());
-
-    pressKey('ArrowRight');
-    check('right arrow key shows page 3', cardIdsShown() === 'zainab,mateo', cardIdsShown());
-    check('right arrow off on page 3', nextArrow().disabled && !previousArrow().disabled);
-    check('paging keeps the selected person (Sam)', detailName() === "Sam 'Sparks' Whitaker", detailName());
-    pressKey('ArrowRight');
-    check('no page 4', cardIdsShown() === 'zainab,mateo');
-
+    check('right arrow after the last wraps to the first (1 of 8)', cardIdsShown() === 'mateo,amara,jun' && counterText() === '1 of 8', `${cardIdsShown()} ${counterText()}`);
     pressKey('ArrowLeft');
-    pressKey('ArrowLeft');
-    check('Amara still hired after paging away and back', cardFor('amara')?.classList.contains('is-hired') && pagingState.crew.length === 1);
-    check('Hire button for Sam still works after paging', (() => {
-      gameArea.querySelector('.hiring-hire .btn').click();
-      return rules.isHired(pagingState, 'astronaut', 'sam');
-    })());
+    check('left arrow key wraps too', counterText() === '8 of 8', counterText());
+    pressKey('ArrowRight');
+    pressKey('ArrowRight');
+    check('right arrow key moves by one card', cardIdsShown() === 'amara,jun,lucia' && counterText() === '2 of 8', `${cardIdsShown()} ${counterText()}`);
+    gameArea.querySelectorAll('.hire-card')[2].click();
+    check('clicking the right card moves it to the middle', counterText() === '3 of 8' && detailName() === 'Lucía Herrera' && middleIsSelected(), `${counterText()} ${detailName()}`);
+    gameArea.querySelectorAll('.hire-card')[0].click();
+    previousArrow().click();
+    check('back to Amara in the middle', detailName() === 'Amara Okonkwo', detailName());
 
-    nextArrow().click();
+    // Keep Amara hired the whole way round, then hire and release whoever is in the middle at
+    // every position (releasing keeps the crew under the three-seat limit).
+    hireButton().click();
+    check('hire Amara', rules.isHired(carouselState, 'astronaut', 'amara'));
+    const positionsThatHired = [];
+    for (let position = 0; position < candidates.length; position++) {
+      nextArrow().click();
+      const middleId = middleCard().dataset.personId;
+      if (middleId === 'amara') {
+        if (cardFor('amara').classList.contains('is-hired') && hireButton().textContent.startsWith('Release')) positionsThatHired.push(middleId);
+        continue;
+      }
+      hireButton().click();
+      const hiredHere = rules.isHired(carouselState, 'astronaut', middleId) && middleCard().classList.contains('is-hired');
+      hireButton().click(); // release
+      const releasedHere = !rules.isHired(carouselState, 'astronaut', middleId) && !middleCard().classList.contains('is-hired');
+      if (hiredHere && releasedHere) positionsThatHired.push(middleId);
+      if (cardFor('amara') && !cardFor('amara').classList.contains('is-hired')) positionsThatHired.push('AMARA LOST HIRED BADGE');
+    }
+    check('hire and release work at all 8 positions', positionsThatHired.length === 8 && !positionsThatHired.includes('AMARA LOST HIRED BADGE'), positionsThatHired.join(','));
+    check('Amara stayed hired all the way round', rules.isHired(carouselState, 'astronaut', 'amara') && carouselState.crew.length === 1);
+    check('budget back to 800 minus Amara', carouselState.budget === 800 - 55, `${carouselState.budget}`);
+
     [...gameArea.querySelectorAll('.hiring-tabs .btn')].find((button) => button.textContent === 'Staff').click();
-    check('Staff tab starts on page 1 of 2', cardIdsShown() === 'hal,dev,inez' && gameArea.querySelectorAll('.hiring-dot').length === 2, cardIdsShown());
+    check('Staff tab resets: Hal in the middle, 1 of 6', cardIdsShown() === 'tasha,hal,dev' && counterText() === '1 of 6', `${cardIdsShown()} ${counterText()}`);
+    for (let position = 0; position < staff.length; position++) {
+      hireButton().click();
+      nextArrow().click();
+    }
+    check('staff can be hired from all 6 positions', carouselState.staff.length === 6, `${carouselState.staff.length}`);
+    check('after a full loop the row is back at 1 of 6', counterText() === '1 of 6' && [...gameArea.querySelectorAll('.hire-card')].every((card) => card.classList.contains('is-hired')));
     document.querySelectorAll('.toast').forEach((leftoverToast) => leftoverToast.remove());
 
     const allText = JSON.stringify([candidates, staff, sceneData]);
