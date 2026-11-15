@@ -50,7 +50,7 @@
     "weight": 1,
     "when": {},
     "speaker": "hal",
-    "flavor": "I've seen this movie before. Don't like how it ends.",
+    "flavor": "I think I've seen this film before and I really don't like how it ends.",
     "title": "A line in the weld",
     "text": "A scan shows a faint line in one of the capsule's welds. It may be a crack. It may be nothing.",
     "choices": [
@@ -70,7 +70,7 @@
     "text": "A practice flight in the simulator crashed. There is a bug in the flight software.",
     "choices": [
       { "label": "Fix it now", "effects": { "day": 2, "reliability": 0.02 }, "result": "Two days of careful work. The bug is gone and tested." },
-      { "label": "Patch it later", "effects": { "reliability": -0.03, "flags": ["software_bug_open"] }, "result": "The bug goes on a to-do list. The list is getting long." }
+      { "label": "Patch it later", "effects": { "reliability": -0.03, "flags": ["software_bug_open"] }, "result": "The bug goes on a to-do list. Uh- oh, the list is getting long." }
     ]
   },
   {
@@ -94,7 +94,7 @@
     "weight": 1,
     "when": { "budgetTiersAtLeast": 2 },
     "speaker": "hal",
-    "flavor": "Inches. Millimeters. Pick one. I've seen this movie before.",
+    "flavor": "Inches. Millimeters. Pick one. Trust, I've seen this movie before.",
     "title": "Inches or millimeters?",
     "text": "A contractor sent part sizes in inches. Our plans use millimeters. Nobody is sure which numbers got mixed.",
     "choices": [
@@ -113,7 +113,7 @@
     "boost": [ { "when": { "rocketIn": ["condor_reflown"] }, "mult": 3 } ],
     "guarantee": { "byWeek": 4 },
     "speaker": "hal",
-    "flavor": "Old code. New flight. I've seen this movie before. Bad sequel.",
+    "flavor": "Old code. New flight. Bad sequel to the movie I talked about before.",
     "scene": "trail/workshop",
     "title": "The old software still runs",
     "text": "The reused booster still has its old guidance software. It worked on the last rocket. Do we test it again?",
@@ -149,7 +149,7 @@
     "choices": [
       { "label": "Give raises", "effects": { "budget": -15, "morale": 12 }, "result": "Raises all around. Someone frames the chart." },
       { "label": "Hold the line", "outcomes": [
-        { "p": 0.6, "effects": { "morale": -8 }, "result": "The team grumbles and gets back to work. The chart stays on the wall, staring." },
+        { "p": 0.6, "effects": { "morale": -8 }, "result": "The team grumbles and gets back to work. The chart stays on the wall, staring back." },
         { "p": 0.4, "effects": { "loseStaff": "any" }, "result": "One person packs a box and leaves. They take the good stapler." }
       ] }
     ]
@@ -177,10 +177,10 @@
     "speaker": "tasha",
     "flavor": "A mystery donor who loves rockets! 'Tiny Agency, Giant Heart.' That's a headline!",
     "title": "A donor calls",
-    "text": "A rich fan of spaceflight wants to give money. They only ask to name one bolt after their cat.",
+    "text": "A rich fan of spaceflight wants to give money. They only ask to name one bolt after their cat. Cute, right?!",
     "choices": [
       { "label": "Accept quietly", "effects": { "budget": 30 }, "result": "The money lands. One bolt is now named Mr. Whiskers." },
-      { "label": "Accept and hold a public event", "effects": { "budget": 45, "day": 1, "morale": 3 }, "result": "A day of speeches and tiny sandwiches. Mr. Whiskers the bolt gets applause." }
+      { "label": "Accept and hold a public event", "effects": { "budget": 45, "day": 1, "morale": 3 }, "result": "A day of speeches and tiny sandwiches. Mr. Whiskers the bolt gets the applause he deserves ." }
     ]
   },
   {
@@ -194,7 +194,7 @@
     "text": "The team is running on coffee and stubbornness. Someone fell asleep on a blueprint.",
     "choices": [
       { "label": "Pizza night", "effects": { "budget": -3, "morale": 10 }, "result": "Pizza for everyone. The pineapple debate lasts two hours. Spirits soar." },
-      { "label": "Keep working", "effects": { "morale": -3, "progress": { "build": 4 } }, "result": "Work goes on. The blueprint now has a small drool mark." }
+      { "label": "Keep working", "effects": { "morale": -3, "progress": { "build": 4 } }, "result": "Work goes on. The blueprint now has a small drool mark. Gross!!! " }
     ]
   },
   {
@@ -216,8 +216,8 @@
     "title": "More simulator time",
     "text": "The crew asks for extra time in the flight simulator. It costs a little money and a day.",
     "choices": [
-      { "label": "Approve it", "effects": { "progress": { "training": 15 }, "day": 1, "budget": -5 }, "result": "A long day in the simulator. The crew comes out sharper and very hungry." },
-      { "label": "Decline", "effects": { "morale": -2 }, "result": "The simulator stays dark. The crew practices in their heads instead." }
+      { "label": "Approve it", "effects": { "progress": { "training": 15 }, "day": 1, "budget": -5 }, "result": "A long day in the simulator. The crew comes out sharper and very very hungry." },
+      { "label": "Decline", "effects": { "morale": -2 }, "result": "The simulator stays dark. The crew practices in their heads instead. Yikes!" }
     ]
   },
   {
@@ -229,9 +229,9 @@
     "speaker": "marty",
     "flavor": "The captain says 'soon,' boss. Soon! That is not a time! Don't panic.",
     "title": "Parts stuck at sea",
-    "text": "Parts for the faraway launch site are late. The cargo ship is somewhere in the ocean, going slowly.",
+    "text": "Parts for the faraway launch site are late. The cargo ship is somewhere in the ocean, going slowly, like very slowly.",
     "choices": [
-      { "label": "Pay for air freight", "effects": { "budget": -25 }, "result": "The parts fly first class. They arrive rested and on time." },
+      { "label": "Pay for air freight", "effects": { "budget": -25 }, "result": "The parts fly first class. They arrive well-rested and on time." },
       { "label": "Wait for the ship", "effects": { "day": 4 }, "result": "Four days later the ship drifts in. The captain waves like nothing happened." },
       { "label": "Pre-clear customs", "requires": "logistics", "effects": { "day": 1 }, "result": "The paperwork is done before the ship docks. The parts roll right through." }
     ]
@@ -246,7 +246,7 @@
     "title": "Money is draining fast",
     "text": "The money is going faster than planned. Nobody can explain the line that says 'misc. rocket stuff.'",
     "choices": [
-      { "label": "Do a cost review", "effects": { "day": 2, "budget": 15, "morale": -2 }, "result": "Two dull days with a calculator. You find $15M hiding in the budget." },
+      { "label": "Do a cost review", "effects": { "day": 2, "budget": 15, "morale": -2 }, "result": "Two dull days with a calculator. You find $15M hiding in the budget. Crazy huh?" },
       { "label": "Ignore it", "effects": { "flags": ["cost_overrun"], "morale": -2 }, "result": "The spreadsheet stays closed. It grows quietly in the dark." }
     ]
   },
@@ -256,12 +256,12 @@
     "weight": 1,
     "when": {},
     "speaker": "hal",
-    "flavor": "No power. No fans. Seen this movie before. It was a sweaty one.",
+    "flavor": "No power. No fans. It was truly a sweaty day.",
     "title": "The power goes out",
-    "text": "A heat wave knocked out power to the workshop. The tools are off and the ice cream is in danger.",
+    "text": "A heat wave knocked out power to the workshop. The tools are off and the ice cream is in danger. Our precious dessert is melting. ",
     "choices": [
       { "label": "Rent generators", "effects": { "budget": -8 }, "result": "The generators roar to life. The tools work. The ice cream is saved." },
-      { "label": "Work nights", "effects": { "morale": -6 }, "result": "The team works after dark when it is cooler. Everyone is sleepy and a bit cranky." }
+      { "label": "Work nights", "effects": { "morale": -6 }, "result": "The team works after dark when it is cooler. Everyone is sleepy and a bit cranky. Quick, before they turn to zombies!" }
     ]
   },
   {
@@ -271,12 +271,12 @@
     "when": {},
     "boost": [ { "when": { "staffHas": "pr" }, "mult": 2 } ],
     "speaker": "tasha",
-    "flavor": "A reporter! Cameras! 'Little Agency, Big Dreams.' That's a headline!",
+    "flavor": "A reporter! Cameras! 'Little Agency, Big Dreams.' Again, that's a headline!",
     "title": "A reporter wants a tour",
     "text": "A reporter wants to visit the workshop. Someone should hide the whiteboard that says 'DO NOT EXPLODE.'",
     "choices": [
       { "label": "Do the interviews", "effects": { "budget": 10, "morale": 5, "day": 1 }, "result": "The story runs with a great photo. Donations come in. The whiteboard is in the shot." },
-      { "label": "Politely decline", "effects": {}, "result": "You send a kind no. The whiteboard stays a secret." }
+      { "label": "Politely decline", "effects": {}, "result": "You send a kind no. The whiteboard stays a secret. Phew!" }
     ]
   },
   {
@@ -293,13 +293,13 @@
       "priya": "Sorry, quick question. Is it normal to dream about countdowns?",
       "sam": "Roger that, boss. Totally calm. Why is my coffee vibrating?",
       "zainab": "One more check. And one more after that. I can't seem to stop.",
-      "mateo": "I keep thinking I forgot something. Wait, did we do that? Did I?"
+      "mateo": "I keep thinking I forgot something. Wait, did we do that? Did I do that?"
     },
     "title": "Launch nerves",
     "text": "Launch is close and nerves are showing. Even the calmest people are a little jumpy this week.",
     "choices": [
       { "label": "Arrange a talk with Rosa", "effects": { "morale": 4, "day": 1 }, "result": "A long talk and a cup of tea. Nerves are normal, and now everyone knows it." },
-      { "label": "Push on", "effects": { "reliability": -0.01 }, "result": "Training goes on. The worry comes along for the ride." }
+      { "label": "Push on", "effects": { "reliability": -0.01 }, "result": "Training goes on. The worry comes along for the ride. Whoopty-doo!" }
     ]
   },
   {
@@ -310,7 +310,7 @@
     "speaker": "marty",
     "flavor": "Free parts, boss! They said keep them! Nobody panic. Nobody call them back, either.",
     "title": "A lucky mistake",
-    "text": "A supplier sent bonus parts by mistake and says to keep them. Shipping them back would cost more.",
+    "text": "A supplier mistakenly set bonus parts by mistake and says to keep them. Shipping them back would cost more.",
     "choices": [
       { "label": "Take the free parts", "effects": { "budget": 15 }, "result": "You sell the spares for a tidy sum. Sometimes luck just shows up." }
     ]
@@ -321,13 +321,13 @@
     "weight": 1,
     "when": { "commsIn": ["budget"] },
     "speaker": "dev",
-    "flavor": "Cool cool cool. I heard 'launch,' 'cheese' and 'Tuesday.' That can't be right.",
+    "flavor": "Cool cool cool. I heard 'launch,' 'chicken' and 'Tuesday.' That can't be right.",
     "title": "The radio keeps cutting out",
     "text": "A practice call on the capsule's budget radio comes through in pieces. Half the words go missing.",
     "choices": [
       { "label": "Add a booster antenna on the ground", "effects": { "budget": -12, "reliability": 0.02 }, "result": "A big dish goes up beside Mission Control. The next call is crisp." },
-      { "label": "Teach the crew code words", "effects": { "day": 1, "progress": { "training": 8 } }, "result": "The crew learns short codes for bad radio days. 'Pineapple' means 'say again.'" },
-      { "label": "Live with it", "effects": { "reliability": -0.03 }, "result": "The radio stays crackly. Everyone agrees to speak slowly and hope." }
+      { "label": "Teach the crew code words", "effects": { "day": 1, "progress": { "training": 8 } }, "result": "The crew learns short codes for bad radio days. 'Mango cakes' means 'say again.' I think?" },
+      { "label": "Live with it", "effects": { "reliability": -0.03 }, "result": "The radio stays crackly. Everyone agrees to speak slowly and hope. Fingers crossed." }
     ]
   },
   {
@@ -336,9 +336,9 @@
     "weight": 1,
     "when": { "massMarginBelow": 1 },
     "speaker": "hal",
-    "flavor": "Who put a coffee maker in my capsule. I've seen this movie before.",
+    "flavor": "Who put a coffee maker in my capsule.",
     "title": "The capsule is gaining weight",
-    "text": "The capsule is close to the rocket's weight limit, and little extras keep sneaking aboard. Today: a coffee maker.",
+    "text": "The capsule is close to the rocket's weight limit, and little extras keep sneaking aboard. Today: a coffee maker, tomorrow: an air fryer.",
     "choices": [
       { "label": "Weigh every item twice", "effects": { "day": 2, "reliability": 0.02 }, "result": "Two days with a scale and a clipboard. Every gram is now on a list." },
       { "label": "Ban all extras", "effects": { "morale": -3, "reliability": 0.02 }, "result": "New rule: nothing extra goes aboard. The coffee maker stays behind. The crew sighs." },
@@ -356,7 +356,7 @@
     "text": "A power test shows the battery is almost fully used. Switch on one more thing and something else switches off.",
     "choices": [
       { "label": "Run a full power test", "effects": { "day": 2, "budget": -5, "progress": { "testing": 10 }, "reliability": 0.02 }, "result": "Every switch is tried in every order. Now the team knows exactly what the battery can take." },
-      { "label": "Write a power-saving checklist", "effects": { "day": 1, "progress": { "training": 8 } }, "result": "The crew learns what to switch off first. The reading lamp loses the vote." },
+      { "label": "Write a power-saving checklist", "effects": { "day": 1, "progress": { "training": 8 } }, "result": "The crew learns what to switch off first. The reading lamp loses the vote. Hehe." },
       { "label": "Trust the numbers", "effects": { "reliability": -0.03 }, "result": "The numbers say it just fits. Just." }
     ]
   }
