@@ -24,7 +24,7 @@ import {
 } from './launch-sim.js';
 import { mountOrbitExplorer } from './orbit-explorer.js';
 import { mountLaunchAnim } from './launch-anim.js';
-import { LAUNCH_COLORS, makeCanvas, buildRocket } from './launch-art.js';
+import { LAUNCH_COLORS, makeCanvas, buildRocket, fitSprite } from './launch-art.js';
 import { readPalette, pickColors } from './pixel.js';
 
 // Tells core/screens.js who this slice is (Rulebook section 4).
@@ -179,19 +179,23 @@ const SAUCER_DELAY = 1500;   // 🛸 secret ending: how long the rocket keeps cl
 
 // 🔊 Sounds. All of Slice 5's are in two folders: audio/sfx/finale/ and audio/music/finale/, so the
 // names below start with "finale/". Most are made in code by sound/sound-maker.mjs. Erick added
-// alien-creepy.wav (the saucer) and rocketrumble.wav (the launch). boom.wav is a copy of Sharon's
-// trail-bad.wav. The boom and the rumble were run through sound/speaker-boost.mjs, because they were
-// almost all deep bass, which laptop and phone speakers can't play.
+// alien-creepy.wav (the saucer) and the launch rumble (rumble-1 to 4). The boom is Sharon's original
+// audio/sfx/trail-bad.wav, untouched (Erick prefers how it sounds). The rumble was run through
+// sound/speaker-boost.mjs, because it was almost all deep bass, which laptop speakers can't play.
 // ui.sfx and ui.music (core/ui.js) handle the mute button and stay silent until the first click.
-// The launch sound: Erick's rumble. 'finale/ignite' is a backup roar made in code, if we ever need it.
-const LAUNCH_SOUND = 'finale/rocketrumble';
+// 🚀 The launch rumble, in 4 pieces: one per stage (liftoff, max-Q, separation, orbit). Each piece starts
+// when its stage starts and overlaps the last one with a soft fade, so together they sound like one
+// long roar. Why pieces: ui.sfx can't stop a sound once it starts, so after a failure (or Skip) we just
+// don't start the next piece, and the roar dies with the engines instead of roaring on for seconds.
+// To use the backup roar made in code instead: ['finale/ignite'].
+const LAUNCH_RUMBLE = ['finale/rumble-1', 'finale/rumble-2', 'finale/rumble-3', 'finale/rumble-4'];
 const BOOMS = 3;             // 💥 how many booms in a row when the launch fails
 const BOOM_GAP_MS = 450;     // time between booms
 
 // The launch failed: the music stops, then the boom, BOOMS times. Goofy, never scary: the crew is safe.
 function boomBoomBoom() {
   ui.music(null);
-  for (let i = 0; i < BOOMS; i++) setTimeout(() => ui.sfx('finale/boom'), i * BOOM_GAP_MS);
+  for (let i = 0; i < BOOMS; i++) setTimeout(() => ui.sfx('trail-bad'), i * BOOM_GAP_MS); // Sharon's original boom
 }
 
 /**
@@ -243,13 +247,14 @@ async function playLaunch(state, result, text) {
     await sk.sleep(TICK_MS);
   }
   count.textContent = 'T-0';
-  ui.sfx(LAUNCH_SOUND);               // the engines light (6 seconds of rumble, fading out)
+  ui.sfx(LAUNCH_RUMBLE[0]);            // the engines light: the first piece of rumble
 
   // The four stages, one sentence every LINE_MS (3 seconds). Stops at the first FAIL.
   let failed = false;
-  for (const stage of result.stages) {
+  for (const [i, stage] of result.stages.entries()) {   // i = the stage's number (0 = liftoff)
     const words = text.stages?.[stage.id] ?? { name: stage.id.toUpperCase(), pass: '', fail: '' };
     if (stage.skipped) break;        // secret ending: the rest of the stages never happen
+    if (i > 0 && LAUNCH_RUMBLE[i] && !sk.skipped) ui.sfx(LAUNCH_RUMBLE[i]); // the next piece of rumble
     anim.stage(stage.id, stage.passed);  // start this stage's animation (it sputters if it's going to fail)
     if (stage.id === 'separation' && stage.passed) setTimeout(() => ui.sfx('finale/separation'), 400); // the split happens 0.4 s in
     if (stage.id === 'liftoff') await showEmergencies(result, 'liftoff', text, line, sk, anim); // lightning
@@ -281,6 +286,7 @@ async function playLaunch(state, result, text) {
     } else if (result.outcome === 'aliens') {
       // 🛸 Secret ending: let the rocket climb a little longer (SAUCER_DELAY), then the saucer beat
       // starts, and its captions appear while it plays.
+      if (!sk.skipped && LAUNCH_RUMBLE[1]) ui.sfx(LAUNCH_RUMBLE[1]); // the engines keep roaring as it climbs
       await sk.sleep(SAUCER_DELAY);
       line(text.skipped ?? '...', 'warn');
       ui.music(null);
@@ -524,7 +530,12 @@ function report(state, result, data, ending) {
 
   // Put all four areas on the page, then wait for the What next? button.
   root.append(left, middle, right, debrief);
-  return new Promise((resolve) => debrief.append(ui.button('What next?', resolve)));
+  // Rosa's Try Again menu opens on top of the report, so grey the button out once it's pressed
+  // (pressing it again would do nothing, which looks broken).
+  return new Promise((resolve) => {
+    const next = ui.button('What next?', () => { next.disabled = true; resolve(); });
+    debrief.append(next);
+  });
 }
 
 /**
@@ -586,11 +597,15 @@ function rocketMarker(state) {
   }
   canvas.className = 'fin-step-rocket';
 
-  // The team's picture, if it's been drawn. A missing file just keeps the placeholder.
+  // The team's picture, if it's been drawn, trimmed and sized like the placeholder (fitSprite).
+  // A missing file just keeps the placeholder.
   const img = new Image();
-  img.className = 'fin-step-rocket';
-  img.alt = '';
-  img.onload = () => canvas.replaceWith(img);
+  img.onload = () => {
+    const fitted = fitSprite(img, canvas.height);
+    if (!fitted) return;                       // can't read it: keep the placeholder
+    fitted.className = 'fin-step-rocket';
+    canvas.replaceWith(fitted);
+  };
   img.src = new URL(`../../art/sprites/rocket_${state.rocket ?? 'condor'}.png`, import.meta.url).href;
   return canvas;
 }

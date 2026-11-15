@@ -10,13 +10,14 @@
 //   3. copy `frame` onto the canvas you see, nudged a pixel or two when the screen shakes
 //
 // Art: the team's PNGs are used when they exist; until then launch-art.js draws placeholders.
-//   art/backgrounds/launchweek/site_<id>.png, art/sprites/rocket_<id>.png, art/sprites/capsule.png
+//   art/sprites/rocket_<id>.png (fitted to our size by fitSprite), art/sprites/capsule.png. The launch
+//   sites are always our own code-drawn scenes (sites/).
 
-import { hash, clampN, readPalette, pickColors, nearestColor, BAYER } from './pixel.js';
+import { hash, clampN, readPalette, pickColors, BAYER } from './pixel.js';
 import {
   W, H, PAD_Y, ROCKET_X, SKY_TOP, LAUNCH_COLORS, CAPSULE_WINDOW, CAPSULE_BEACON,
   makeCanvas, skyStops, buildSkyStrip, buildScene, buildFog, buildTower, buildRocket, splitRocketImage,
-  buildCapsule, buildCloud, makePuffCache, buildEarthLimb, buildSaucer, SAUCER_LIGHTS,
+  buildCapsule, buildCloud, makePuffCache, buildEarthLimb, buildSaucer, SAUCER_LIGHTS, fitSprite,
 } from './launch-art.js';
 import { buildSite } from './sites/index.js';
 
@@ -110,15 +111,15 @@ export function mountLaunchAnim(parent, state, opts = {}) {
   const towerX = () => Math.round(ROCKET_X + padHalfW() + 5);
 
   // The team's pictures replace the placeholders as soon as they load (if they exist yet).
-  loadImage(`art/backgrounds/launchweek/site_${state.site ?? 'canaveral'}.png`).then((img) => {
-    if (!img || !alive) return;
-    art.site = [{ img, rate: 1 }]; // the team's picture is one flat layer
-
-    // Continue the picture's own sky color above it, so there's no seam during the climb.
-    art.sky = g.createPattern(buildSkyStrip(pal, skyStops(C, weather, averageRowColor(pal, img, 0))), 'repeat-x');
-  });
+  // The launch site is always our own scene (sites/), with its parallax layers. We don't borrow the
+  // launch-week backgrounds (art/backgrounds/launchweek/): they're made for Paloma's screens, not
+  // for a climbing camera.
+  // The rocket: the team's picture can be any size, so fitSprite trims it and makes it as tall as our
+  // placeholder for that rocket (the Sparrow small, the Pelican big).
   loadImage(`art/sprites/rocket_${state.rocket ?? 'condor'}.png`).then((img) => {
-    if (img && alive && !w.separated) art.rocket = splitRocketImage(img);
+    if (!img || !alive || w.separated) return;
+    const fitted = fitSprite(img, art.rocket.upper.height + art.rocket.lower.height);
+    if (fitted) art.rocket = splitRocketImage(fitted);   // null: keep our placeholder rocket
   });
   loadImage('art/sprites/capsule.png').then((img) => { if (img && alive) art.capsuleImg = img; });
 
@@ -903,16 +904,3 @@ async function loadImage(path) {
   }
 }
 
-// The palette number closest to the average color of one row of a picture (used to continue its sky).
-function averageRowColor(pal, img, row) {
-  const { g } = makeCanvas(img.width, 1);
-  g.drawImage(img, 0, row, img.width, 1, 0, 0, img.width, 1);
-  const px = g.getImageData(0, 0, img.width, 1).data;
-  const sum = [0, 0, 0];
-  for (let i = 0; i < px.length; i += 4) {
-    sum[0] += px[i];
-    sum[1] += px[i + 1];
-    sum[2] += px[i + 2];
-  }
-  return nearestColor(pal, sum.map((v) => v / img.width));
-}
