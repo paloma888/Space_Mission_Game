@@ -9,10 +9,10 @@
         "Before launch, your crew votes Go or No-Go. Listen to them. Your choices decide whether the mission reaches orbit."
       ],
       "credits": [
-        "TODO: team names and who built what",
-        "Font: Press Start 2P (TODO: verify author and license on Google Fonts)",
-        "Palette: TODO: palette name, author and Lospec license note",
-        "All pixel art and sound made by hand by the team.",
+        "Made by Audrey, Daniel, Erick, Paloma and Sharon.",
+        "Font: Press Start 2P",
+        "Palette: Planets by Jude Buffman, from Lospec.",
+        "Pixel art drawn by hand by the team. Sound effects made in jsfxr.",
         "Every history card shows its NASA source on screen."
       ]
     },

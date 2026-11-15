@@ -4,7 +4,7 @@
 import * as ui from '../../core/ui.js';
 import { applyEffects } from '../../core/events.js';
 import { saveCheckpoint, addFlag, removeFlag } from '../../core/state.js';
-import { el, art, talk } from './common.js';
+import { el, art, talk, playSound } from './common.js';
 import { compatPanel } from './compat.js';
 import { findRocket, findSite, installedParts, lockInProblems, hasShadyPart } from './recompute.js';
 
@@ -81,7 +81,7 @@ export function showReview(state, ctx) {
       const shell = catalog.parts.shell?.[state.parts.shell];
       if (shell?.morale) applyEffects(state, { morale: shell.morale });
       if (hasShadyPart(state, catalog)) addFlag(state, 'shady_part');
-      ui.sfx('build-lock');
+      await playSound('build-lock');
       ui.refresh();
       await talk(root, 'rosa', lines.rosa?.lockIn);
       resolve('next');

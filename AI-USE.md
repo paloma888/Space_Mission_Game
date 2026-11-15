@@ -26,7 +26,8 @@ Example:
 - Sun: Claude Code built the rocket, launch-site map and review screens (`vehicle.js`, `compat.js`, `review.js`, `common.js`). It also reworked the flow to Rocket → Shop → Site → Review, with no Back buttons and money charged on Next. I designed the flow and the layouts and tuned them over many rounds.
 - Sun: Claude Code wrote the shady dealer (`dealer.js`), the per-tier dealer parts and the mysterious component upsell, plus their lines in `lines.json`. I designed the dealer's scene, the trade-in and the upsell.
 - Sun: Claude Code sized and wired in the rocket sprites and per-tier part art. The art itself is hand-drawn by our team; Claude did not make or edit any images.
-- Sun: Claude Code generated the nine Slice 2 sound effects (`audio/sfx/build-*.wav`, `shady-whisper.wav`, `shady-reject.wav`, `shady-deal.wav`) with a small synth script that uses square waves and noise, the same way jsfxr does. I chose what each sound should be and listened to them.
+- Sun: Claude Code generated draft Slice 2 sound effects with a synth script. I decided to remove all of them; Slice 2 uses only sounds I make by hand in jsfxr. Claude still wired the sound names into the code (`build-select`, `build-next`, `shady-deal` and so on).
+- Sun: I made `ui-blip`, `build-select`, `build-next`, `shady-deal` and `build-lock` in jsfxr. Claude suggested starting jsfxr settings for `ui-blip`, `shady-deal` and `build-lock`, and I tuned them by ear. Claude also added `playSound()` so Slice 2 sounds never overlap, and copied Person 5's `launch_theme` (made by their Claude script) as the title music and my `build-select` as the briefing hire and release sounds. It also copied four of Person 5's Claude-made finale sounds into Slice 4's sound names (`launchweek-countdown`, `-thunder`, `-scrub`, `-go`).
 
 ## Person 3: The Trail
 

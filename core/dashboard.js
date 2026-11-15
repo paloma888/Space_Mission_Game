@@ -60,7 +60,15 @@ const STYLE = `
 #dashboard .float { position: absolute; right: 12px; top: 4px; font-size: var(--small);
   color: var(--c10); pointer-events: none; animation: dash-float 900ms steps(6) forwards; }
 @keyframes dash-float { to { transform: translateY(-20px); opacity: 0; } }
-#mute-slot { flex: none; width: 56px; height: 56px; pointer-events: auto; }
+/* Full height of the strip's inside (56px minus its 4px bottom line), so it never covers that line. */
+#mute-slot { flex: none; width: 56px; height: 100%; pointer-events: auto; }
+/* Sound on/off. Fills the 56 x 56 slot at the top right. Off is dimmed so it reads at a glance. */
+#dashboard .mute-btn { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 4px; font: inherit; font-size: 8px; line-height: 1; color: var(--c1);
+  background: var(--c4); border: none; cursor: pointer; }
+#dashboard .mute-btn:hover { background: var(--c8); }
+#dashboard .mute-btn b { font-size: var(--small); font-weight: normal; color: var(--c9); }
+#dashboard .mute-btn.is-off b { color: var(--c2); }
 `;
 
 function el(tag, className, text) {
@@ -108,7 +116,8 @@ export function mountDashboard(element) {
     root.append(box);
   }
   const mute = el('div');
-  mute.id = 'mute-slot'; // Person 1 puts the mute button here
+  mute.id = 'mute-slot';
+  mute.append(muteButton());
   root.append(mute);
   element.replaceChildren(root);
   last = null;
@@ -163,7 +172,29 @@ function pulse(id, delta) {
   }
 }
 
+// Sound on/off for the whole game. ui.setMuted() remembers the choice in the browser, the same
+// setting as the title screen's Sound button. pointerdown is stopped so a click here doesn't
+// also skip a line of dialogue.
+let muteBtn = null;
+function muteButton() {
+  muteBtn = el('button', 'mute-btn');
+  muteBtn.type = 'button';
+  muteBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
+  muteBtn.addEventListener('click', () => { ui.setMuted(!ui.isMuted()); showMute(); });
+  showMute();
+  return muteBtn;
+}
+function showMute() {
+  if (!muteBtn) return;
+  const off = ui.isMuted();
+  muteBtn.classList.toggle('is-off', off);
+  muteBtn.title = off ? 'Sound is off. Click to turn it on.' : 'Sound is on. Click to turn it off.';
+  muteBtn.setAttribute('aria-pressed', String(off));
+  muteBtn.replaceChildren(el('span', null, 'SOUND'), el('b', null, off ? 'OFF' : 'ON'));
+}
+
 export function updateDashboard(state) {
+  showMute(); // the title screen's Sound button may have changed it
   if (!root || !state) return;
   const v = read(state);
 

@@ -101,5 +101,10 @@
   },
   "review": {
     "component": "+ Mysterious component attached. Whatever it is."
+  },
+  "intro": {
+    "banner": "Part 2: Build Your Mission",
+    "sub": "Day {day} · ${budget}M to spend",
+    "seconds": 2.75
   }
 }

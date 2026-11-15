@@ -129,7 +129,8 @@ function forecastScreen(state, site, noise, lines) {
     talk.append(ui.portrait(speaker, 96), el('p', null, line));
 
     const days = el('div', 'lw-days');
-    const go = ui.button('Pick a day', () => resolve(picked));
+    const go = ui.button('Pick a day', () => { ui.sfx('build-next'); resolve(picked); }); // same sound as Next in the build
+    go.classList.add('lw-launch'); // same look as the build slice's Next button
     go.disabled = true;
     let picked = null;
 
@@ -394,9 +395,9 @@ async function poll(state, today, lines, site) {
 
   const votes = evaluatePoll(state, today);
   for (const v of votes) {
-    if (v.vote !== 'unknown') ui.sfx(v.vote === 'go' ? 'launchweek-go' : 'launchweek-nogo');
     await ui.say(v.speaker, voteLine(lines, v), { mood: v.vote === 'nogo' ? 'sad' : 'happy' });
     board.append(el('div', `lw-vote lw-${v.vote}`, `${v.label}: ${VOTE_TEXT[v.vote]}`));
+    if (v.vote === 'go') ui.sfx('launchweek-go'); // plays as the GO appears on the board
   }
 
   const nogos = votes.filter((v) => v.vote === 'nogo');

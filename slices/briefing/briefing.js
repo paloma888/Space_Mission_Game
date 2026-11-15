@@ -70,6 +70,7 @@ function titleScreen(scene) {
       ui.button('Press Start', () => {
         ui.unlock();
         ui.sfx('briefing-start');
+        ui.music(null); // the title music is only for the title screen
         resolve();
       }),
       ui.button('How to Play', () => showSlide(0), { variant: 'quiet' }),
