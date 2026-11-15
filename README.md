@@ -1,4 +1,4 @@
-# Launch Trail
+# B[U]ILT 2 LAUNCH
 
 A pixel-art, Oregon Trail-style game for the 2026 NASA Space Apps Challenge ("Space Mission Design Game"). You run a tiny space agency and must get a three-person crew to orbit before the budget, the schedule or the weather runs out. Every failure ends with the real NASA story behind it.
 
