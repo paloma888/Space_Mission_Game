@@ -86,30 +86,38 @@
 .hiring-tabs { align-self: flex-start; margin-left: 24px; }
 .hiring-tabs .btn { margin-top: 0; }
 
-/* Full width, so the arrows sit at the screen edges while the three cards stay centered. */
+/* Arrow, cards, arrow in one centered row: each arrow sits 8px from its nearest card. */
 .hiring-carousel {
-  position: relative;
-  width: 100%;
   margin-top: 16px;
   display: flex;
+  align-items: center;
   justify-content: center;
+  gap: 8px;
 }
 .hiring-cards {
   display: flex;
   justify-content: center;
   gap: 24px;
-  height: 248px; /* every card on every page is this tall, astronaut or staff */
+  height: 248px; /* every card is this tall, astronaut or staff */
 }
+/* Big, bright and easy to spot: the palette accent with a 2px dark edge. */
 .hiring-layout .hiring-arrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
+  flex: none;
+  width: 48px;
+  height: 48px;
   margin: 0;
+  padding: 0;
   font-size: var(--body);
-  padding: 20px 14px;
+  color: var(--bg);
+  background: var(--accent);
+  border: 2px solid var(--bg);
 }
-.hiring-arrow-prev { left: 24px; }
-.hiring-arrow-next { right: 24px; }
+.hiring-layout .hiring-arrow:hover,
+.hiring-layout .hiring-arrow:focus-visible {
+  background: var(--c15); /* the palette's lightest warm tone */
+  outline: 2px solid var(--frame);
+  outline-offset: 2px;
+}
 
 /* "4 of 8" under the row. A dark shadow keeps it readable over the background. */
 .hiring-counter { margin-top: 10px; color: var(--ink); text-shadow: 2px 2px 0 var(--bg); }
