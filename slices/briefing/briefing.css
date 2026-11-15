@@ -1,0 +1,146 @@
+/* slices/briefing/briefing.css: title, cutscenes and hiring. Owner: Person 1.
+   Palette variables from core/base.css only, no raw colors (RULEBOOK section 9). */
+
+/* ---------- Title screen */
+.briefing-title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+}
+.briefing-logo { font-size: var(--title); color: var(--accent); text-shadow: 4px 4px 0 var(--bg); }
+.briefing-menu { display: flex; flex-direction: column; align-items: center; }
+.briefing-menu .btn { min-width: 320px; }
+.briefing-menu .panel { width: 640px; }
+
+/* ---------- Cutscenes */
+.briefing-scene { padding: 32px; }
+/* Top right, below where the dashboard sits in scene 3. */
+.briefing-skip {
+  position: absolute;
+  top: 72px; right: 24px;
+  z-index: 15;
+  font-size: var(--small);
+  padding: 8px 12px;
+}
+.briefing-skip-confirm {
+  position: absolute;
+  top: 128px; right: 24px;
+  z-index: 15;
+  width: 360px;
+}
+.briefing-skip-confirm .btn { font-size: var(--small); }
+
+.briefing-mission-card { width: 760px; margin: 72px auto 0; }
+.briefing-mission-card ul { margin: 0; padding-left: 24px; line-height: 2; }
+
+.briefing-road { display: flex; gap: 12px; margin-top: 72px; }
+.briefing-road .panel { flex: 1; padding: 16px; font-size: var(--small); }
+.briefing-road .panel-title { font-size: var(--small); }
+
+.briefing-name { width: 640px; margin: 120px auto 0; }
+.briefing-name-input {
+  display: block;
+  width: 100%;
+  font: inherit;
+  font-size: var(--body);
+  padding: 12px;
+  color: var(--bg);
+  background: var(--ink);
+  border: 4px solid var(--frame-edge);
+}
+
+/* Scene 3: the dashboard slides down, then Rosa points at one gauge at a time. */
+#dashboard.briefing-slide-in { animation: briefing-slide-in 400ms steps(8); }
+@keyframes briefing-slide-in { from { transform: translateY(-56px); } }
+#dashboard .briefing-spotlight { outline: 4px solid var(--accent); outline-offset: -4px; }
+
+@media (prefers-reduced-motion: reduce) {
+  #dashboard.briefing-slide-in { animation: none; }
+}
+
+/* ---------- Hiring screen (brief section 10). Top 56px stays clear for the dashboard. */
+.screen.hiring { padding: 64px 24px 16px; }
+.hiring-layout {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  grid-template-rows: auto 1fr auto;
+  gap: 12px;
+  height: 100%;
+  font-size: var(--small);
+}
+/* While Rosa talks, clicks pass through to advance her lines instead of pressing buttons. */
+.hiring-layout.is-talking { pointer-events: none; }
+.hiring-layout .panel { margin: 0; }
+.hiring-layout .btn { font-size: var(--small); padding: 8px 12px; }
+
+.hiring-tabs { grid-column: 1; grid-row: 1; }
+.hiring-tabs .btn { margin-top: 0; }
+
+.hiring-cards {
+  grid-column: 1; grid-row: 2;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  align-content: start;
+  gap: 12px;
+}
+.hire-card {
+  position: relative;
+  background: var(--frame);
+  border: 4px solid var(--frame-edge);
+  padding: 8px;
+  cursor: pointer;
+}
+.hire-card:focus-visible { outline: 4px solid var(--ink); }
+.hire-card.is-selected { border-color: var(--accent); }
+.hire-card.is-unaffordable { opacity: 0.55; }
+.hire-card-head { display: flex; gap: 8px; margin-bottom: 8px; }
+.hire-card-info { min-width: 0; }
+.hire-card-name { line-height: 1.4; margin-bottom: 4px; }
+.hire-card-cost { color: var(--accent); }
+.hire-card .btn { margin: 6px 0 0; padding: 4px 8px; }
+.hire-card .bar { margin-top: 4px; }
+.hire-card-role { margin-bottom: 4px; }
+.hire-card-effect { margin-top: 6px; line-height: 1.5; }
+.hire-card-badge {
+  display: none;
+  position: absolute;
+  top: -4px; right: -4px;
+  padding: 4px 6px;
+  background: var(--accent);
+  color: var(--bg);
+}
+.hire-card.is-hired .hire-card-badge { display: block; }
+
+.hiring-detail { grid-column: 2; grid-row: 1 / 4; min-height: 0; }
+.hiring-detail .panel { height: 100%; overflow: auto; padding: 16px; }
+.hiring-detail .portrait { display: block; margin-bottom: 8px; }
+.hiring-subtitle { color: var(--accent); margin-bottom: 12px; }
+.hiring-bio, .hiring-line, .hiring-quote { font-size: var(--small); line-height: 1.6; margin-bottom: 10px; }
+.hiring-line-label { color: var(--accent); }
+.hiring-quote { font-style: italic; }
+.hiring-hire .btn { margin-top: 4px; }
+
+.hiring-footer {
+  grid-column: 1; grid-row: 3;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  background: var(--frame);
+  border: 4px solid var(--frame-edge);
+}
+.hiring-seats { display: flex; gap: 8px; }
+.hiring-seat {
+  width: 112px;
+  padding: 8px 4px;
+  text-align: center;
+  line-height: 1.4;
+  border: 4px dashed var(--frame-edge);
+  color: var(--muted);
+}
+.hiring-seat.is-filled { border-style: solid; border-color: var(--accent); color: var(--ink); }
+.hiring-summary { flex: 1; line-height: 1.8; }
+.hiring-continue { text-align: right; }
+.hiring-continue .btn { margin: 0; }

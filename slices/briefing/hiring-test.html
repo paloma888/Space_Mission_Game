@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Test: hiring rules</title>
+  <link rel="stylesheet" href="../../core/base.css">
+  <style>
+    body { display: block; overflow: auto; padding: 32px; font-size: var(--small); line-height: 1.8; }
+    .pass { color: var(--c9); }
+    .fail { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <!-- Open with Live Server. Checks the hiring math and rules (Slice 1 brief section 10)
+       and the briefing data files. Every line should say PASS. -->
+  <h1>Hiring rules</h1>
+  <div id="results"></div>
+  <script type="module">
+    import { fakeState } from '../../core/state.js';
+    import { applyEffects } from '../../core/events.js';
+    import * as rules from './hiring-rules.js';
+
+    const loadJson = async (path) => (await fetch(path)).json();
+    const [candidates, staff, sceneData, castList] = await Promise.all(
+      ['./candidates.json', './staff.json', './scenes.json', '../../core/characters.json'].map(loadJson),
+    );
+    const byId = (list) => Object.fromEntries(list.map((person) => [person.id, person]));
+    const candidateById = byId(candidates);
+    const staffById = byId(staff);
+
+    const results = document.getElementById('results');
+    let failCount = 0;
+    function check(description, passed, detail = '') {
+      if (!passed) failCount += 1;
+      const row = document.createElement('div');
+      row.className = passed ? 'pass' : 'fail';
+      row.textContent = `${passed ? 'PASS' : 'FAIL'}  ${description}${detail ? `  (${detail})` : ''}`;
+      results.append(row);
+      if (!passed) console.error(description, detail);
+    }
+
+    // ---------- Data matches the brief (section 11)
+    const expectedAstronauts = {
+      amara: [5, 2, 3, 55], jun: [2, 5, 3, 50], lucia: [3, 2, 5, 45], dmitri: [4, 3, 3, 60],
+      priya: [2, 4, 2, 30], sam: [3, 3, 3, 40], zainab: [3, 4, 4, 65], mateo: [2, 2, 4, 25],
+    };
+    const expectedStaff = {
+      hal: ['engineer', 5, 40], dev: ['engineer', 3, 20], inez: ['inspector', 4, 25],
+      skye: ['meteorologist', 4, 25], marty: ['logistics', 3, 20], tasha: ['pr', 4, 25],
+    };
+    check('8 astronauts', candidates.length === 8, `${candidates.length}`);
+    for (const [id, [pilot, eng, nerves, cost]] of Object.entries(expectedAstronauts)) {
+      const astronaut = candidateById[id];
+      check(`${id} stats and cost`, astronaut && astronaut.pilot === pilot && astronaut.eng === eng
+        && astronaut.nerves === nerves && astronaut.cost === cost);
+    }
+    check('6 staff', staff.length === 6, `${staff.length}`);
+    for (const [id, [role, skill, cost]] of Object.entries(expectedStaff)) {
+      const member = staffById[id];
+      check(`${id} role, skill and cost`, member && member.role === role && member.skill === skill && member.cost === cost);
+    }
+
+    // ---------- Money: three astronauts and two staff
+    const state = fakeState('fresh');
+    rules.hire(state, 'astronaut', candidateById.amara, applyEffects);
+    rules.hire(state, 'astronaut', candidateById.jun, applyEffects);
+    rules.hire(state, 'astronaut', candidateById.lucia, applyEffects);
+    rules.hire(state, 'staff', staffById.hal, applyEffects);
+    rules.hire(state, 'staff', staffById.inez, applyEffects);
+    const expectedBudget = 800 - (55 + 50 + 45) - (40 + 25);
+    check('3 astronauts + 2 staff leave 800 minus costs', state.budget === expectedBudget, `${state.budget}, expected ${expectedBudget}`);
+    check('total spent matches', rules.totalSpent(state) === 800 - expectedBudget);
+    check('hired copies keep only RULEBOOK 7.1 fields', !('bio' in state.crew[0]) && state.crew[0].eng === 2);
+
+    // ---------- Rules
+    check('fourth astronaut is blocked', rules.hireBlockReason(state, 'astronaut', candidateById.mateo) === rules.WHY_CREW_FULL);
+    check('fourth hire does nothing', !rules.hire(state, 'astronaut', candidateById.mateo, applyEffects) && state.crew.length === 3);
+    check('Continue allowed with exactly 3', rules.canContinue(state));
+    check('missing roles: meteorologist only', JSON.stringify(rules.missingKeyRoles(state)) === '["meteorologist"]');
+
+    rules.release(state, 'astronaut', 'jun', applyEffects);
+    check('releasing Jun refunds $50M', state.budget === expectedBudget + 50, `${state.budget}`);
+    check('Continue blocked with 2 astronauts', !rules.canContinue(state));
+    check('releasing someone not hired does nothing', !rules.release(state, 'astronaut', 'jun', applyEffects) && state.budget === expectedBudget + 50);
+
+    const brokeState = fakeState('fresh');
+    applyEffects(brokeState, { budget: -780 }); // 20 left
+    check('too expensive is blocked', rules.hireBlockReason(brokeState, 'astronaut', candidateById.mateo) === rules.WHY_NO_BUDGET);
+    check('too expensive hire does nothing', !rules.hire(brokeState, 'staff', staffById.hal, applyEffects) && brokeState.budget === 20);
+    check('affordable staff can still be hired', rules.hire(brokeState, 'staff', staffById.dev, applyEffects) && brokeState.budget === 0);
+    check('0 to 6 staff: all six can be hired', (() => {
+      const richState = fakeState('fresh');
+      return staff.every((member) => rules.hire(richState, 'staff', member, applyEffects)) && richState.staff.length === 6;
+    })());
+
+    // ---------- Combined warning and Rosa's reaction
+    const allMissing = rules.missingKeyRoles(fakeState('fresh'));
+    check('no staff: all three key roles missing', allMissing.length === 3);
+    const longestWarning = rules.missingWarningText(allMissing, sceneData.hiring.missingWarning);
+    check('combined warning fits 140 characters', longestWarning.length <= 140, `${longestWarning.length}`);
+
+    const crewOf = (...ids) => ids.map((id) => candidateById[id]);
+    check('reaction: light engineering (Amara, Lucía, Mateo)', rules.crewReactionVariant(crewOf('amara', 'lucia', 'mateo')) === 'lightEngineering');
+    check('reaction: steady (Lucía, Zainab, Mateo)', rules.crewReactionVariant(crewOf('lucia', 'zainab', 'mateo')) === 'steady');
+    check('reaction: balanced (Amara, Jun, Dmitri)', rules.crewReactionVariant(crewOf('amara', 'jun', 'dmitri')) === 'balanced');
+    check('Why? topic: Jun is engineering', rules.bestSkill(candidateById.jun) === 'eng');
+
+    // ---------- Text rules (RULEBOOK 7.2 and brief section 12)
+    const castIds = new Set(castList.map((castMember) => castMember.id));
+    const dialogueLines = [];
+    const collectLines = (node) => {
+      if (Array.isArray(node)) node.forEach(collectLines);
+      else if (node && typeof node === 'object') {
+        if (node.speaker && node.text) dialogueLines.push(node);
+        Object.values(node).forEach(collectLines);
+      }
+    };
+    collectLines(sceneData);
+    [...candidates, ...staff].forEach((person) => {
+      [...person.lines.hired, ...person.lines.released].forEach((text) => dialogueLines.push({ speaker: person.id, text }));
+    });
+    const longLines = dialogueLines.filter((line) => line.text.length > 140);
+    check('every dialogue line is 140 characters or fewer', longLines.length === 0, longLines.map((line) => line.text).join(' | '));
+    const unknownSpeakers = dialogueLines.filter((line) => !castIds.has(line.speaker));
+    check('every speaker is in core/characters.json', unknownSpeakers.length === 0, unknownSpeakers.map((line) => line.speaker).join(', '));
+    check('astronaut bios are 280 characters or fewer', candidates.every((astronaut) => astronaut.bio.length <= 280));
+    check('strength and flaw are 60 characters or fewer', [...candidates, ...staff].every((person) => person.strength.length <= 60 && person.flaw.length <= 60));
+    check('astronauts have 2 hired lines and 1 released line', candidates.every((astronaut) => astronaut.lines.hired.length === 2 && astronaut.lines.released.length === 1));
+
+    const allText = JSON.stringify([candidates, staff, sceneData]);
+    const todoCount = (allText.match(/TODO/g) ?? []).length;
+    const summary = document.createElement('h2');
+    summary.textContent = `${failCount === 0 ? 'All checks pass.' : `${failCount} failed.`} ${todoCount} TODO text placeholders left to write.`;
+    results.prepend(summary);
+  </script>
+</body>
+</html>
