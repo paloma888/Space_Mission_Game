@@ -1,6 +1,5 @@
 {
   "sun": {
-    "todo": "Erick: open the source in a private window and check the text (Claude already checked it), then delete this line.",
     "title": "The Sun",
     "text": "Sunlight takes about 8 minutes to reach Earth. Never look straight at the real one!",
     "sources": [
@@ -8,7 +7,6 @@
     ]
   },
   "moon": {
-    "todo": "Erick: open the source in a private window and check the text (Claude already checked it), then delete this line.",
     "title": "The Moon",
     "text": "About 384,000 km away. Getting there is a mission for another day.",
     "sources": [
@@ -16,14 +14,12 @@
     ]
   },
   "capsule": {
-    "todo": "Erick: open the source in a private window and check the text (Claude already checked it), then delete this line. The text itself is written in orbit-explorer.js, because it uses the crew's names.",
     "title": "Your capsule",
     "sources": [
       { "title": "NASA: Spot the Station FAQ", "url": "https://www.nasa.gov/missions/station/spot-the-station-frequently-asked-questions/" }
     ]
   },
   "andromeda": {
-    "todo": "Erick: open both sources in a private window and check the text (Claude already checked it), then delete this line.",
     "title": "Andromeda Galaxy",
     "text": "About 2.5 million light-years away, and heading our way. There's about a 50-50 chance it crashes into our Milky Way in the next 10 billion years.",
     "sources": [
@@ -32,7 +28,6 @@
     ]
   },
   "milkyWay": {
-    "todo": "Erick: open both sources in a private window and check the text (Claude already checked it), then delete this line.",
     "title": "The Milky Way",
     "text": "Our own galaxy. It's about 100,000 light-years across and holds 100 to 400 billion stars, and our Sun is one of them.",
     "sources": [
@@ -41,7 +36,6 @@
     ]
   },
   "blackHole": {
-    "todo": "Erick: open the source in a private window and check the text (Claude already checked it), then delete this line.",
     "title": "Sagittarius A*",
     "text": "The giant black hole at the center of our galaxy, with about 4 million times the Sun's mass. Nothing, not even light, can escape it. (This is an artist's idea of one.)",
     "sources": [
@@ -49,7 +43,6 @@
     ]
   },
   "lmc": {
-    "todo": "Erick: open the source in a private window and check the text (Claude already checked it), then delete this line.",
     "title": "Large Magellanic Cloud",
     "text": "The biggest of the small 'satellite' galaxies that orbit our Milky Way. It's about 163,000 light-years away.",
     "sources": [
@@ -57,7 +50,6 @@
     ]
   },
   "smc": {
-    "todo": "Erick: open the source in a private window and check the text (Claude already checked it), then delete this line.",
     "title": "Small Magellanic Cloud",
     "text": "About 200,000 light-years away. It and the Large Cloud orbit each other and our Milky Way. From Earth's Southern Hemisphere, both look like faint glowing patches.",
     "sources": [

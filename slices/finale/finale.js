@@ -177,6 +177,21 @@ const TICK_MS = 1000;        // one countdown number per second (1000 millisecon
 const LINE_MS = 3000;        // a new sentence every 3 seconds
 const SAUCER_DELAY = 1500;   // 🛸 secret ending: how long the rocket keeps climbing before the saucer shows up
 
+// 🔊 Sounds. All of Slice 5's are in two folders: audio/sfx/finale/ and audio/music/finale/, so the
+// names below start with "finale/". Most are made in code by sound/sound-maker.mjs. Erick added
+// alien-creepy.wav (the saucer) and rocketrumble.wav (the launch). The boom is Sharon's trail-bad.wav.
+// ui.sfx and ui.music (core/ui.js) handle the mute button and stay silent until the first click.
+// The launch sound: Erick's rumble. 'finale/ignite' is a backup roar made in code, if we ever need it.
+const LAUNCH_SOUND = 'finale/rocketrumble';
+const BOOMS = 3;             // 💥 how many booms in a row when the launch fails
+const BOOM_GAP_MS = 450;     // time between booms
+
+// The launch failed: the music stops, then the boom, BOOMS times. Goofy, never scary: the crew is safe.
+function boomBoomBoom() {
+  ui.music(null);
+  for (let i = 0; i < BOOMS; i++) setTimeout(() => ui.sfx('trail-bad'), i * BOOM_GAP_MS);
+}
+
 /**
  * Job: plays the launch animation, stage by stage, with captions. It only REPLAYS the result.
  *   Countdown T-5 to T-0, then a new sentence every 3 seconds: each stage shows GO or FAIL with a
@@ -193,7 +208,7 @@ const SAUCER_DELAY = 1500;   // 🛸 secret ending: how long the rocket keeps cl
  */
 async function playLaunch(state, result, text) {
   // Set up the screen: music, the animation full screen (dashboard hidden), and text on top of it.
-  ui.music('launch_theme');
+  ui.music('finale/launch_theme');
   const root = ui.screen(null, { dashboard: false });
   root.classList.add('fin-launch');
   const sk = makeSkipper();
@@ -222,11 +237,11 @@ async function playLaunch(state, result, text) {
   for (let n = COUNTDOWN_FROM; n >= 1; n--) {
     count.textContent = `T-${n}`;
     anim.countdown(n);                     // near the end, the crew arm swings back to the tower
-    ui.sfx('fin-countdown');
+    ui.sfx('finale/countdown');
     await sk.sleep(TICK_MS);
   }
   count.textContent = 'T-0';
-  ui.sfx('fin-ignite');
+  ui.sfx(LAUNCH_SOUND);               // the engines light (6 seconds of rumble, fading out)
 
   // The four stages, one sentence every LINE_MS (3 seconds). Stops at the first FAIL.
   let failed = false;
@@ -234,14 +249,15 @@ async function playLaunch(state, result, text) {
     const words = text.stages?.[stage.id] ?? { name: stage.id.toUpperCase(), pass: '', fail: '' };
     if (stage.skipped) break;        // secret ending: the rest of the stages never happen
     anim.stage(stage.id, stage.passed);  // start this stage's animation (it sputters if it's going to fail)
+    if (stage.id === 'separation' && stage.passed) setTimeout(() => ui.sfx('finale/separation'), 400); // the split happens 0.4 s in
     if (stage.id === 'liftoff') await showEmergencies(result, 'liftoff', text, line, sk, anim); // lightning
     await sk.sleep(LINE_MS);
     count.textContent = '';              // the countdown is over once the first result is in
     if (stage.passed) {
-      ui.sfx('fin-go');
+      ui.sfx('finale/go');
       line(`${words.name}: GO. ${words.pass}`, 'go');
     } else {
-      ui.sfx('fin-fail');
+      boomBoomBoom();
       line(`${words.name}: FAIL. ${words.fail}`, 'fail');
       failed = true;
       break;                         // `break` leaves the loop early: no more stages after a fail
@@ -265,7 +281,9 @@ async function playLaunch(state, result, text) {
       // starts, and its captions appear while it plays.
       await sk.sleep(SAUCER_DELAY);
       line(text.skipped ?? '...', 'warn');
+      ui.music(null);
       const beat = anim.abduct();
+      ui.sfx('finale/alien-creepy');         // Erick's creepy sound as the saucer swoops in
       const lines = text.alien ?? [];
       for (const words of lines) {
         await sk.sleep(1500);
@@ -274,7 +292,8 @@ async function playLaunch(state, result, text) {
       await beat;                    // wait for the saucer to zip off and the green flash
     } else {
       await sk.sleep(troubleInOrbit ? LINE_MS : 1500); // time to read the last line before flying off
-      ui.sfx('fin-whoosh');
+      ui.sfx('finale/whoosh');       // a silly slide whistle...
+      setTimeout(() => ui.sfx('finale/twinkle'), 1600); // ...and a ding where it vanishes
       await anim.zoomOut();          // fly off into space, twinkle, white flash (orbitEnding fades it away)
     }
   }
@@ -288,14 +307,16 @@ async function showEmergencies(result, stage, text, line, sk, anim) {
     const words = text.emergencies?.[e.type] ?? { alert: e.type, saved: '', unfixed: '' };
     await sk.sleep(stage === 'liftoff' ? 1200 : LINE_MS); // lightning hits soon after liftoff
     if (e.type === 'lightning') {
-      ui.sfx('fin-thunder');
+      ui.sfx('finale/thunder');
       anim.lightning();
     } else {
       anim.alarm(e.type);            // power: the lights flicker. life support: a red alarm blinks
+      ui.sfx(e.type === 'power' ? 'finale/powerdown' : 'finale/alarm');
     }
     line(words.alert, 'warn');
     await sk.sleep(LINE_MS); // the tense pause before we find out
     anim.settle(e.type, e.saved);    // fixed: lights back to normal. Not fixed: lights out, or the alarm keeps going
+    if (e.saved) ui.sfx('finale/fixed'); // "bloop-bloop-DING!": the crew fixed it
     line(e.saved ? words.saved : words.unfixed, e.saved ? 'go' : 'fail');
   }
 }
@@ -321,8 +342,13 @@ function unveil(root, kind) {
 function orbitEnding(state, ending) {
   // Celebration sounds (silent until the sound files exist).
   const aliens = state.outcome === 'aliens';
-  ui.music('ending_orbit');
-  ui.sfx(aliens ? 'fin-alien' : 'fin-fanfare');
+  ui.music('finale/ending_orbit');
+  ui.sfx('finale/fanfare');
+  // A pop for each firework the globe shows (same timing as drawFireworks in orbit-explorer.js).
+  // No fireworks with reduced motion, so no pops either.
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    for (let k = 0; k < 10; k++) setTimeout(() => ui.sfx('finale/pop'), (0.2 + k * 0.55) * 1000);
+  }
 
   // "I'll finish later": this screen finishes when resolve() is called by the button below.
   return new Promise((resolve) => {
@@ -360,7 +386,8 @@ const ENDING_ART = {
 // The simple ending screen for launch_failure, came_home_early, bankrupt and window_closed:
 // background, title, text and a Mission report button.
 async function plainEnding(state, ending) {
-  ui.sfx('fin-fail');
+  ui.music(null);
+  ui.sfx('finale/womp');           // womp womp womp wommmp
   const root = ui.screen(`finale/${ENDING_ART[state.outcome] ?? 'ending_launch_failure'}`);
   root.classList.add('fin-ending');
   unveil(root, 'dark');                // fades in from the launch's dark fade
@@ -396,7 +423,8 @@ const fmt = (n) => (Math.round(n * 10) / 10).toString();
  */
 function report(state, result, data, ending) {
   // Work out the score (launch-sim.js) and remember it in the shared state.
-  ui.music('report_loop');
+  // Happy music after a win, a sad music box when the mission didn't work out.
+  ui.music(state.outcome === 'orbit' || state.outcome === 'aliens' ? 'finale/report_loop' : 'finale/report_sad');
   const score = computeScore(state, result);
   state.score = score.total;
   const launched = didLaunch(state.outcome);
@@ -423,7 +451,7 @@ function report(state, result, data, ending) {
   total.append(el('span', '', 'Total'), el('span', '', `${fmt(score.total)} / 100`));
   total.style.animationDelay = `${score.lines.length * 0.35}s`;
   left.append(total);
-  setTimeout(() => ui.sfx('fin-medal'), score.lines.length * 350 + 300); // medal sound after the rows
+  if (score.medal) setTimeout(() => ui.sfx('finale/medal'), score.lines.length * 350 + 300); // "ta-da!" after the rows
   // No medal: just the reason (e.g. "Launch the rocket to earn a medal."). Short, so the panel fits.
   left.append(el('div', `fin-medal fin-medal-${score.medal ?? 'none'}`,
     score.medal ? MEDAL_NAMES[score.medal] : score.medalReason));

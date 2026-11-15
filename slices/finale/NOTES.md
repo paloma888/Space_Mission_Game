@@ -25,12 +25,15 @@ The Rulebook and `docs/RULEBOOK-AMENDMENTS.md` still win over anything here.
   - The secret Close Encounter badge shows on the report only when earned. Test: `test.html?outcome=aliens`.
 - **Built: the deep sky on the globe** (`explorer-sky.js`): Andromeda (on screen at the start), the Milky Way band, the black hole Sagittarius A* (on the band, behind the starting view), and the two Magellanic Clouds (below). Click any of them, or the band, for a NASA fact. Facts and sources are in `explorer-facts.json`. Each has a `todo` until Erick checks it. `sky-preview.html` shows all the sky art 4x bigger.
 - **Built: all five launch sites** (Cape Canaveral, Kodiak, Kourou, Mahia, Sriharikota) as hand-tuned scenes with parallax, one file per site in `sites/` (`draw.js` is their shared toolbox). Next: sound effects and music.
-- **⚠️ Erick still to do:** open each history card's NASA link in a private window, check the story, then delete its `todo` line. Two facts are NOT on the linked pages:
-  - Webb launched in December 2021.
-  - Artemis I's new dates and its November 2022 launch.
-  Add a second NASA source for each one, or cut it.
-- **Known issue:** in the middle panel, the story pushes the source link below the fold, so the player has to scroll to see it. Checkpoint 3 wants every source link visible. A fix could be a smaller card layout or the link above the story.
-- Next: the rest of this push (section 5).
+- **Sources checked:** every history card and globe fact was checked sentence by sentence against its NASA page (by Claude and by Gemini), with second sources added for the Webb and Artemis I launch dates. The `todo` lines are removed. Erick opens each link once before submission (Rulebook 7.4).
+- **Built: sound.** All Slice 5 audio lives in `audio/sfx/finale/` and `audio/music/finale/` (so the names in code start with `finale/`). The audio tools are in `slices/finale/sound/`:
+  - `sound-maker.mjs` makes the sound effects and 4 original songs in code. To remake the music too: `LAMEJS=path/to/lame.all.js node slices/finale/sound/sound-maker.mjs`.
+  - `shrink-wav.mjs` shrinks any 16-bit WAV under the 500 KB limit, and can cut it shorter: `node slices/finale/sound/shrink-wav.mjs file.wav 6`.
+  - Erick added `alien-creepy.wav` (the saucer) and `rocketrumble.wav` (the launch, trimmed to 6 s; `LAUNCH_SOUND` in `finale.js`). A failed launch plays Sharon's `trail-bad.wav` boom 3 times (`BOOMS`).
+  - ⚠️ Check where the rumble and the boom came from (the rumble is from YouTube). Keep them only if they're free to use, and credit them. Otherwise set `LAUNCH_SOUND` to `finale/ignite`, our code-made roar.
+  - The Minecraft totem sound was removed (it belongs to Mojang). `finale/fixed` plays when the crew fixes an emergency.
+  - Heads-up for the team: these folders differ from the Rulebook's `audio/sfx/<slice>-<name>.wav` naming.
+- Next: the emergency-moment polish (section 5).
 
 ### What each file does
 
