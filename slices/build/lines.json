@@ -1,0 +1,79 @@
+{
+  "rosa": {
+    "rocketIntro": [
+      "Welcome, Flight Director! First, pick the rocket that will carry your crew.",
+      "Bigger rockets lift more but cost more. Your capsule has to fit what it can lift."
+    ],
+    "intro": [
+      "Now build the capsule. Pick one part from each list on the left.",
+      "Watch the margin on the right. Keep the capsule lighter than your rocket can lift."
+    ],
+    "shell": [
+      "The shell is the crew's home, like a camper van for space.",
+      "Roomier means a happier crew, but every extra tonne has to be lifted."
+    ],
+    "lifeSupport": [
+      "Life support makes air, water and warmth for the crew.",
+      "Cheap systems break more often. Think of a cheap tent in a storm."
+    ],
+    "power": [
+      "The battery is like a phone battery for the whole capsule.",
+      "Add up what your parts use. The battery has to cover all of it."
+    ],
+    "comms": [
+      "The radio is your phone line to Mission Control.",
+      "A better radio means clearer calls and earlier warnings, but it uses more power."
+    ],
+    "computer": [
+      "The flight computer is the capsule's brain. It steers and checks every system.",
+      "Cheap computers run cheap code. Software bugs have ended real missions."
+    ],
+    "mass": [
+      "A rocket can only lift so much, like a car with a roof box.",
+      "Keep your capsule lighter than the rocket can lift, with room to spare."
+    ],
+    "rocket": [
+      "A rocket is like a moving truck. Each one can only carry so many tonnes.",
+      "Proven rockets have flown a lot. Risky ones are new or reused. Pick with care."
+    ],
+    "site": [
+      "Where you launch matters, like picking an airport for a big trip.",
+      "Some sites are cheap, some give extra lift, and every one has its own weather."
+    ],
+    "orbit": [
+      "Low Earth orbit circles the middle of the planet. Your rocket gives its full lift.",
+      "Polar orbit passes over both poles. Going that way costs 15% of the lift."
+    ],
+    "lockIn": [
+      "Build locked in! Next comes five weeks of building, testing and training.",
+      "Measure twice, launch once. Let's get to work."
+    ]
+  },
+  "hal": {
+    "budgetLifeSupport": "Cheap air. I've seen this movie before. It doesn't end well.",
+    "budgetComputer": "Bargain computer. Bargain code. Bugs love a bargain.",
+    "powerTight": "Power's tight. You'll run out of juice at the worst moment.",
+    "powerOver": "Your parts want more power than that battery has. Something goes dark in flight.",
+    "premiumBroke": "Premium everything. Fancy. Now how do you pay the electric bill?",
+    "condorReflown": "Reused booster. Fine, if you test it. Do you test it?",
+    "pelican": "Brand-new rocket. No track record. I don't love that.",
+    "kodiak": "Cold is hard on rubber seals. Plan for frost.",
+    "kourou": "Everything arrives late down there. Pad extra days.",
+    "mahia": "Island pad. Parts come by boat. Slowly.",
+    "sriharikota": "Monsoon season. Rain, wind, more rain. Watch the sky.",
+    "marginThin": "No room for surprises. Everything gets heavier during testing.",
+    "lockPowerShort": "Power is short. Lock this in and something goes dark up there."
+  },
+  "shop": {
+    "title": "Build your capsule",
+    "needAll": "Pick a shell, life support, comms, a flight computer and power.",
+    "noMoney": "Not enough budget.",
+    "dealerInstalled": "Installed: {label}, from a dealer who did not give a name.",
+    "tooHeavy": "Too heavy by {n} t. Pick a bigger rocket, a launch site with more lift, or cut weight.",
+    "pickRocket": "Pick a rocket.",
+    "pickSite": "Pick a launch site.",
+    "pickOrbit": "Pick an orbit.",
+    "polarSwitched": "That site cannot reach polar orbit, so your orbit is now low Earth.",
+    "lockAnyway": "Lock it in anyway?"
+  }
+}

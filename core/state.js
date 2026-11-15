@@ -39,7 +39,7 @@ export function pick(list) {
 export function createState() {
   return {
     // time and money
-    budget: 800, day: 1, week: 1, windowOpens: 36, windowCloses: 42,
+    budget: 800, day: 1, week: 1, windowOpens: 40, windowCloses: 46,
     // people (briefing)
     crew: [], staff: [],
     // build (build)
@@ -173,7 +173,7 @@ function afterBuild() {
 
 function readyToLaunch() {
   const s = afterBuild();
-  Object.assign(s, { day: 36, week: 5, budget: 85, morale: 68 });
+  Object.assign(s, { day: 40, week: 5, budget: 85, morale: 68 });
   s.progress = { build: 100, testing: 70, training: 50 };
   s.rel.parts = 0.05;
   s.rel.testing = 0.07;
@@ -182,7 +182,7 @@ function readyToLaunch() {
 
 function launched() {
   const s = readyToLaunch();
-  Object.assign(s, { day: 37, launchDay: 37, budget: 45, weatherPenalty: 0.05 });
+  Object.assign(s, { day: 41, launchDay: 41, budget: 45, weatherPenalty: 0.05 });
   s.launchWeather = { risk: 10, tempF: 75, kind: 'clear' };
   return s;
 }
@@ -201,7 +201,7 @@ const PRESETS = {
   readyToLaunch,
   readyToLaunchRisky() {
     const s = readyToLaunch();
-    Object.assign(s, { day: 41, budget: 20, morale: 40, skippedTestingWeeks: 2 });
+    Object.assign(s, { day: 45, budget: 20, morale: 40, skippedTestingWeeks: 2 });
     s.progress = { build: 100, testing: 10, training: 0 };
     s.rel.testing = clamp((10 / 100) * 0.10 - 0.01 * 2, -0.05, 0.10);
     addFlag(s, 'skipped_testing');
@@ -221,7 +221,7 @@ const PRESETS = {
   },
   secret() {
     const s = launched();
-    Object.assign(s, { day: 42, launchDay: 42 });
+    Object.assign(s, { day: 46, launchDay: 46 });
     s.parts.warpCoil = true;
     addFlag(s, 'warp_coil');
     return s;

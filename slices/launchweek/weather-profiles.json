@@ -1,0 +1,18 @@
+{
+  "coldChance": 0.6,
+  "kinds": {
+    "clear": { "risk": [5, 25],  "wind": [0, 10] },
+    "fog":   { "risk": [30, 55], "wind": [0, 8] },
+    "rain":  { "risk": [25, 50], "wind": [5, 15] },
+    "wind":  { "risk": [35, 65], "wind": [20, 35] },
+    "storm": { "risk": [50, 85], "wind": [15, 30] },
+    "cold":  { "risk": [30, 60], "wind": [5, 15] }
+  },
+  "sites": {
+    "canaveral":   { "tempMean": 72, "tempSpread": 6, "kinds": { "clear": 0.30, "rain": 0.15, "storm": 0.35, "wind": 0.10, "fog": 0.10 } },
+    "kodiak":      { "tempMean": 28, "tempSpread": 7, "kinds": { "clear": 0.20, "rain": 0.20, "wind": 0.30, "fog": 0.15, "storm": 0.15 } },
+    "kourou":      { "tempMean": 80, "tempSpread": 3, "kinds": { "clear": 0.40, "rain": 0.40, "storm": 0.10, "wind": 0.05, "fog": 0.05 } },
+    "mahia":       { "tempMean": 58, "tempSpread": 5, "kinds": { "clear": 0.30, "rain": 0.25, "wind": 0.30, "fog": 0.10, "storm": 0.05 } },
+    "sriharikota": { "tempMean": 84, "tempSpread": 4, "kinds": { "clear": 0.30, "rain": 0.35, "storm": 0.20, "wind": 0.10, "fog": 0.05 } }
+  }
+}
