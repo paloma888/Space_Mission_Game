@@ -1,16 +1,58 @@
 /* slices/finale/finale.css: launch, endings and report. Owner: Person 5.
    Colors only come from the palette variables in core/base.css (Rulebook 9). */
 
-/* ---------- Launch (text placeholder until the canvas animation lands) */
-.fin-launch .panel { width: 860px; margin: 40px auto 0; }
-.fin-count { font-size: var(--title); color: var(--accent); margin-bottom: 24px; }
-.fin-log > div { margin: 12px 0; line-height: 1.6; }
-.fin-go { color: var(--good); }
-.fin-fail { color: var(--danger); }
+/* ---------- Launch animation (launch-anim.js draws the scene; these are the words on top of it).
+   The caption boxes are dark with light text so they stay readable over a bright sky. */
+.fin-launch { padding: 0; background: var(--bg); }
+.fin-launch-canvas { cursor: default; } /* the launch can't be dragged, unlike the globe */
+.fin-count {
+  position: absolute;
+  top: 32px; left: 0; right: 0;
+  text-align: center;
+  font-size: var(--title);
+  color: var(--accent);
+  text-shadow: 4px 4px 0 var(--bg);
+  pointer-events: none;
+}
+.fin-alt, .fin-log {
+  position: absolute;
+  font-size: var(--small);
+  color: var(--c1);
+  background: var(--c4);
+  border: 4px solid var(--frame-edge);
+  box-shadow: 0 0 0 4px var(--bg);
+}
+.fin-alt { top: 32px; right: 24px; padding: 8px 12px; }
+.fin-log { left: 24px; bottom: 24px; width: 470px; padding: 8px 16px; line-height: 1.7; }
+.fin-log:empty, .fin-alt:empty { display: none; }
+.fin-log > div { margin: 6px 0; }
+.fin-go { color: var(--c9); }   /* sage green: GO */
+.fin-fail { color: var(--c2); } /* terracotta red: FAIL */
 .fin-warn { color: var(--accent); }
 .fin-skip { position: absolute; right: 24px; bottom: 24px; }
-.fin-flash { animation: fin-flash 0.25s steps(1) 3; }
-@keyframes fin-flash { 50% { background: var(--ink); } }
+
+/* Fades between screens: the launch fades TO white (success) or dark (failure, home early),
+   then the next screen fades back FROM it (.fin-unveil). Kept slow: no fast flashing. */
+.fin-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+  display: grid;
+  place-items: center;
+  padding: 0 160px;
+  text-align: center;
+  font-size: var(--body);
+  line-height: 2;
+  color: var(--c1);
+  background: var(--bg);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1.2s ease;
+}
+.fin-veil-white { background: var(--c1); color: var(--bg); transition-duration: 0.35s; }
+.fin-veil.on { opacity: 1; }
+.fin-unveil { animation: fin-unveil 0.9s ease forwards; }
+@keyframes fin-unveil { to { opacity: 0; } }
 
 /* ---------- Orbit explorer (orbit and aliens endings) */
 .fin-explore { padding: 0; background: var(--bg); }
