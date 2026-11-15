@@ -2,8 +2,9 @@
 
 .lw-talk { display: flex; gap: 24px; align-items: center; line-height: 1.8; }
 
-.lw-days { display: flex; gap: 16px; margin-bottom: 24px; }
-.lw-col { flex: 1; display: flex; flex-direction: column; gap: 16px; }
+.lw-days { display: flex; justify-content: center; gap: 16px; margin-bottom: 24px; }
+/* Fixed width of one column out of 5, so fewer cards stay the same size (the square icon would otherwise grow taller) and sit centered. */
+.lw-col { flex: 0 0 calc((100% - 4 * 16px) / 5); display: flex; flex-direction: column; gap: 16px; }
 .lw-icon-box {
   background: var(--frame);
   border: 4px solid var(--frame-edge);
