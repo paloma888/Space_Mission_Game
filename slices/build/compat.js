@@ -1,5 +1,5 @@
 // slices/build/compat.js: the "Will it fly?" panel (Slice 2 brief section 8).
-// Shown on the rocket, site, orbit and review screens. Being too heavy is the
+// Shown on the rocket, site and review screens. Being too heavy is the
 // main teaching moment, so it gets a red banner and a clunk sound.
 
 import * as ui from '../../core/ui.js';

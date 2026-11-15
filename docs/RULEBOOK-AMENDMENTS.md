@@ -50,8 +50,8 @@ parts = {
 - `science` is removed for Mission 1. Where its 5 score points go is OPEN (Person 5).
 - `computer` (flight computer) is new and required. It can cause software-error events (Person 3) and its reliability bonus raises launch odds.
 - Power is battery only. `type` stays in the data so solar can return in Mission 2.
-- `warpCoil` is removed for now (see A6).
-- Shady parts may use a tier of `'shady'` (see A5).
+- `warpCoil` is `true` only when the player buys the dealer's "mysterious component" (see A6).
+- Dealer parts use the tiers `'shady_budget'`, `'shady_standard'` and `'shady_premium'` (see A5).
 
 ## A4. Derived fields (changes section 5)
 
@@ -63,17 +63,19 @@ Status: ADOPTED (proposed by Person 2, approved by the team). Affects Person 5.
 
 Status: ADOPTED (proposed by Person 2, approved by the team). Affects Persons 3, 5.
 
-The shady dealer sells cheap parts with premium-tier stats and a hidden reliability penalty (through `rel.parts`). New flag-registry row:
+The shady dealer offers a trade-in after the shop: the same battery, radio or flight computer the player bought, for half the price, with a hidden reliability penalty (through `rel.parts`). It reports as the tier it copies, so other slices see no difference. New flag-registry row:
 
 | Flag | Set by | Read by | Meaning |
 | --- | --- | --- | --- |
 | `shady_part` | Person 2 | 3, 5 | At least one shady part was installed at Lock In. |
 
-## A6. Warp Coil and the secret ending are paused (changes sections 6.7, 6.9, 12 and Checkpoint 3)
+## A6. Warp Coil comes back as a dealer upsell (changes sections 6.7, 6.9 and 12)
 
-Status: ADOPTED (proposed by Person 2, approved by the team). Affects Person 5.
+Status: PROPOSED (by Person 2, Nov 15, 2026), replacing the earlier "paused" version. Affects Person 5.
 
-The Warp Coil is not sold in Mission 1, so the `aliens` ending cannot trigger. The `warp_coil` flag name and the `secret` preset stay reserved so it can come back. Checkpoint 3 no longer requires the secret ending.
+After the player takes the shady dealer's trade-in (A5), the dealer offers a "mysterious component" for $10M more. That is the Warp Coil: 0.2 t, no power, reliability -0.03 through `rel.parts`. Buying it sets `parts.warpCoil = true` and the `warp_coil` flag, and counts as a shady part for `shady_part`. It is offered only if it still fits on the rocket and the player can pay. The game never explains what it does.
+
+The secret `aliens` ending works as in Rulebook 6.9: `warp_coil` flag, launch on the last day of the window (`launchDay === windowCloses`), and the liftoff stage passes. `launch-sim.js` already checks this. Checkpoint 3 requires the secret ending again.
 
 ## A7. Presets (changes section 12)
 

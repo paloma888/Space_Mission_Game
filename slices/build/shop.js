@@ -1,11 +1,11 @@
 // slices/build/shop.js: the capsule shop (Slice 2 brief section 6, amendment A3).
-// Five required categories, three tiers each. Every pick is charged or refunded
-// right away through applyEffects, so the dashboard always shows real money.
+// Five required categories, three tiers each. Picks are charged when the player presses Next
+// (see commit() in common.js), so the dashboard budget only moves once a choice is final.
 
 import * as ui from '../../core/ui.js';
-import { applyEffects } from '../../core/events.js';
 import { installedParts } from './recompute.js';
 import { currentLift } from './compat.js';
+import { leftOver } from './common.js';
 
 // Power is last on purpose: pick what needs power first, then a battery big enough
 // to cover it, the same way engineers size a power system.
@@ -16,7 +16,7 @@ const CATEGORIES = [
   { id: 'computer', name: 'Flight computer' },
   { id: 'power', name: 'Power' },
 ];
-const TIERS = ['budget', 'standard', 'premium']; // the shop never sells 'shady' (that is the dealer's)
+const TIERS = ['budget', 'standard', 'premium']; // the shop never sells shady_* parts (that is the dealer's)
 
 // Remembered for the whole game, so Hal and Rosa don't repeat themselves after Back.
 const halSaid = new Set();
@@ -45,7 +45,7 @@ const allPicked = (state) => CATEGORIES.every((c) => pickedTier(state, c.id));
 
 // ---------- Hal's warnings (brief section 9). Each one plays once per game.
 
-function halWarnings(state) {
+function halWarnings(state, ctx) {
   const p = state.parts;
   const d = state.derived;
   const out = [];
@@ -55,13 +55,14 @@ function halWarnings(state) {
     if (d.powerUse > d.powerSupply) out.push('powerOver');
     else if (d.powerUse > 0.9 * d.powerSupply) out.push('powerTight');
   }
-  if (CATEGORIES.every((c) => pickedTier(state, c.id) === 'premium') && state.budget < 100) out.push('premiumBroke');
+  if (CATEGORIES.every((c) => pickedTier(state, c.id) === 'premium') && leftOver(state, ctx) < 100) out.push('premiumBroke');
   return out.filter((key) => !halSaid.has(key));
 }
 
 // ---------- The screen. Resolves with 'next' when the player presses Next.
 
-export function showShop(state, { catalog, lines, recompute }) {
+export function showShop(state, ctx) {
+  const { catalog, lines, recompute } = ctx;
   return new Promise((resolve) => {
     state.parts ??= {};
     const root = ui.screen('build/assembly_hangar');
@@ -89,17 +90,13 @@ export function showShop(state, { catalog, lines, recompute }) {
 
     async function pick(cat, tier) {
       if (talking || pickedTier(state, cat) === tier) return;
-      const before = state.derived.spent;
       setTier(state, cat, tier);
       recompute(state);
-      // Charge only the difference, so swapping tiers back and forth never drifts.
-      const diff = state.derived.spent - before;
-      if (diff) applyEffects(state, { budget: -diff });
       ui.sfx('build-select');
-      ui.refresh();
+      ui.refresh(); // mass and power gauges move now; the budget waits for Next
       // Stay on this category so the player can compare tiers before moving on.
       render();
-      for (const key of halWarnings(state)) {
+      for (const key of halWarnings(state, ctx)) {
         halSaid.add(key);
         await talk('hal', lines.hal?.[key], { mood: 'sad' });
       }
@@ -130,10 +127,10 @@ export function showShop(state, { catalog, lines, recompute }) {
       const chosen = pickedTier(state, current);
       const chosenCost = parts[chosen]?.cost ?? 0;
       middle.replaceChildren();
-      // One Why? per category: Rosa's explanation is about the part, not a single tier.
+      // One Help per category: Rosa's explanation is about the part, not a single tier.
       const head = el('div', 'shop-head');
       const name = CATEGORIES.find((c) => c.id === current)?.name ?? '';
-      const why = ui.button('Why?', () => { if (!talking) talk('rosa', lines.rosa?.[current]); }, { variant: 'quiet' });
+      const why = ui.button('Help', () => { if (!talking) talk('rosa', lines.rosa?.[current]); }, { variant: 'quiet' });
       why.classList.add('why-btn');
       head.append(el('h2', null, name), why);
       middle.append(head);
@@ -148,7 +145,7 @@ export function showShop(state, { catalog, lines, recompute }) {
         card.append(el('div', 'tier-stat', powerText(part)));
         card.append(el('div', 'tier-trade', part.tradeoff));
         // Swapping only costs the difference, so a card is affordable if the difference fits.
-        if (tier !== chosen && part.cost - chosenCost > state.budget) {
+        if (tier !== chosen && part.cost - chosenCost > leftOver(state, ctx)) {
           card.disabled = true;
           card.append(el('div', 'tier-why', lines.shop?.noMoney ?? 'Not enough budget.'));
         }
@@ -172,15 +169,15 @@ export function showShop(state, { catalog, lines, recompute }) {
         return r;
       };
       // derived.spent includes the rocket, so add up the parts on their own.
-      row('Parts', `$${installedParts(state.parts, catalog).reduce((n, p) => n + p.cost, 0)}M`);
+      row('Total cost', `$${installedParts(state.parts, catalog).reduce((n, p) => n + p.cost, 0)}M`);
       const massRow = row('Mass', `${d.capsuleMass} t`);
       const massWhy = ui.button('?', () => { if (!talking) talk('rosa', lines.rosa?.mass); }, { variant: 'quiet' });
       massWhy.classList.add('why-mini');
       massRow.append(massWhy);
       // The rocket is already picked, so show the room left as parts go in.
       const lift = currentLift(state, catalog);
+      const margin = lift == null ? null : Math.round((lift - d.capsuleMass) * 10) / 10;
       if (lift != null) {
-        const margin = Math.round((lift - d.capsuleMass) * 10) / 10;
         row('Lift', `${lift.toFixed(1)} t`);
         const marginRow = row('Margin', `${margin >= 0 ? '+' : ''}${margin.toFixed(1)} t`);
         marginRow.classList.add(margin < 0 ? 'bad' : margin < 1 ? 'warn' : 'ok');
@@ -194,18 +191,39 @@ export function showShop(state, { catalog, lines, recompute }) {
       else if (hasBattery && d.powerUse > 0.9 * d.powerSupply) powerBar.classList.add('tight');
       side.append(powerBar);
       row('Radio', d.comms === 'none' ? '--' : d.comms.toUpperCase());
-      row('Budget', `$${state.budget}M`);
+      // What the budget will be once Next charges these parts.
+      row('Extra budget', `$${leftOver(state, ctx)}M`);
 
-      const back = ui.button('Back', () => { if (!talking) resolve('back'); }, { variant: 'quiet' });
-      const next = ui.button('Next', () => { if (!talking) resolve('next'); });
-      back.classList.add('shop-next');
-      next.classList.add('shop-next');
-      side.append(back, next);
-      if (!allPicked(state)) {
+      // No Back button (team decision), so Next must only open when the capsule can fly:
+      // later screens can add lift but never take it away (polar is checked there).
+      const next = ui.button('Next', () => { if (!talking) leave(); });
+      next.classList.add('shop-next', 'big-next');
+      const why = !allPicked(state) ? lines.shop?.needAll
+        : margin != null && margin < 0 ? lines.shop?.shopTooHeavy : null;
+      side.append(next);
+      if (why) {
         next.disabled = true;
-        next.title = lines.shop?.needAll ?? '';
-        side.append(el('p', 'tier-why', lines.shop?.needAll ?? ''));
+        next.title = why;
+        side.append(el('p', 'tier-why', why));
       }
+      side.append(el('p', 'final-note', lines.shop?.final ?? ''));
+    }
+
+    // Short on power is allowed, but only after Hal's warning (brief section 11). It is asked
+    // here because the shop is the last place parts can change: there is no Back button.
+    async function leave() {
+      if (!state.derived.powerOk) {
+        talking = true;
+        const cover = el('div', 'shop-cover');
+        root.append(cover);
+        await ui.say('hal', lines.hal?.lockPowerShort ?? 'Power is short.', { mood: 'sad' });
+        const answer = await ui.ask('hal', lines.shop?.lockAnyway ?? 'Keep it anyway?',
+          [{ label: 'Keep it' }, { label: 'Change parts' }]);
+        cover.remove();
+        talking = false;
+        if (answer !== 0) return;
+      }
+      resolve('next');
     }
 
     render();
