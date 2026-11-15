@@ -142,3 +142,25 @@
 .v-row-price { text-align: right; }
 .v-row.v-total { border-top: 2px solid var(--c8); padding-top: 6px; color: var(--c10); }
 .v-row.v-total + .v-row.v-total { border-top: none; padding-top: 0; }
+
+/* ---------- Shady dealer pop-up. Under the dialogue box (z-index 10) so Hal can talk over it. */
+.dealer-overlay { position: absolute; inset: 0; z-index: 8; display: grid; place-items: center;
+  background: rgb(0 0 0 / 0.75); }
+.dealer-box { width: 920px; background: var(--c4); border: 4px solid var(--c13); padding: 24px;
+  color: var(--c1); font-size: var(--small); line-height: 1.6; }
+.dealer-head { display: grid; grid-template-columns: 96px 1fr; column-gap: 20px; align-items: center; margin-bottom: 16px; }
+.dealer-head > div:not(.portrait) { font-size: var(--body); color: var(--c10); }
+.dealer-head .portrait { grid-row: 1 / span 2; }
+.dealer-pitch { margin: 0; color: var(--c15); }
+.dealer-cards { display: grid; grid-template-columns: 1fr 48px 1fr; align-items: center; }
+.dealer-arrow { text-align: center; font-size: var(--title); color: var(--c14); }
+.dealer-card { background: var(--c0); border: 4px solid var(--c12); padding: 16px; display: flex;
+  flex-direction: column; gap: 6px; min-height: 220px; }
+.dealer-card.offer { border-color: var(--c13); }
+.dealer-card h3 { font-size: var(--small); color: var(--c14); margin: 0; }
+.dealer-stat .up { color: var(--c9); }
+.dealer-stat .down { color: var(--c10); }
+.dealer-warranty { margin-top: auto; color: var(--c14); }
+.dealer-after { text-align: center; color: var(--c10); margin: 16px 0 8px; }
+.dealer-buttons { display: flex; justify-content: center; gap: 16px; }
+.dealer-buttons .btn { margin: 0; }

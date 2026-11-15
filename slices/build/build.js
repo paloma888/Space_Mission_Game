@@ -9,6 +9,7 @@ import { showShop } from './shop.js';
 import { showRocket, showSite } from './vehicle.js';
 import { showReview } from './review.js';
 import { commit } from './common.js';
+import { showDealer } from './dealer.js';
 
 export const meta = { id: 'build', owner: 'Person 2' };
 export { CATALOG };
@@ -47,8 +48,9 @@ export async function show(state, done) {
   for (const screen of SCREENS) {
     await screen(state, ctx);
     commit(state, ctx);
-    // Step 6: the shady dealer pops up here, after the shop (screen === showShop),
-    // comparing the player's part with a dealer part.
+    // Right after the shop is paid for, the shady dealer offers one trade-in (every game
+    // for now, so demos always show it; the team may make it a chance later).
+    if (screen === showShop) await showDealer(state, ctx);
   }
   done();
 }

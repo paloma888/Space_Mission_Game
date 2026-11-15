@@ -16,7 +16,7 @@ const CATEGORIES = [
   { id: 'computer', name: 'Flight computer' },
   { id: 'power', name: 'Power' },
 ];
-const TIERS = ['budget', 'standard', 'premium']; // the shop never sells 'shady' (that is the dealer's)
+const TIERS = ['budget', 'standard', 'premium']; // the shop never sells shady_* parts (that is the dealer's)
 
 // Remembered for the whole game, so Hal and Rosa don't repeat themselves after Back.
 const halSaid = new Set();
