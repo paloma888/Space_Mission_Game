@@ -168,7 +168,7 @@
   font-size: var(--small);
   line-height: 1.8;
 }
-.trail-chatter-name { color: var(--accent); }
+.trail-chatter-name { color: var(--c8); }
 
 /* ---------- Placeholder trail map (UI pieces only, until the hand-drawn map exists)
    Everything here sits under .placeholder-bg, which ui.screen removes once a real
